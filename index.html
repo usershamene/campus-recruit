@@ -945,7 +945,7 @@ function goPage(p) { currentPage = p; renderTable(); renderPagination(); window.
 
 // ── Update data ──
 function loadUpdateMeta() {
-  fetch('/api/update-meta').then(r => r.json()).then(meta => {
+  fetch('data/update-meta.json').then(r => r.json()).then(meta => {
     if (meta.lastUpdate) {
       const d = new Date(meta.lastUpdate);
       document.getElementById('updateTime').textContent = '上次更新: ' + d.toLocaleString('zh-CN');
@@ -955,34 +955,7 @@ function loadUpdateMeta() {
 loadUpdateMeta();
 
 function triggerUpdate() {
-  const btn = document.getElementById('updateBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span> 更新中...';
-  showToast('正在从数据源拉取最新数据，请稍候...', 3000);
-  fetch('/api/update', { method: 'POST' })
-    .then(r => r.json())
-    .then(data => {
-      if (data.ok) {
-        showToast('数据更新任务已启动，完成后将自动刷新', 3000);
-        let tries = 0;
-        const poll = setInterval(() => {
-          tries++;
-          fetch('/api/update-meta').then(r => r.json()).then(meta => {
-            if (meta.lastUpdate) {
-              clearInterval(poll);
-              const d = new Date(meta.lastUpdate);
-              document.getElementById('updateTime').textContent = '上次更新: ' + d.toLocaleString('zh-CN');
-              btn.disabled = false;
-              btn.innerHTML = '&#8635; 更新数据';
-              if (meta.success) { showToast('数据更新完成，正在刷新页面...', 2000); setTimeout(() => location.reload(), 1500); }
-              else showToast('更新过程中出现错误，请检查控制台', 3000);
-            }
-          }).catch(() => {});
-          if (tries > 120) { clearInterval(poll); btn.disabled = false; btn.innerHTML = '&#8635; 更新数据'; }
-        }, 3000);
-      } else { btn.disabled = false; btn.innerHTML = '&#8635; 更新数据'; showToast(data.msg || '更新失败', 3000); }
-    })
-    .catch(() => { btn.disabled = false; btn.innerHTML = '&#8635; 更新数据'; showToast('请求失败', 3000); });
+  showToast('当前为静态部署模式，请在本地运行数据更新脚本', 3000);
 }
 
 // ══════════════════════════════════════════
