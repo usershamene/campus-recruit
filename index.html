@@ -42,22 +42,12 @@ button, input, select, a { transition-duration: .2s; }
 .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: relative; }
 .header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; flex: 1; }
 .header-top .stats { position: absolute; left: 50%; transform: translateX(-50%); }
-.header-top .update-area { flex: 1; display: flex; justify-content: flex-end; }
 .header h1 span { color: var(--accent); }
 .stats { display: flex; gap: 24px; align-items: center; }
 .stat { text-align: center; }
 .stat-num { font-size: 20px; font-weight: 600; color: var(--accent); }
 .stat-label { font-size: 11px; color: var(--text2); letter-spacing: .5px; text-transform: uppercase; }
 .stat-today .stat-num { color: #5db872; }
-.update-area { display: flex; align-items: center; gap: 10px; }
-.update-btn {
-  height: 36px; padding: 0 20px; border: none; border-radius: var(--radius);
-  background: var(--accent); color: #fff; font-size: 13px; font-weight: 500; cursor: pointer;
-  transition: all .2s; display: flex; align-items: center; gap: 6px;
-}
-.update-btn:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(204,120,92,.25); }
-.update-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
-.update-btn .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
 .update-time { font-size: 12px; color: var(--text2); }
 
 /* Controls */
@@ -410,8 +400,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
         <div class="stat"><div class="stat-num" id="statCompany">-</div><div class="stat-label">企业</div></div>
         <div class="stat"><div class="stat-num" id="statCity">-</div><div class="stat-label">城市</div></div>
       </div>
-      <div class="update-area">
-        <button class="update-btn" id="updateBtn" onclick="triggerUpdate()">&#8635; 更新数据</button>
+      <div>
         <span class="update-time" id="updateTime"></span>
       </div>
     </div>
@@ -954,9 +943,6 @@ function loadUpdateMeta() {
 }
 loadUpdateMeta();
 
-function triggerUpdate() {
-  showToast('当前为静态部署模式，请在本地运行数据更新脚本', 3000);
-}
 
 // ══════════════════════════════════════════
 // ── 投递进度跟踪 ──
