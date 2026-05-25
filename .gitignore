@@ -1,4 +1,6 @@
 node_modules/
-data/
+data/*
+!data/jobs.json
+!data/update-meta.json
 backup-v*/
 campus-recruit-pack.zip
