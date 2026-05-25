@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>校招信息汇总</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  /* 暖色调色板 */
+  --bg: #faf9f5; --card: #fff; --border: #e6dfd8; --text: #141413; --text2: #6c6a64;
+  --accent: #cc785c; --accent-light: #fef0eb; --accent-hover: #a9583e;
+  --tag-bg: #f5f0e8; --radius: 8px; --shadow: 0 1px 4px rgba(0,0,0,.04);
+  --surface-card: #f5f0e8; --hairline: #ebe6df;
+}
+body { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+a { color: var(--accent); text-decoration: none; transition: color .2s; }
+a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+/* 全局过渡 */
+* { transition-property: background-color, border-color, color, box-shadow; transition-duration: 0s; }
+button, input, select, a { transition-duration: .2s; }
+
+/* 滚动条美化 */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text2); }
+
+/* Quote */
+.quote-bar { text-align: center; padding: 12px 0 0; }
+.quote-text {
+  font-size: 15px; font-weight: 400; color: var(--text2); letter-spacing: .3px; line-height: 1.6;
+}
+.quote-author {
+  font-size: 12px; color: #a09d96; margin-top: 4px; font-style: italic;
+}
+
+/* Header */
+.header { background: var(--card); border-bottom: 1px solid var(--border); padding: 24px 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 8px rgba(0,0,0,.03); }
+.header-inner { max-width: 1360px; margin: 0 auto; padding: 0 32px; }
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: relative; }
+.header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; flex: 1; }
+.header-top .stats { position: absolute; left: 50%; transform: translateX(-50%); }
+.header-top .update-area { flex: 1; display: flex; justify-content: flex-end; }
+.header h1 span { color: var(--accent); }
+.stats { display: flex; gap: 24px; align-items: center; }
+.stat { text-align: center; }
+.stat-num { font-size: 20px; font-weight: 600; color: var(--accent); }
+.stat-label { font-size: 11px; color: var(--text2); letter-spacing: .5px; text-transform: uppercase; }
+.stat-today .stat-num { color: #5db872; }
+.update-area { display: flex; align-items: center; gap: 10px; }
+.update-btn {
+  height: 36px; padding: 0 20px; border: none; border-radius: var(--radius);
+  background: var(--accent); color: #fff; font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: all .2s; display: flex; align-items: center; gap: 6px;
+}
+.update-btn:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(204,120,92,.25); }
+.update-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+.update-btn .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+.update-time { font-size: 12px; color: var(--text2); }
+
+/* Controls */
+.controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.search-box { flex: 1; min-width: 240px; position: relative; }
+.search-box input {
+  width: 100%; height: 40px; padding: 0 16px 0 40px; border: 1px solid var(--border);
+  border-radius: var(--radius); font-size: 14px; background: var(--bg); transition: all .2s;
+}
+.search-box input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(204,120,92,.1); }
+.search-box::before {
+  content: ""; position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px; border: 2px solid var(--text2); border-radius: 50%; opacity: .5;
+}
+.search-box::after {
+  content: ""; position: absolute; left: 27px; top: 55%; transform: rotate(45deg);
+  width: 6px; height: 2px; background: var(--text2); opacity: .5;
+}
+.clear-btn {
+  height: 40px; padding: 0 14px; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--card); font-size: 13px; color: var(--text2); cursor: pointer; transition: all .2s;
+}
+.clear-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+/* Active filters */
+.active-filters { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.active-tag {
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px;
+  background: var(--accent-light); color: var(--accent); border-radius: 20px; font-size: 12px; font-weight: 500;
+}
+.active-tag .remove { cursor: pointer; opacity: .6; font-size: 14px; }
+.active-tag .remove:hover { opacity: 1; }
+
+/* Table */
+.table-wrap { max-width: 1360px; margin: 24px auto; padding: 0 32px; }
+.table-card { background: var(--card); border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.04); overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+thead { background: var(--surface-card); }
+th {
+  padding: 14px 14px; font-size: 11px; font-weight: 600; color: var(--text2);
+  text-align: center; border-bottom: 1px solid var(--border); white-space: nowrap;
+  user-select: none; position: relative; letter-spacing: .5px; text-transform: uppercase;
+}
+th.sortable { cursor: pointer; }
+th.sortable:hover { color: var(--accent); }
+th .sort-icon { display: inline-block; margin-left: 4px; font-size: 10px; opacity: .3; transition: all .2s; }
+th.sort-asc .sort-icon, th.sort-desc .sort-icon { opacity: 1; color: var(--accent); }
+th.sort-asc .sort-icon::after { content: "\25B2"; }
+th.sort-desc .sort-icon::after { content: "\25BC"; }
+th .sort-icon::after { content: "\25B2"; }
+
+/* Column filter header - bordered button style */
+.th-filter {
+  cursor: pointer; position: relative;
+}
+.th-filter .th-inner {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; border: 1px solid var(--border); border-radius: 20px;
+  background: var(--card); transition: all .2s; font-size: 12px; font-weight: 600; color: var(--text2);
+}
+.th-filter:hover .th-inner { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.th-filter.has-filter .th-inner { border-color: var(--accent); color: #fff; background: var(--accent); }
+.th-filter .filter-icon { font-size: 10px; opacity: .5; transition: opacity .2s; }
+.th-filter:hover .filter-icon, .th-filter.has-filter .filter-icon { opacity: 1; }
+
+/* Column filter dropdown */
+.col-filter-dd {
+  position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%); min-width: 280px; max-width: 340px;
+  max-height: 380px; background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.1); z-index: 300;
+  display: none; flex-direction: column; animation: ddIn .15s ease;
+}
+@keyframes ddIn { from { opacity: 0; transform: translateX(-50%) translateY(-4px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+.col-filter-dd.show { display: flex; }
+.col-filter-dd::before {
+  content: ""; position: absolute; top: -6px; left: 50%; transform: translateX(-50%) rotate(45deg);
+  width: 10px; height: 10px; background: var(--card); border-left: 1px solid var(--border); border-top: 1px solid var(--border);
+}
+.col-filter-search { padding: 12px; border-bottom: 1px solid var(--hairline); }
+.col-filter-search input {
+  width: 100%; height: 34px; padding: 0 12px; border: 1px solid var(--border);
+  border-radius: 6px; font-size: 13px; background: var(--bg); transition: all .2s;
+}
+.col-filter-search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(204,120,92,.1); }
+.col-filter-list { overflow-y: auto; max-height: 300px; padding: 6px 0; }
+.col-filter-item {
+  display: flex; align-items: center; gap: 8px; padding: 8px 14px; cursor: pointer;
+  font-size: 13px; transition: background .15s;
+}
+.col-filter-item:hover { background: var(--accent-light); }
+.col-filter-item input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; }
+.col-filter-item .count { margin-left: auto; font-size: 11px; color: var(--text2); background: var(--tag-bg); padding: 2px 8px; border-radius: 10px; }
+
+/* Table cells - consistent height */
+td {
+  padding: 0 14px; font-size: 13px; border-bottom: 1px solid var(--hairline);
+  height: 44px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  vertical-align: middle;
+}
+tr:hover td { background: rgba(204,120,92,.02); }
+td.col-no { width: 50px; text-align: center; color: var(--text2); font-size: 12px; font-weight: 500; }
+td.col-date { width: 100px; white-space: nowrap; font-size: 12px; color: var(--text2); }
+td.col-company { font-weight: 500; max-width: 180px; text-align: center; }
+td.col-type { text-align: center; }
+td.col-type .type-tag {
+  display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500;
+}
+td.col-position { max-width: 260px; }
+td.col-city { max-width: 160px; text-align: center; }
+td.col-deadline { width: 110px; white-space: nowrap; font-size: 12px; }
+td.col-deadline.urgent { color: #dc2626; font-weight: 500; }
+td.col-link { width: 100px; white-space: nowrap; text-align: center; }
+td.col-link a {
+  display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 12px;
+  transition: all .15s; font-weight: 500;
+}
+td.col-link .apply-link { background: var(--accent); color: #fff; }
+td.col-link .apply-link:hover { background: var(--accent-hover); text-decoration: none; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(204,120,92,.25); }
+td.col-link .notice-link { background: var(--tag-bg); color: var(--text2); margin-left: 4px; }
+td.col-link .notice-link:hover { background: var(--border); text-decoration: none; }
+.no-link { color: #ccc; font-size: 12px; }
+
+/* Type tag colors */
+.type-spring { background: #ecfdf5; color: #059669; }
+.type-intern { background: #fef3c7; color: #d97706; }
+.type-early { background: #f5f3ff; color: #7c3aed; }
+.type-fall { background: #fef2f2; color: #dc2626; }
+.type-supplement { background: #f0f9ff; color: #0284c7; }
+.type-campus { background: #fdf4ff; color: #c026d3; }
+.type-other { background: var(--tag-bg); color: var(--text2); }
+
+/* Pagination */
+.pagination-wrap {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-top: 1px solid var(--hairline); font-size: 13px; color: var(--text2);
+}
+.pagination { display: flex; gap: 4px; }
+.page-btn {
+  min-width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--card);
+  font-size: 13px; cursor: pointer; transition: all .15s; color: var(--text);
+}
+.page-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 2px 8px rgba(204,120,92,.2); }
+.page-btn:disabled { opacity: .4; cursor: default; }
+.page-info { font-size: 12px; }
+
+/* Empty */
+.empty { text-align: center; padding: 64px 20px; color: var(--text2); }
+.empty-icon { font-size: 48px; margin-bottom: 16px; opacity: .25; }
+
+/* Loading */
+.loading { text-align: center; padding: 80px; color: var(--text2); }
+.spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); padding: 12px 28px;
+  background: #141413; color: #fff; border-radius: 10px; font-size: 13px; z-index: 9999;
+  opacity: 0; transition: all .3s; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,.12);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+
+/* Tabs */
+.tabs { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.tabs-left { display: flex; gap: 0; }
+.tabs-right { display: flex; align-items: center; gap: 12px; }
+.tab-btn {
+  padding: 10px 28px; border: 1px solid var(--border); background: var(--card);
+  font-size: 14px; font-weight: 500; cursor: pointer; transition: all .2s; color: var(--text2);
+}
+.tab-btn:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+.tab-btn:last-child { border-radius: 0 var(--radius) var(--radius) 0; border-left: none; }
+.tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 2px 8px rgba(204,120,92,.2); }
+.tab-btn:hover:not(.active) { color: var(--accent); border-color: var(--accent); background: var(--accent-light); }
+
+/* Record button */
+.record-btn {
+  height: 36px; padding: 0 18px; border: none; border-radius: var(--radius);
+  background: #5db872; color: #fff; font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: all .2s; display: flex; align-items: center; gap: 6px;
+}
+.record-btn:hover { background: #4ca863; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(93,184,114,.25); }
+.record-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+.record-count { font-size: 13px; color: var(--text2); }
+
+/* Checkbox column */
+td.col-check, th.col-check { width: 40px; text-align: center; }
+td.col-check input, th.col-check input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+
+/* Progress page */
+.progress-wrap { display: none; max-width: 1360px; margin: 20px auto; padding: 0 24px; }
+.progress-wrap.active { display: block; }
+.main-wrap { display: block; }
+.main-wrap.hidden { display: none; }
+
+/* Progress stats */
+.progress-stats { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.pstat {
+  padding: 6px 12px; background: var(--card); border-radius: var(--radius);
+  box-shadow: 0 1px 4px rgba(0,0,0,.04); text-align: center; min-width: 64px;
+}
+.pstat-num { font-size: 16px; font-weight: 600; }
+.pstat-label { font-size: 10px; color: var(--text2); letter-spacing: .3px; }
+
+/* Progress toolbar */
+.progress-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.progress-search { flex: 1; min-width: 200px; }
+.progress-search input {
+  width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--border);
+  border-radius: var(--radius); font-size: 13px; background: var(--bg); transition: all .2s;
+}
+.progress-search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(204,120,92,.1); }
+.progress-filter-select {
+  height: 36px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius);
+  font-size: 13px; background: var(--card); cursor: pointer; transition: all .2s;
+  appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236c6a64' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+}
+.progress-filter-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(204,120,92,.1); }
+.add-manual-btn {
+  height: 36px; padding: 0 16px; border: none; border-radius: var(--radius);
+  background: var(--accent); color: #fff; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .2s;
+}
+.add-manual-btn:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(204,120,92,.25); }
+.export-btn {
+  height: 36px; padding: 0 14px; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--card); color: var(--text2); font-size: 13px; cursor: pointer; transition: all .2s;
+}
+.export-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+/* Progress stage tags */
+.stage-apply { background: #e0f2fe; color: #0284c7; }
+.stage-test { background: #fef3c7; color: #d97706; }
+.stage-call { background: #f5f3ff; color: #7c3aed; }
+.stage-group { background: #fdf2f8; color: #db2777; }
+.stage-first { background: #eff6ff; color: #2563eb; }
+.stage-second { background: #ecfdf5; color: #059669; }
+.stage-third { background: #d1fae5; color: #047857; }
+.stage-hr { background: #fefce8; color: #b45309; }
+.stage-offer { background: #dcfce7; color: #15803d; }
+.stage-join { background: #bbf7d0; color: #166534; }
+.stage-reject { background: #fef2f2; color: #dc2626; }
+
+/* Progress row backgrounds - 更柔和的色调 */
+tr.row-apply td { background: rgba(2,132,199,.04); }
+tr.row-test td { background: rgba(217,119,6,.04); }
+tr.row-call td { background: rgba(124,58,237,.04); }
+tr.row-group td { background: rgba(219,39,119,.04); }
+tr.row-first td { background: rgba(37,99,235,.04); }
+tr.row-second td { background: rgba(5,150,105,.04); }
+tr.row-third td { background: rgba(4,120,87,.04); }
+tr.row-hr td { background: rgba(180,83,9,.04); }
+tr.row-offer td { background: rgba(21,128,61,.06); }
+tr.row-join td { background: rgba(22,101,52,.06); }
+tr.row-reject td { background: rgba(220,38,38,.04); }
+#progressTbody tr:hover td { background: rgba(204,120,92,.06); }
+
+/* Progress actions */
+.progress-actions { display: flex; gap: 6px; }
+.action-btn {
+  padding: 4px 12px; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--card); font-size: 11px; cursor: pointer; transition: all .15s; color: var(--text2); font-weight: 500;
+}
+.action-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.action-btn.delete:hover { border-color: #dc2626; color: #dc2626; background: #fef2f2; }
+
+/* Note input */
+.note-input {
+  width: 100%; height: 30px; padding: 0 10px; border: 1px solid var(--border);
+  border-radius: 6px; font-size: 12px; background: var(--bg); transition: all .2s;
+}
+.note-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(204,120,92,.1); }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 500;
+  display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--card); border-radius: 16px; padding: 28px; width: 420px; max-width: 90vw;
+  box-shadow: 0 24px 48px rgba(0,0,0,.12); animation: modalIn .2s ease;
+}
+@keyframes modalIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.modal h3 { font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+.modal-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.modal-row label { width: 70px; font-size: 13px; color: var(--text2); text-align: right; }
+.modal-row input, .modal-row select {
+  flex: 1; height: 36px; padding: 0 12px; border: 1px solid var(--border);
+  border-radius: var(--radius); font-size: 13px; transition: all .2s;
+}
+.modal-row input:focus, .modal-row select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(204,120,92,.1); }
+.modal-row select {
+  appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236c6a64' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+}
+.modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.modal-btns button {
+  height: 36px; padding: 0 20px; border-radius: var(--radius); font-size: 13px; font-weight: 500; cursor: pointer; transition: all .2s;
+}
+.modal-confirm { background: var(--accent); color: #fff; border: none; }
+.modal-confirm:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(204,120,92,.25); }
+.modal-cancel { background: var(--card); color: var(--text2); border: 1px solid var(--border); }
+.modal-cancel:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Timeline */
+.timeline { padding: 16px 0; }
+.timeline-item { display: flex; gap: 14px; padding: 10px 0; font-size: 13px; }
+.timeline-dot {
+  width: 10px; height: 10px; border-radius: 50%; background: var(--accent); margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(204,120,92,.15);
+}
+
+/* Custom tooltip */
+.has-tip { position: relative; cursor: default; }
+.has-tip .tip {
+  display: none; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+  background: #141413; color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 12px;
+  white-space: normal; max-width: 320px; min-width: 80px; word-break: break-all; z-index: 200;
+  pointer-events: none; line-height: 1.5; box-shadow: 0 4px 16px rgba(0,0,0,.12);
+}
+.has-tip .tip::after {
+  content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent; border-top-color: #141413;
+}
+.has-tip:hover .tip { display: block; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header-inner { padding: 0 16px; }
+  .header-top { flex-direction: column; gap: 12px; align-items: flex-start; }
+  .controls { flex-direction: column; }
+  .search-box { min-width: 100%; }
+  .table-wrap, .progress-wrap { padding: 0 12px; overflow-x: auto; }
+  table { min-width: 900px; }
+  td, th { padding: 10px 12px; }
+  .progress-toolbar { flex-direction: column; }
+  .progress-search { min-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <h1>校招信息<span>汇总</span></h1>
+      <div class="stats">
+        <div class="stat"><div class="stat-num" id="statTotal">-</div><div class="stat-label">总岗位</div></div>
+        <div class="stat stat-today"><div class="stat-num" id="statToday">-</div><div class="stat-label">今日更新</div></div>
+        <div class="stat"><div class="stat-num" id="statCompany">-</div><div class="stat-label">企业</div></div>
+        <div class="stat"><div class="stat-num" id="statCity">-</div><div class="stat-label">城市</div></div>
+      </div>
+      <div class="update-area">
+        <button class="update-btn" id="updateBtn" onclick="triggerUpdate()">&#8635; 更新数据</button>
+        <span class="update-time" id="updateTime"></span>
+      </div>
+    </div>
+    <div class="quote-bar">
+      <span class="quote-text" id="quoteText"></span>
+      <span class="quote-author" id="quoteAuthor"></span>
+    </div>
+    <div class="controls">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="搜索公司、岗位、城市...">
+      </div>
+      <button class="clear-btn" id="clearAllBtn">清除筛选</button>
+    </div>
+    <div class="active-filters" id="activeFilters"></div>
+  </div>
+</div>
+
+<div class="table-wrap main-wrap">
+  <div class="tabs">
+    <div class="tabs-left">
+      <button class="tab-btn active" onclick="switchPage('main')">招聘岗位</button>
+      <button class="tab-btn" onclick="switchPage('progress')">投递进度</button>
+    </div>
+    <div class="tabs-right">
+      <button class="record-btn" id="recordBtn" onclick="recordSelected()" disabled>+ 记录投递</button>
+      <span class="record-count" id="recordCount"></span>
+    </div>
+  </div>
+  <div class="table-card">
+    <div class="loading" id="loading"><div class="spinner"></div><p style="margin-top:12px">加载数据中...</p></div>
+    <table id="mainTable" style="display:none">
+      <thead>
+        <tr>
+          <th class="col-check"><input type="checkbox" id="checkAll" onchange="toggleCheckAll(this)"></th>
+          <th style="width:50px">#</th>
+          <th class="sortable" data-sort="publishDate" style="width:100px">发布日期 <span class="sort-icon"></span></th>
+          <th>
+            <span class="th-filter" id="companyFilterHeader" data-type="company">
+              <span class="th-inner">公司 <span class="filter-icon">&#9660;</span></span>
+              <div class="col-filter-dd" id="companyDD">
+                <div class="col-filter-search"><input type="text" placeholder="搜索公司..." id="companySearchInput"></div>
+                <div class="col-filter-list" id="companyFilterList"></div>
+              </div>
+            </span>
+          </th>
+          <th>
+            <span class="th-filter" id="typeFilterHeader" data-type="type">
+              <span class="th-inner">类型 <span class="filter-icon">&#9660;</span></span>
+              <div class="col-filter-dd" id="typeDD">
+                <div class="col-filter-search"><input type="text" placeholder="搜索类型..." id="typeSearchInput"></div>
+                <div class="col-filter-list" id="typeFilterList"></div>
+              </div>
+            </span>
+          </th>
+          <th>
+            <span class="th-filter" id="posFilterHeader" data-type="pos">
+              <span class="th-inner">岗位 <span class="filter-icon">&#9660;</span></span>
+              <div class="col-filter-dd" id="posDD">
+                <div class="col-filter-search"><input type="text" placeholder="搜索岗位..." id="posSearchInput"></div>
+                <div class="col-filter-list" id="posFilterList"></div>
+              </div>
+            </span>
+          </th>
+          <th>
+            <span class="th-filter" id="cityFilterHeader" data-type="city">
+              <span class="th-inner">城市 <span class="filter-icon">&#9660;</span></span>
+              <div class="col-filter-dd" id="cityDD">
+                <div class="col-filter-search"><input type="text" placeholder="搜索城市..." id="citySearchInput"></div>
+                <div class="col-filter-list" id="cityFilterList"></div>
+              </div>
+            </span>
+          </th>
+          <th class="sortable" data-sort="deadline" style="width:110px">截止日期 <span class="sort-icon"></span></th>
+          <th style="width:100px">链接</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="pagination-wrap" id="paginationWrap" style="display:none">
+      <div class="page-info" id="pageInfo"></div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Progress Page -->
+<div class="progress-wrap" id="progressWrap">
+  <div class="tabs">
+    <div class="tabs-left">
+      <button class="tab-btn" onclick="switchPage('main')">招聘岗位</button>
+      <button class="tab-btn active" onclick="switchPage('progress')">投递进度</button>
+    </div>
+    <div class="tabs-right">
+      <div class="progress-stats" id="progressStats"></div>
+    </div>
+  </div>
+
+  <div class="progress-toolbar">
+    <div class="progress-search">
+      <input type="text" id="progressSearchInput" placeholder="搜索公司、岗位、城市...">
+    </div>
+    <select class="progress-filter-select" id="progressStageFilter">
+      <option value="">全部阶段</option>
+    </select>
+    <select class="progress-filter-select" id="progressSortSelect">
+      <option value="applyDate-desc">投递时间 ↓</option>
+      <option value="applyDate-asc">投递时间 ↑</option>
+      <option value="company-asc">公司 A-Z</option>
+      <option value="progress-asc">进度阶段</option>
+    </select>
+    <button class="add-manual-btn" onclick="showAddModal()">+ 手动添加</button>
+    <button class="export-btn" onclick="exportProgress()">导出备份</button>
+    <button class="export-btn" id="batchDeleteBtn" onclick="batchDeleteProgress()" style="color:#dc2626;border-color:#fecaca;background:#fef2f2">批量删除</button>
+    <label class="export-btn" style="cursor:pointer;margin:0;display:inline-flex;align-items:center;justify-content:center">
+      <input type="file" accept=".json" style="display:none" onchange="importProgress(event)">
+      导入
+    </label>
+  </div>
+
+  <div class="table-card">
+    <table id="progressTable">
+      <thead>
+        <tr>
+          <th class="col-check"><input type="checkbox" id="pCheckAll" onchange="toggleProgressCheckAll(this)"></th>
+          <th style="width:100px">投递时间</th>
+          <th>公司</th>
+          <th>岗位</th>
+          <th>城市</th>
+          <th style="width:100px">进度</th>
+          <th>备注</th>
+          <th style="width:160px">操作</th>
+        </tr>
+      </thead>
+      <tbody id="progressTbody"></tbody>
+    </table>
+    <div class="empty" id="progressEmpty" style="display:none">
+      <div class="empty-icon">&#128221;</div>
+      <p>还没有投递记录，从招聘岗位页面选择记录或手动添加</p>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">添加投递记录</h3>
+    <div class="modal-row"><label>公司</label><input type="text" id="modalCompany"></div>
+    <div class="modal-row"><label>岗位</label><input type="text" id="modalPosition"></div>
+    <div class="modal-row"><label>城市</label><input type="text" id="modalCity"></div>
+    <div class="modal-row"><label>投递时间</label><input type="date" id="modalDate"></div>
+    <div class="modal-row"><label>进度</label><select id="modalStage"></select></div>
+    <div class="modal-row"><label>备注</label><input type="text" id="modalNote"></div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">取消</button>
+      <button class="modal-confirm" id="modalConfirmBtn" onclick="confirmModal()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- Timeline Modal -->
+<div class="modal-overlay" id="timelineOverlay">
+  <div class="modal" style="width:520px;max-height:80vh;overflow-y:auto">
+    <h3 id="timelineTitle">进度时间线</h3>
+    <div class="timeline" id="timelineContent"></div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeTimeline()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Inspirational quotes ──
+const QUOTES = [
+  { text: '所有的努力都不会白费，你付出多少时间和精力，都是在对未来的积累', author: '' },
+  { text: '世界上什么都不公平，唯独时间最公平', author: '' },
+  { text: '种一棵树最好的时间是十年前，其次是现在', author: '' },
+  { text: '你现在的气质里，藏着你走过的路、读过的书和爱过的人', author: '' },
+  { text: '所谓万丈深渊，下去也是前程万里', author: '木心' },
+  { text: '在最黑暗的那段人生，是我自己把自己拉出深渊，没有那个人，我就做那个人', author: '中岛美嘉' },
+  { text: '一个能够升起月亮的身体，必然驮住了无数次日落', author: '余秀华' },
+  { text: '你才二十几岁，你可以成为任何你想成为的人', author: '' },
+  { text: '没有一颗心会因为追求梦想而受伤，当你真心渴望某样东西时，整个宇宙都会来帮忙', author: '保罗·柯艾略' },
+  { text: '人生没有白走的路，每一步都算数', author: '' },
+  { text: '你必须非常努力，才能看起来毫不费力', author: '' },
+  { text: '愿你一生努力，一生被爱，想要的都拥有，得不到的都释怀', author: '' },
+  { text: '生活不会辜负每一个努力向上的人', author: '' },
+  { text: '少年与爱永不老去，即便披荆斩棘，丢失怒马鲜衣', author: '' },
+  { text: '既然选择了远方，便只顾风雨兼程', author: '汪国真' },
+  { text: '你的问题主要在于读书不多而想得太多', author: '杨绛' },
+  { text: '做你自己，因为别人都有人做了', author: '王尔德' },
+  { text: '要有最朴素的生活和最遥远的梦想，即使明天天寒地冻，路远马亡', author: '海子' },
+  { text: '一个人至少拥有一个梦想，有一个理由去坚强', author: '' },
+  { text: '把脸一直向着阳光，这样就不会见到阴影', author: '' },
+];
+let quoteIdx = Math.floor(Math.random() * QUOTES.length);
+function showQuote(idx) {
+  const q = QUOTES[idx];
+  document.getElementById('quoteText').textContent = q.text;
+  document.getElementById('quoteAuthor').textContent = q.author ? '— ' + q.author : '';
+}
+showQuote(quoteIdx);
+
+let allJobs = [];
+let filteredJobs = [];
+let currentPage = 1;
+let pageSize = 50;
+let sortField = 'publishDate';
+let sortDir = 'desc';
+let selectedCities = new Set();
+let selectedPositions = new Set();
+let selectedCompanies = new Set();
+let selectedTypes = new Set();
+let searchTimer = null;
+let selectedJobKeys = new Set();
+
+// ── Toast ──
+function showToast(msg, duration) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration || 2500);
+}
+
+// ── City normalization ──
+function normalizeCity(raw) {
+  if (!raw) return [];
+  return raw.split(/[,，、/|；;\s]+/).map(c => c.trim()).filter(Boolean);
+}
+
+// ── Position tag extraction ──
+const POS_KEYWORDS = {
+  '技术/研发': ['研发', '开发', '技术', '工程师', '架构', 'dev', 'engineer', '技术类'],
+  '算法/AI': ['算法', 'ai', '机器学习', '深度学习', 'nlp', 'cv', '大模型', '人工智能'],
+  '产品': ['产品'],
+  '设计': ['设计', 'ui', 'ux', '视觉', '交互'],
+  '运营': ['运营', 'operation'],
+  '市场/营销': ['市场', '营销', 'marketing', '品牌', '推广'],
+  '销售': ['销售', 'sales', 'bd', '商务'],
+  '金融/银行': ['金融', '银行', '证券', '基金', '投资', '保险', '风控', '财务'],
+  '人力/行政': ['人力', '行政', 'hr', '综合', '党', '办公'],
+  '法务/合规': ['法务', '合规', '法律', '审计', '纪检'],
+  '供应链/物流': ['供应链', '物流', '采购', '仓储'],
+  '生产/制造': ['生产', '制造', '工艺', '质量', '质检'],
+  '教育/培训': ['教育', '培训', '教师'],
+  '医疗/健康': ['医疗', '健康', '医药', '临床'],
+  '传媒/内容': ['传媒', '内容', '编辑', '记者', '策划', '新媒体'],
+};
+function extractPositionTags(positions) {
+  if (!positions) return [];
+  const lower = positions.toLowerCase();
+  const tags = [];
+  for (const [tag, keywords] of Object.entries(POS_KEYWORDS)) {
+    if (keywords.some(kw => lower.includes(kw))) tags.push(tag);
+  }
+  return tags.length ? tags : ['其他'];
+}
+
+// ── Type styling ──
+function getTypeStyle(type) {
+  if (!type) return 'type-other';
+  if (type.includes('春招')) return 'type-spring';
+  if (type.includes('秋招')) return 'type-fall';
+  if (type.includes('实习')) return 'type-intern';
+  if (type.includes('提前批')) return 'type-early';
+  if (type.includes('补录')) return 'type-supplement';
+  if (type.includes('校招')) return 'type-campus';
+  return 'type-other';
+}
+
+// ── Load data ──
+function loadData() {
+  fetch('data/jobs.json')
+    .then(r => r.json())
+    .then(data => {
+      allJobs = data;
+      const cityCount = {};
+      const posCount = {};
+      const typeCount = {};
+      allJobs.forEach(job => {
+        const cities = normalizeCity(job.location);
+        cities.forEach(c => { cityCount[c] = (cityCount[c] || 0) + 1; });
+        job._cities = cities;
+        const tags = extractPositionTags(job.positions);
+        tags.forEach(t => { posCount[t] = (posCount[t] || 0) + 1; });
+        job._posTags = tags;
+        const rt = job.recruitmentType || '其他';
+        typeCount[rt] = (typeCount[rt] || 0) + 1;
+      });
+      // Stats
+      const uniqueCompanies = new Set(allJobs.map(j => j.company)).size;
+      const uniqueCities = Object.keys(cityCount).length;
+      const today = new Date().toISOString().split('T')[0];
+      const todayCount = allJobs.filter(j => j.publishDate === today).length;
+      document.getElementById('statTotal').textContent = allJobs.length.toLocaleString();
+      document.getElementById('statToday').textContent = todayCount.toLocaleString();
+      document.getElementById('statCompany').textContent = uniqueCompanies.toLocaleString();
+      document.getElementById('statCity').textContent = uniqueCities.toLocaleString();
+      // Build filter lists
+      buildColFilterList('companyFilterList', buildCompanyCount(), selectedCompanies, 'company');
+      buildColFilterList('typeFilterList', typeCount, selectedTypes, 'type');
+      buildColFilterList('posFilterList', posCount, selectedPositions, 'pos');
+      buildColFilterList('cityFilterList', cityCount, selectedCities, 'city');
+      applyFilter();
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('mainTable').style.display = '';
+      document.getElementById('paginationWrap').style.display = '';
+    })
+    .catch(e => {
+      document.getElementById('loading').innerHTML = '<p style="color:#e74c3c">数据加载失败</p>';
+    });
+}
+loadData();
+
+function buildCompanyCount() {
+  const m = {};
+  allJobs.forEach(j => { if (j.company) m[j.company] = (m[j.company] || 0) + 1; });
+  return m;
+}
+
+// ── Column filter list builder ──
+function buildColFilterList(containerId, countMap, selectedSet, type) {
+  const container = document.getElementById(containerId);
+  const sorted = Object.entries(countMap).sort((a, b) => b[1] - a[1]);
+  container.innerHTML = '';
+  for (const [name, count] of sorted) {
+    const item = document.createElement('label');
+    item.className = 'col-filter-item';
+    item.dataset.name = name;
+    item.innerHTML = `<input type="checkbox" ${selectedSet.has(name) ? 'checked' : ''}><span>${esc(name)}</span><span class="count">${count}</span>`;
+    item.querySelector('input').addEventListener('change', e => {
+      if (e.target.checked) selectedSet.add(name); else selectedSet.delete(name);
+      applyFilter();
+      updateHeaderFilterState(type);
+      renderActiveFilters();
+    });
+    container.appendChild(item);
+  }
+}
+
+// ── Column filter search ──
+document.getElementById('companySearchInput').addEventListener('input', e => colFilterSearch('companyFilterList', e.target.value));
+document.getElementById('typeSearchInput').addEventListener('input', e => colFilterSearch('typeFilterList', e.target.value));
+document.getElementById('posSearchInput').addEventListener('input', e => colFilterSearch('posFilterList', e.target.value));
+document.getElementById('citySearchInput').addEventListener('input', e => colFilterSearch('cityFilterList', e.target.value));
+function colFilterSearch(listId, query) {
+  const items = document.getElementById(listId).querySelectorAll('.col-filter-item');
+  const q = query.toLowerCase();
+  items.forEach(item => { item.style.display = item.dataset.name.toLowerCase().includes(q) ? '' : 'none'; });
+}
+
+// ── Column header dropdown toggle ──
+function setupColDropdown(headerId, ddId) {
+  const header = document.getElementById(headerId);
+  const dd = document.getElementById(ddId);
+  header.addEventListener('click', e => {
+    if (e.target.closest('.col-filter-dd')) return;
+    e.stopPropagation();
+    document.querySelectorAll('.col-filter-dd').forEach(d => { if (d !== dd) d.classList.remove('show'); });
+    dd.classList.toggle('show');
+  });
+}
+setupColDropdown('companyFilterHeader', 'companyDD');
+setupColDropdown('typeFilterHeader', 'typeDD');
+setupColDropdown('posFilterHeader', 'posDD');
+setupColDropdown('cityFilterHeader', 'cityDD');
+
+document.addEventListener('click', () => { document.querySelectorAll('.col-filter-dd').forEach(d => d.classList.remove('show')); });
+document.querySelectorAll('.col-filter-dd').forEach(dd => dd.addEventListener('click', e => e.stopPropagation()));
+
+// ── Update header filter indicator ──
+function updateHeaderFilterState(type) {
+  const map = { company: 'companyFilterHeader', type: 'typeFilterHeader', pos: 'posFilterHeader', city: 'cityFilterHeader' };
+  const setMap = { company: selectedCompanies, type: selectedTypes, pos: selectedPositions, city: selectedCities };
+  document.getElementById(map[type]).classList.toggle('has-filter', setMap[type].size > 0);
+}
+
+// ── Active filters display ──
+function renderActiveFilters() {
+  const container = document.getElementById('activeFilters');
+  let html = '';
+  for (const v of selectedCompanies) html += `<span class="active-tag">公司: ${esc(v)} <span class="remove" onclick="removeFilter('company','${esc(v)}')">&times;</span></span>`;
+  for (const v of selectedTypes) html += `<span class="active-tag">类型: ${esc(v)} <span class="remove" onclick="removeFilter('type','${esc(v)}')">&times;</span></span>`;
+  for (const v of selectedPositions) html += `<span class="active-tag">岗位: ${esc(v)} <span class="remove" onclick="removeFilter('pos','${esc(v)}')">&times;</span></span>`;
+  for (const v of selectedCities) html += `<span class="active-tag">城市: ${esc(v)} <span class="remove" onclick="removeFilter('city','${esc(v)}')">&times;</span></span>`;
+  container.innerHTML = html;
+}
+function removeFilter(type, value) {
+  const setMap = { company: selectedCompanies, type: selectedTypes, pos: selectedPositions, city: selectedCities };
+  const listMap = { company: 'companyFilterList', type: 'typeFilterList', pos: 'posFilterList', city: 'cityFilterList' };
+  setMap[type].delete(value);
+  const cb = document.getElementById(listMap[type]).querySelector(`.col-filter-item[data-name="${CSS.escape(value)}"] input`);
+  if (cb) cb.checked = false;
+  applyFilter();
+  updateHeaderFilterState(type);
+  renderActiveFilters();
+}
+
+// ── Clear all ──
+document.getElementById('clearAllBtn').addEventListener('click', () => {
+  selectedCities.clear(); selectedPositions.clear(); selectedCompanies.clear(); selectedTypes.clear();
+  document.getElementById('searchInput').value = '';
+  document.querySelectorAll('.col-filter-item input').forEach(cb => cb.checked = false);
+  ['company', 'type', 'pos', 'city'].forEach(t => updateHeaderFilterState(t));
+  renderActiveFilters();
+  applyFilter();
+});
+
+// ── Search ──
+document.getElementById('searchInput').addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { currentPage = 1; applyFilter(); }, 200);
+});
+
+// ── Apply filter + search ──
+function applyFilter() {
+  const query = document.getElementById('searchInput').value.toLowerCase().trim();
+  filteredJobs = allJobs.filter(job => {
+    if (query) {
+      const hay = `${job.company} ${job.positions} ${job.location} ${job.industry || ''} ${job.recruitmentType || ''}`.toLowerCase();
+      if (!hay.includes(query)) return false;
+    }
+    if (selectedCompanies.size > 0 && !selectedCompanies.has(job.company)) return false;
+    if (selectedTypes.size > 0 && !selectedTypes.has(job.recruitmentType)) return false;
+    if (selectedCities.size > 0 && !job._cities.some(c => selectedCities.has(c))) return false;
+    if (selectedPositions.size > 0 && !job._posTags.some(t => selectedPositions.has(t))) return false;
+    return true;
+  });
+  applySort();
+  renderTable();
+  renderPagination();
+}
+
+// ── Sort ──
+function applySort() {
+  filteredJobs.sort((a, b) => {
+    const va = (a[sortField] || '').toString();
+    const vb = (b[sortField] || '').toString();
+    return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+}
+document.querySelectorAll('th.sortable').forEach(th => {
+  th.addEventListener('click', () => {
+    const field = th.dataset.sort;
+    if (sortField === field) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    else { sortField = field; sortDir = 'desc'; }
+    document.querySelectorAll('th.sortable').forEach(t => t.classList.remove('sort-asc', 'sort-desc'));
+    th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+    applySort();
+    renderTable();
+  });
+});
+
+// ── Render table ──
+function renderTable() {
+  const tbody = document.getElementById('tbody');
+  const start = (currentPage - 1) * pageSize;
+  const pageJobs = filteredJobs.slice(start, start + pageSize);
+  if (pageJobs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9"><div class="empty"><div class="empty-icon">&#128269;</div><p>没有找到匹配的结果</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = pageJobs.map((job, i) => {
+    const no = start + i + 1;
+    const deadlineClass = isUrgent(job.deadline) ? 'urgent' : '';
+    const typeClass = getTypeStyle(job.recruitmentType);
+    const jobKey = getJobKey(job);
+    const isChecked = selectedJobKeys.has(jobKey);
+    const links = [];
+    const applyUrl = job.applyUrl || job.announcementUrl || '';
+    const noticeUrl = job.announcementUrl || job.applyUrl || '';
+    if (applyUrl || noticeUrl) {
+      if (applyUrl) links.push(`<a href="${esc(applyUrl)}" target="_blank" rel="noopener" class="apply-link">投递</a>`);
+      if (noticeUrl) links.push(`<a href="${esc(noticeUrl)}" target="_blank" rel="noopener" class="notice-link">公告</a>`);
+    } else {
+      links.push('<span class="no-link">-</span>');
+    }
+    return `<tr>
+      <td class="col-check"><input type="checkbox" data-idx="${i}" data-key="${esc(jobKey)}" ${isChecked ? 'checked' : ''} onchange="onCheckChange(this)"></td>
+      <td class="col-no">${no}</td>
+      <td class="col-date">${esc(job.publishDate)}</td>
+      <td class="col-company has-tip"><span class="tip">${esc(job.company)}</span>${esc(job.company)}</td>
+      <td class="col-type"><span class="type-tag ${typeClass}">${esc(job.recruitmentType)}</span></td>
+      <td class="col-position has-tip"><span class="tip">${esc(job.positions)}</span>${esc(job.positions)}</td>
+      <td class="col-city has-tip"><span class="tip">${esc(job.location)}</span>${esc(job.location)}</td>
+      <td class="col-deadline ${deadlineClass}">${esc(job.deadline || '-')}</td>
+      <td class="col-link">${links.join('')}</td>
+    </tr>`;
+  }).join('');
+}
+
+function isUrgent(deadline) {
+  if (!deadline || deadline === '-' || deadline === '尽快投递') return deadline === '尽快投递';
+  try {
+    const d = new Date(deadline.replace(/\//g, '-'));
+    const now = new Date();
+    return (d - now) / 86400000 <= 7;
+  } catch { return false; }
+}
+
+function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// ── Pagination ──
+function renderPagination() {
+  const total = filteredJobs.length;
+  const totalPages = Math.ceil(total / pageSize);
+  if (currentPage > totalPages) currentPage = totalPages || 1;
+  const start = (currentPage - 1) * pageSize + 1;
+  const end = Math.min(currentPage * pageSize, total);
+  document.getElementById('pageInfo').textContent = total > 0 ? `显示 ${start}-${end}，共 ${total} 条` : '无数据';
+  const pag = document.getElementById('pagination');
+  let html = `<button class="page-btn" ${currentPage <= 1 ? 'disabled' : ''} onclick="goPage(${currentPage - 1})">&lsaquo;</button>`;
+  const pages = getPageNumbers(currentPage, totalPages);
+  for (const p of pages) {
+    if (p === '...') html += '<span style="padding:0 4px;color:#999">...</span>';
+    else html += `<button class="page-btn ${p === currentPage ? 'active' : ''}" onclick="goPage(${p})">${p}</button>`;
+  }
+  html += `<button class="page-btn" ${currentPage >= totalPages ? 'disabled' : ''} onclick="goPage(${currentPage + 1})">&rsaquo;</button>`;
+  pag.innerHTML = html;
+}
+function getPageNumbers(cur, total) {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages = [];
+  if (cur <= 4) { for (let i = 1; i <= 5; i++) pages.push(i); pages.push('...', total); }
+  else if (cur >= total - 3) { pages.push(1, '...'); for (let i = total - 4; i <= total; i++) pages.push(i); }
+  else { pages.push(1, '...', cur - 1, cur, cur + 1, '...', total); }
+  return pages;
+}
+function goPage(p) { currentPage = p; renderTable(); renderPagination(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+// ── Update data ──
+function loadUpdateMeta() {
+  fetch('/api/update-meta').then(r => r.json()).then(meta => {
+    if (meta.lastUpdate) {
+      const d = new Date(meta.lastUpdate);
+      document.getElementById('updateTime').textContent = '上次更新: ' + d.toLocaleString('zh-CN');
+    }
+  }).catch(() => {});
+}
+loadUpdateMeta();
+
+function triggerUpdate() {
+  const btn = document.getElementById('updateBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> 更新中...';
+  showToast('正在从数据源拉取最新数据，请稍候...', 3000);
+  fetch('/api/update', { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        showToast('数据更新任务已启动，完成后将自动刷新', 3000);
+        let tries = 0;
+        const poll = setInterval(() => {
+          tries++;
+          fetch('/api/update-meta').then(r => r.json()).then(meta => {
+            if (meta.lastUpdate) {
+              clearInterval(poll);
+              const d = new Date(meta.lastUpdate);
+              document.getElementById('updateTime').textContent = '上次更新: ' + d.toLocaleString('zh-CN');
+              btn.disabled = false;
+              btn.innerHTML = '&#8635; 更新数据';
+              if (meta.success) { showToast('数据更新完成，正在刷新页面...', 2000); setTimeout(() => location.reload(), 1500); }
+              else showToast('更新过程中出现错误，请检查控制台', 3000);
+            }
+          }).catch(() => {});
+          if (tries > 120) { clearInterval(poll); btn.disabled = false; btn.innerHTML = '&#8635; 更新数据'; }
+        }, 3000);
+      } else { btn.disabled = false; btn.innerHTML = '&#8635; 更新数据'; showToast(data.msg || '更新失败', 3000); }
+    })
+    .catch(() => { btn.disabled = false; btn.innerHTML = '&#8635; 更新数据'; showToast('请求失败', 3000); });
+}
+
+// ══════════════════════════════════════════
+// ── 投递进度跟踪 ──
+// ══════════════════════════════════════════
+
+const STAGES = ['投递', '测评', '电邀', '群面', '一面', '二面', '三面', 'HR面', 'Offer', '入职', '拒绝'];
+const STAGE_CLASS = {
+  '投递': 'stage-apply', '测评': 'stage-test', '电邀': 'stage-call', '群面': 'stage-group',
+  '一面': 'stage-first', '二面': 'stage-second', '三面': 'stage-third',
+  'HR面': 'stage-hr', 'Offer': 'stage-offer', '入职': 'stage-join', '拒绝': 'stage-reject',
+};
+const ROW_CLASS_MAP = {
+  '投递': 'row-apply', '测评': 'row-test', '电邀': 'row-call', '群面': 'row-group',
+  '一面': 'row-first', '二面': 'row-second', '三面': 'row-third',
+  'HR面': 'row-hr', 'Offer': 'row-offer', '入职': 'row-join', '拒绝': 'row-reject',
+};
+
+let progressRecords = JSON.parse(localStorage.getItem('campus_recruit_progress') || '[]');
+let editingId = null;
+let progressSearchTimer = null;
+
+function saveProgress() {
+  localStorage.setItem('campus_recruit_progress', JSON.stringify(progressRecords));
+}
+
+// ── Page switching ──
+function switchPage(page) {
+  const mainWrap = document.querySelector('.main-wrap');
+  const progressWrap = document.getElementById('progressWrap');
+  if (page === 'main') {
+    mainWrap.classList.remove('hidden');
+    progressWrap.classList.remove('active');
+  } else {
+    mainWrap.classList.add('hidden');
+    progressWrap.classList.add('active');
+    renderProgressPage();
+  }
+}
+
+// ── Checkbox & record ──
+function getJobKey(job) {
+  return `${job.company}|${job.positions}|${job.publishDate}`;
+}
+function onCheckChange(cb) {
+  const key = cb.dataset.key;
+  if (cb.checked) selectedJobKeys.add(key); else selectedJobKeys.delete(key);
+  updateRecordBtn();
+}
+function toggleCheckAll(cb) {
+  const start = (currentPage - 1) * pageSize;
+  const pageJobs = filteredJobs.slice(start, start + pageSize);
+  pageJobs.forEach(job => {
+    const key = getJobKey(job);
+    if (cb.checked) selectedJobKeys.add(key); else selectedJobKeys.delete(key);
+  });
+  document.querySelectorAll('#tbody .col-check input').forEach(c => { c.checked = cb.checked; });
+  updateRecordBtn();
+}
+function updateRecordBtn() {
+  const btn = document.getElementById('recordBtn');
+  const count = document.getElementById('recordCount');
+  btn.disabled = selectedJobKeys.size === 0;
+  count.textContent = selectedJobKeys.size > 0 ? `已选 ${selectedJobKeys.size} 条` : '';
+}
+function recordSelected() {
+  if (selectedJobKeys.size === 0) return;
+  let added = 0;
+  selectedJobKeys.forEach(key => {
+    const job = allJobs.find(j => getJobKey(j) === key);
+    if (!job) return;
+    const exists = progressRecords.some(r => r.company === job.company && r.position === job.positions);
+    if (exists) return;
+    progressRecords.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      company: job.company || '',
+      position: job.positions || '',
+      city: job.location || '',
+      applyDate: new Date().toISOString().split('T')[0],
+      progress: '投递',
+      sourceUrl: job.applyUrl || '',
+      note: '',
+      history: [{ stage: '投递', time: new Date().toISOString() }],
+    });
+    added++;
+  });
+  saveProgress();
+  selectedJobKeys.clear();
+  document.getElementById('checkAll').checked = false;
+  document.querySelectorAll('#tbody .col-check input').forEach(c => { c.checked = false; });
+  updateRecordBtn();
+  showToast(added > 0 ? `已记录 ${added} 条投递` : '选中的记录已存在');
+}
+
+// ── Progress page rendering ──
+function renderProgressPage() {
+  renderProgressStats();
+  renderProgressTable();
+  populateStageFilter();
+}
+
+function renderProgressStats() {
+  const container = document.getElementById('progressStats');
+  const total = progressRecords.length;
+  const stageCount = {};
+  STAGES.forEach(s => { stageCount[s] = 0; });
+  progressRecords.forEach(r => { stageCount[r.progress] = (stageCount[r.progress] || 0) + 1; });
+  let html = `<div class="pstat"><div class="pstat-num" style="color:var(--accent)">${total}</div><div class="pstat-label">总投递</div></div>`;
+  for (const stage of STAGES) {
+    if (stageCount[stage] > 0) {
+      const cls = STAGE_CLASS[stage];
+      html += `<div class="pstat"><div class="pstat-num ${cls}" style="background:none">${stageCount[stage]}</div><div class="pstat-label">${stage}</div></div>`;
+    }
+  }
+  container.innerHTML = html;
+}
+
+function getFilteredProgress() {
+  const query = document.getElementById('progressSearchInput').value.toLowerCase().trim();
+  const stageFilter = document.getElementById('progressStageFilter').value;
+  let records = [...progressRecords];
+  if (query) {
+    records = records.filter(r =>
+      (r.company || '').toLowerCase().includes(query) ||
+      (r.position || '').toLowerCase().includes(query) ||
+      (r.city || '').toLowerCase().includes(query)
+    );
+  }
+  if (stageFilter) {
+    records = records.filter(r => r.progress === stageFilter);
+  }
+  const sortVal = document.getElementById('progressSortSelect').value;
+  const [field, dir] = sortVal.split('-');
+  records.sort((a, b) => {
+    let va = (a[field] || '').toString();
+    let vb = (b[field] || '').toString();
+    if (field === 'progress') {
+      va = STAGES.indexOf(a.progress).toString();
+      vb = STAGES.indexOf(b.progress).toString();
+    }
+    return dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+  return records;
+}
+
+function renderProgressTable() {
+  const records = getFilteredProgress();
+  const tbody = document.getElementById('progressTbody');
+  const empty = document.getElementById('progressEmpty');
+  if (records.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = records.map(r => {
+    const rc = ROW_CLASS_MAP[r.progress] || 'row-apply';
+    const stageOptions = STAGES.map(s => `<option value="${s}" ${s === r.progress ? 'selected' : ''}>${s}</option>`).join('');
+    return `<tr data-id="${r.id}" class="${rc}">
+      <td class="col-check"><input type="checkbox" data-id="${r.id}" onchange="updateBatchDeleteBtn()"></td>
+      <td class="col-date">${esc(r.applyDate)}</td>
+      <td class="col-company has-tip"><span class="tip">${esc(r.company)}</span>${esc(r.company)}</td>
+      <td class="col-position has-tip"><span class="tip">${esc(r.position)}</span>${esc(r.position)}</td>
+      <td class="col-city has-tip"><span class="tip">${esc(r.city)}</span>${esc(r.city)}</td>
+      <td><select class="progress-filter-select" style="height:30px;font-size:11px;padding:0 28px 0 8px;background-position:right 8px center" onchange="updateStage('${r.id}', this.value)">${stageOptions}</select></td>
+      <td><input class="note-input" value="${esc(r.note || '')}" placeholder="添加备注..." onchange="updateNote('${r.id}', this.value)"></td>
+      <td>
+        <div class="progress-actions">
+          <button class="action-btn" onclick="showTimeline('${r.id}')">时间线</button>
+          <button class="action-btn" onclick="showEditModal('${r.id}')">编辑</button>
+          <button class="action-btn delete" onclick="deleteRecord('${r.id}')">删除</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function populateStageFilter() {
+  const select = document.getElementById('progressStageFilter');
+  const current = select.value;
+  select.innerHTML = '<option value="">全部阶段</option>';
+  STAGES.forEach(s => {
+    const count = progressRecords.filter(r => r.progress === s).length;
+    if (count > 0) select.innerHTML += `<option value="${s}">${s} (${count})</option>`;
+  });
+  select.value = current;
+}
+
+// ── Progress CRUD ──
+function updateStage(id, newStage) {
+  const r = progressRecords.find(r => r.id === id);
+  if (!r) return;
+  r.progress = newStage;
+  if (!r.history) r.history = [];
+  r.history.push({ stage: newStage, time: new Date().toISOString() });
+  saveProgress();
+  // Update row background class
+  const row = document.querySelector(`#progressTbody tr[data-id="${id}"]`);
+  if (row) {
+    row.className = ROW_CLASS_MAP[newStage] || 'row-apply';
+  }
+  renderProgressStats();
+  populateStageFilter();
+}
+
+function updateNote(id, note) {
+  const r = progressRecords.find(r => r.id === id);
+  if (!r) return;
+  r.note = note;
+  saveProgress();
+}
+
+function deleteRecord(id) {
+  const r = progressRecords.find(r => r.id === id);
+  if (!r) return;
+  if (!confirm(`确认删除 "${r.company} - ${r.position}" 的投递记录？`)) return;
+  progressRecords = progressRecords.filter(r => r.id !== id);
+  saveProgress();
+  renderProgressPage();
+  showToast('已删除');
+}
+
+function toggleProgressCheckAll(cb) {
+  document.querySelectorAll('#progressTbody .col-check input').forEach(c => { c.checked = cb.checked; });
+  updateBatchDeleteBtn();
+}
+function updateBatchDeleteBtn() {
+  const checked = document.querySelectorAll('#progressTbody .col-check input:checked');
+  const btn = document.getElementById('batchDeleteBtn');
+  btn.textContent = checked.length > 0 ? `批量删除 (${checked.length})` : '批量删除';
+}
+function batchDeleteProgress() {
+  const checked = document.querySelectorAll('#progressTbody .col-check input:checked');
+  if (checked.length === 0) return;
+  if (!confirm(`确认删除选中的 ${checked.length} 条投递记录？`)) return;
+  const ids = Array.from(checked).map(c => c.dataset.id);
+  progressRecords = progressRecords.filter(r => !ids.includes(r.id));
+  saveProgress();
+  document.getElementById('pCheckAll').checked = false;
+  renderProgressPage();
+  showToast(`已删除 ${ids.length} 条记录`);
+}
+
+// ── Modal: Add / Edit ──
+function showAddModal() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = '添加投递记录';
+  document.getElementById('modalCompany').value = '';
+  document.getElementById('modalPosition').value = '';
+  document.getElementById('modalCity').value = '';
+  document.getElementById('modalDate').value = new Date().toISOString().split('T')[0];
+  const stageSelect = document.getElementById('modalStage');
+  stageSelect.innerHTML = STAGES.map(s => `<option value="${s}">${s}</option>`).join('');
+  document.getElementById('modalNote').value = '';
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function showEditModal(id) {
+  const r = progressRecords.find(r => r.id === id);
+  if (!r) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = '编辑投递记录';
+  document.getElementById('modalCompany').value = r.company || '';
+  document.getElementById('modalPosition').value = r.position || '';
+  document.getElementById('modalCity').value = r.city || '';
+  document.getElementById('modalDate').value = r.applyDate || '';
+  const stageSelect = document.getElementById('modalStage');
+  stageSelect.innerHTML = STAGES.map(s => `<option value="${s}" ${s === r.progress ? 'selected' : ''}>${s}</option>`).join('');
+  document.getElementById('modalNote').value = r.note || '';
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+function confirmModal() {
+  const company = document.getElementById('modalCompany').value.trim();
+  const position = document.getElementById('modalPosition').value.trim();
+  const city = document.getElementById('modalCity').value.trim();
+  const date = document.getElementById('modalDate').value;
+  const stage = document.getElementById('modalStage').value;
+  const note = document.getElementById('modalNote').value.trim();
+  if (!company) { showToast('请输入公司名称'); return; }
+  if (editingId) {
+    const r = progressRecords.find(r => r.id === editingId);
+    if (r) {
+      const oldStage = r.progress;
+      r.company = company; r.position = position; r.city = city;
+      r.applyDate = date; r.progress = stage; r.note = note;
+      if (oldStage !== stage) {
+        if (!r.history) r.history = [];
+        r.history.push({ stage, time: new Date().toISOString() });
+      }
+    }
+  } else {
+    progressRecords.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      company, position, city, applyDate: date, progress: stage, note,
+      sourceUrl: '',
+      history: [{ stage, time: new Date().toISOString() }],
+    });
+  }
+  saveProgress();
+  closeModal();
+  renderProgressPage();
+  showToast(editingId ? '已更新' : '已添加');
+}
+
+// ── Timeline ──
+let timelineRecordId = null;
+
+function showTimeline(id) {
+  timelineRecordId = id;
+  const r = progressRecords.find(r => r.id === id);
+  if (!r) return;
+  document.getElementById('timelineTitle').textContent = `${r.company} - ${r.position}`;
+  renderTimeline(r);
+  document.getElementById('timelineOverlay').classList.add('show');
+}
+
+function renderTimeline(r) {
+  const container = document.getElementById('timelineContent');
+  if (!r.history || r.history.length === 0) {
+    container.innerHTML = '<p style="color:var(--text2);font-size:13px;text-align:center;padding:20px">暂无进度记录</p>';
+    return;
+  }
+  container.innerHTML = r.history.map((h, i) => {
+    const d = new Date(h.time);
+    const isLast = i === r.history.length - 1;
+    return `<div class="timeline-item">
+      <div class="timeline-dot" style="background:${isLast ? 'var(--accent)' : '#ccc'};box-shadow:${isLast ? '0 0 0 3px rgba(204,120,92,.2)' : 'none'}"></div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <span style="font-weight:500">${esc(h.stage)}</span>
+            <span style="color:var(--text2);font-size:12px;margin-left:8px">${d.toLocaleString('zh-CN')}</span>
+          </div>
+          <button class="action-btn delete" style="font-size:11px;padding:3px 10px" onclick="deleteTimelineStage(${i})">删除</button>
+        </div>
+        <input class="note-input" style="margin-top:6px;width:100%;height:28px" value="${esc(h.note || '')}" placeholder="添加阶段备注..." onchange="saveTimelineNote(${i}, this.value)">
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function saveTimelineNote(index, note) {
+  const r = progressRecords.find(r => r.id === timelineRecordId);
+  if (!r || !r.history || !r.history[index]) return;
+  r.history[index].note = note;
+  saveProgress();
+}
+
+function deleteTimelineStage(index) {
+  const r = progressRecords.find(r => r.id === timelineRecordId);
+  if (!r || !r.history || r.history.length <= 1) { showToast('至少保留一个阶段'); return; }
+  const stage = r.history[index].stage;
+  if (!confirm(`确认删除「${stage}」阶段？`)) return;
+  r.history.splice(index, 1);
+  // Update current progress to the last stage
+  r.progress = r.history[r.history.length - 1].stage;
+  saveProgress();
+  renderTimeline(r);
+  renderProgressStats();
+  // Update row color
+  const row = document.querySelector(`#progressTbody tr[data-id="${timelineRecordId}"]`);
+  if (row) row.className = ROW_CLASS_MAP[r.progress] || 'row-apply';
+  // Update stage select in the table
+  const select = row?.querySelector('select');
+  if (select) select.value = r.progress;
+  showToast(`已删除「${stage}」阶段`);
+}
+
+function closeTimeline() {
+  timelineRecordId = null;
+  document.getElementById('timelineOverlay').classList.remove('show');
+}
+
+// ── Export / Import ──
+function exportProgress() {
+  const blob = new Blob([JSON.stringify(progressRecords, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `投递记录_${new Date().toISOString().split('T')[0]}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('已导出');
+}
+
+function importProgress(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data)) { showToast('格式错误'); return; }
+      let added = 0;
+      data.forEach(r => {
+        if (!progressRecords.some(p => p.company === r.company && p.position === r.position && p.applyDate === r.applyDate)) {
+          if (!r.id) r.id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+          if (!r.history) r.history = [];
+          progressRecords.push(r);
+          added++;
+        }
+      });
+      saveProgress();
+      renderProgressPage();
+      showToast(`已导入 ${added} 条记录`);
+    } catch { showToast('文件解析失败'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ── Progress page event listeners ──
+document.getElementById('progressSearchInput').addEventListener('input', () => {
+  clearTimeout(progressSearchTimer);
+  progressSearchTimer = setTimeout(renderProgressTable, 200);
+});
+document.getElementById('progressStageFilter').addEventListener('change', renderProgressTable);
+document.getElementById('progressSortSelect').addEventListener('change', renderProgressTable);
+</script>
+</body>
+</html>
