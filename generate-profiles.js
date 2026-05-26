@@ -27,7 +27,7 @@ function callMiMo(prompt) {
         { role: 'system', content: '你是一个企业信息分析助手，专门为求职者提供简洁准确的企业概况。回答必须严格遵循JSON格式。' },
         { role: 'user', content: prompt }
       ],
-      max_completion_tokens: 300,
+      max_completion_tokens: 500,
       temperature: 0.5,
       top_p: 0.9,
       stream: false,
@@ -107,7 +107,13 @@ async function main() {
     const industryStr = [...meta.industries].join('/') || '';
     const context = [typeStr, industryStr].filter(Boolean).join('，');
 
-    const prompt = `请为求职者简要介绍"${name}"这家公司${context ? '（' + context + '）' : ''}。要求：1）80-120字，重点突出行业地位、主营业务、规模特点；2）返回3-5个关键标签帮助求职者快速了解企业（如"上市公司""央企""互联网大厂""新能源"等，不要包含招聘类型如"春招""实习"）。严格按JSON格式返回：{"summary":"简介文字","tags":["标签1","标签2"]}`;
+    const prompt = `请为求职者全面介绍"${name}"这家公司${context ? '（' + context + '）' : ''}。简介需涵盖以下方面（150-250字）：
+1）公司概况：成立时间、总部地点、主营业务/核心产品
+2）行业地位：市场份额、竞争优势、知名产品
+3）企业规模：员工体量、营收水平、上市情况
+4）工作体验参考：薪资水平、加班情况、企业文化特点（如有公开信息）
+最后返回3-5个关键特征标签（如"上市公司""互联网大厂""央企""996""薪资有竞争力"等，不含招聘类型）。
+严格按JSON格式返回：{"summary":"简介文字","tags":["标签1","标签2"]}`;
 
     try {
       const raw = await callMiMo(prompt);
