@@ -1406,9 +1406,9 @@ function showCompanyDetail(companyName) {
 
   const encodedName = encodeURIComponent(companyName);
   const links = [
-    { label: '牛客面经', url: `https://www.nowcoder.com/search/all?query=${encodedName}%20%E9%9D%A2%E7%BB%8F&type=post` },
-    { label: '知乎搜索', url: `https://www.zhihu.com/search?type=content&q=${encodedName}%20%E6%A0%A1%E6%8B%9B` },
-    { label: '看准网', url: `https://www.kanzhun.com/search/?query=${encodedName}` },
+    { label: '小红书', url: `https://www.xiaohongshu.com/search_result?keyword=${encodedName}&source=web_search_result_notes` },
+    { label: '抖音', url: `https://www.douyin.com/search/${encodedName}` },
+    { label: '爱企查', url: `https://aiqicha.baidu.com/s?q=${encodedName}` },
   ];
 
   const card = document.getElementById('companyCard');
