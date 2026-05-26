@@ -118,7 +118,7 @@ th .sort-icon::after { content: "\25B2"; }
   position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%); min-width: 280px; max-width: 340px;
   max-height: 380px; background: var(--card); border: 1px solid var(--border);
   border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.1); z-index: 300;
-  display: none; flex-direction: column; animation: ddIn .15s ease;
+  display: none; flex-direction: column; animation: ddIn .15s ease; overflow: hidden;
 }
 @keyframes ddIn { from { opacity: 0; transform: translateX(-50%) translateY(-4px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 .col-filter-dd.show { display: flex; }
@@ -132,10 +132,10 @@ th .sort-icon::after { content: "\25B2"; }
   border-radius: 6px; font-size: 13px; background: var(--bg); transition: all .2s;
 }
 .col-filter-search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(204,120,92,.1); }
-.col-filter-list { overflow-y: auto; max-height: 300px; padding: 6px 0; }
+.col-filter-list { overflow-y: auto; overflow-x: hidden; max-height: 300px; padding: 6px 0; }
 .col-filter-item {
   display: flex; align-items: center; gap: 8px; padding: 8px 14px; cursor: pointer;
-  font-size: 13px; transition: background .15s;
+  font-size: 13px; transition: background .15s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .col-filter-item:hover { background: var(--accent-light); }
 .col-filter-item input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; }
@@ -221,7 +221,8 @@ td.col-link .notice-link:hover { background: var(--border); text-decoration: non
   font-size: 14px; font-weight: 500; cursor: pointer; transition: all .2s; color: var(--text2);
 }
 .tab-btn:first-child { border-radius: var(--radius) 0 0 var(--radius); }
-.tab-btn:last-child { border-radius: 0 var(--radius) var(--radius) 0; border-left: none; }
+.tab-btn:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
+.tab-btn:not(:first-child) { border-left: none; }
 .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 2px 8px rgba(204,120,92,.2); }
 .tab-btn:hover:not(.active) { color: var(--accent); border-color: var(--accent); background: var(--accent-light); }
 
@@ -353,6 +354,46 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 .modal-cancel { background: var(--card); color: var(--text2); border: 1px solid var(--border); }
 .modal-cancel:hover { border-color: var(--accent); color: var(--accent); }
 
+/* Offer Compare */
+.offer-wrap { display: none; max-width: 1360px; margin: 20px auto; padding: 0 24px; }
+.offer-wrap.active { display: block; }
+.offer-toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; }
+.offer-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.offer-card {
+  background: var(--card); border-radius: 12px; padding: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.04); border: 1px solid var(--border);
+  position: relative; transition: all .2s;
+}
+.offer-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); transform: translateY(-2px); }
+.offer-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.offer-card-company { font-size: 17px; font-weight: 700; color: var(--text); }
+.offer-card-position { font-size: 13px; color: var(--text2); margin-top: 2px; }
+.offer-card-actions { display: flex; gap: 6px; }
+.offer-card-actions button {
+  width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--card); color: var(--text2); font-size: 13px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: all .15s;
+}
+.offer-card-actions button:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.offer-card-actions button.delete:hover { border-color: #dc2626; color: #dc2626; background: #fef2f2; }
+.offer-card-city { font-size: 12px; color: var(--text2); margin-bottom: 14px; }
+.offer-card-city::before { content: "📍 "; }
+.offer-rows { display: flex; flex-direction: column; gap: 8px; }
+.offer-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; border-radius: 6px; background: var(--bg); }
+.offer-row-label { font-size: 12px; color: var(--text2); }
+.offer-row-value { font-size: 13px; font-weight: 600; color: var(--text); }
+.offer-row.best { background: #ecfdf5; }
+.offer-row.best .offer-row-value { color: #059669; }
+.offer-row.best::after { content: "✓"; font-size: 11px; color: #059669; margin-left: 6px; }
+.offer-card-notes { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--text2); line-height: 1.5; }
+.offer-empty {
+  text-align: center; padding: 80px 20px; color: var(--text2);
+}
+.offer-empty-icon { font-size: 48px; margin-bottom: 16px; opacity: .5; }
+.offer-empty p { font-size: 14px; margin-bottom: 16px; }
+.offer-modal .modal { width: 480px; max-height: 85vh; overflow-y: auto; }
+.offer-modal .modal-row label { width: 80px; }
+
 /* Company Detail Card */
 .company-card { width: 560px; max-height: 80vh; overflow-y: auto; }
 .cc-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
@@ -443,6 +484,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
     <div class="tabs-left">
       <button class="tab-btn active" onclick="switchPage('main')">招聘岗位</button>
       <button class="tab-btn" onclick="switchPage('progress')">投递进度</button>
+      <button class="tab-btn" onclick="switchPage('offer')">Offer 对比</button>
     </div>
     <div class="tabs-right">
       <button class="record-btn" id="recordBtn" onclick="recordSelected()" disabled>+ 记录投递</button>
@@ -512,6 +554,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
     <div class="tabs-left">
       <button class="tab-btn" onclick="switchPage('main')">招聘岗位</button>
       <button class="tab-btn active" onclick="switchPage('progress')">投递进度</button>
+      <button class="tab-btn" onclick="switchPage('offer')">Offer 对比</button>
     </div>
     <div class="tabs-right">
       <div class="progress-stats" id="progressStats"></div>
@@ -559,6 +602,59 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
     <div class="empty" id="progressEmpty" style="display:none">
       <div class="empty-icon">&#128221;</div>
       <p>还没有投递记录，从招聘岗位页面选择记录或手动添加</p>
+    </div>
+  </div>
+</div>
+
+<!-- Offer Compare Page -->
+<div class="offer-wrap" id="offerWrap">
+  <div class="tabs">
+    <div class="tabs-left">
+      <button class="tab-btn" onclick="switchPage('main')">招聘岗位</button>
+      <button class="tab-btn" onclick="switchPage('progress')">投递进度</button>
+      <button class="tab-btn active" onclick="switchPage('offer')">Offer 对比</button>
+    </div>
+    <div class="tabs-right">
+      <button class="add-manual-btn" onclick="showOfferModal()">+ 添加 Offer</button>
+    </div>
+  </div>
+  <div id="offerContent"></div>
+</div>
+
+<!-- Offer Modal -->
+<div class="modal-overlay offer-modal" id="offerModalOverlay">
+  <div class="modal">
+    <h3 id="offerModalTitle">添加 Offer</h3>
+    <div class="modal-row"><label>公司名称</label><input type="text" id="offerCompany" placeholder="如：腾讯"></div>
+    <div class="modal-row"><label>岗位名称</label><input type="text" id="offerPosition" placeholder="如：后端开发工程师"></div>
+    <div class="modal-row"><label>工作城市</label><input type="text" id="offerCity" placeholder="如：深圳"></div>
+    <div class="modal-row"><label>月薪(税前)</label><input type="number" id="offerMonthly" placeholder="元，如：20000"></div>
+    <div class="modal-row"><label>年薪(总包)</label><input type="number" id="offerAnnual" placeholder="万元，如：30"></div>
+    <div class="modal-row"><label>签字费</label><input type="number" id="offerSigning" placeholder="万元，可选"></div>
+    <div class="modal-row"><label>年终奖</label><input type="text" id="offerYearEnd" placeholder="如：3个月"></div>
+    <div class="modal-row"><label>工作时间</label>
+      <select id="offerWorkHours">
+        <option value="">请选择</option>
+        <option value="955">955</option>
+        <option value="965">965</option>
+        <option value="大小周">大小周</option>
+        <option value="996">996</option>
+        <option value="其他">其他</option>
+      </select>
+    </div>
+    <div class="modal-row"><label>五险一金</label>
+      <select id="offerInsurance">
+        <option value="">请选择</option>
+        <option value="全额">全额</option>
+        <option value="最低">最低基数</option>
+        <option value="其他">其他</option>
+      </select>
+    </div>
+    <div class="modal-row"><label>住房补贴</label><input type="number" id="offerHousing" placeholder="元/月，可选"></div>
+    <div class="modal-row"><label>备注</label><input type="text" id="offerNotes" placeholder="自由记录"></div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeOfferModal()">取消</button>
+      <button class="modal-confirm" id="offerConfirmBtn" onclick="confirmOffer()">确认</button>
     </div>
   </div>
 </div>
@@ -1037,14 +1133,158 @@ function saveProgress() {
 function switchPage(page) {
   const mainWrap = document.querySelector('.main-wrap');
   const progressWrap = document.getElementById('progressWrap');
-  if (page === 'main') {
-    mainWrap.classList.remove('hidden');
-    progressWrap.classList.remove('active');
+  const offerWrap = document.getElementById('offerWrap');
+  mainWrap.classList.toggle('hidden', page !== 'main');
+  progressWrap.classList.toggle('active', page === 'progress');
+  offerWrap.classList.toggle('active', page === 'offer');
+  // Sync tab active states in all 3 tab bars
+  document.querySelectorAll('.tabs-left').forEach(bar => {
+    const btns = bar.querySelectorAll('.tab-btn');
+    btns.forEach(btn => btn.classList.remove('active'));
+    if (page === 'main') btns[0]?.classList.add('active');
+    else if (page === 'progress') btns[1]?.classList.add('active');
+    else if (page === 'offer') btns[2]?.classList.add('active');
+  });
+  if (page === 'progress') renderProgressPage();
+  if (page === 'offer') renderOffers();
+}
+
+// ── Offer Compare ──
+const OFFER_KEY = 'campus_recruit_offers';
+let offers = [];
+let editingOfferId = null;
+loadOffers();
+
+function loadOffers() {
+  try { offers = JSON.parse(localStorage.getItem(OFFER_KEY)) || []; } catch { offers = []; }
+}
+function saveOffers() {
+  localStorage.setItem(OFFER_KEY, JSON.stringify(offers));
+}
+
+function showOfferModal(id) {
+  editingOfferId = id || null;
+  const overlay = document.getElementById('offerModalOverlay');
+  const title = document.getElementById('offerModalTitle');
+  if (id) {
+    title.textContent = '编辑 Offer';
+    const o = offers.find(x => x.id === id);
+    if (!o) return;
+    document.getElementById('offerCompany').value = o.company || '';
+    document.getElementById('offerPosition').value = o.position || '';
+    document.getElementById('offerCity').value = o.city || '';
+    document.getElementById('offerMonthly').value = o.monthlySalary || '';
+    document.getElementById('offerAnnual').value = o.annualPackage || '';
+    document.getElementById('offerSigning').value = o.signingBonus || '';
+    document.getElementById('offerYearEnd').value = o.yearEndBonus || '';
+    document.getElementById('offerWorkHours').value = o.workHours || '';
+    document.getElementById('offerInsurance').value = o.insurance || '';
+    document.getElementById('offerHousing').value = o.housingSubsidy || '';
+    document.getElementById('offerNotes').value = o.notes || '';
   } else {
-    mainWrap.classList.add('hidden');
-    progressWrap.classList.add('active');
-    renderProgressPage();
+    title.textContent = '添加 Offer';
+    ['offerCompany','offerPosition','offerCity','offerMonthly','offerAnnual','offerSigning','offerYearEnd','offerWorkHours','offerInsurance','offerHousing','offerNotes'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
   }
+  overlay.classList.add('show');
+}
+
+function closeOfferModal() {
+  document.getElementById('offerModalOverlay').classList.remove('show');
+  editingOfferId = null;
+}
+
+function confirmOffer() {
+  const company = document.getElementById('offerCompany').value.trim();
+  if (!company) { showToast('请填写公司名称'); return; }
+  const data = {
+    company,
+    position: document.getElementById('offerPosition').value.trim(),
+    city: document.getElementById('offerCity').value.trim(),
+    monthlySalary: parseFloat(document.getElementById('offerMonthly').value) || 0,
+    annualPackage: parseFloat(document.getElementById('offerAnnual').value) || 0,
+    signingBonus: parseFloat(document.getElementById('offerSigning').value) || 0,
+    yearEndBonus: document.getElementById('offerYearEnd').value.trim(),
+    workHours: document.getElementById('offerWorkHours').value,
+    insurance: document.getElementById('offerInsurance').value,
+    housingSubsidy: parseFloat(document.getElementById('offerHousing').value) || 0,
+    notes: document.getElementById('offerNotes').value.trim(),
+  };
+  if (editingOfferId) {
+    const idx = offers.findIndex(x => x.id === editingOfferId);
+    if (idx >= 0) { offers[idx] = { ...offers[idx], ...data }; }
+  } else {
+    offers.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), ...data, createdAt: new Date().toISOString() });
+  }
+  saveOffers();
+  closeOfferModal();
+  renderOffers();
+  showToast(editingOfferId ? '已更新' : '已添加');
+}
+
+function deleteOffer(id) {
+  if (!confirm('确定删除此 Offer？')) return;
+  offers = offers.filter(x => x.id !== id);
+  saveOffers();
+  renderOffers();
+  showToast('已删除');
+}
+
+function findBest() {
+  const best = {};
+  const nums = ['monthlySalary', 'annualPackage', 'signingBonus', 'housingSubsidy'];
+  nums.forEach(key => {
+    let maxVal = 0, maxId = null;
+    offers.forEach(o => {
+      if (o[key] > maxVal) { maxVal = o[key]; maxId = o.id; }
+    });
+    if (maxId && maxVal > 0) best[key] = maxId;
+  });
+  return best;
+}
+
+function renderOffers() {
+  const container = document.getElementById('offerContent');
+  if (offers.length === 0) {
+    container.innerHTML = `<div class="offer-empty"><div class="offer-empty-icon">📋</div><p>还没有 Offer，拿到新 Offer 就来添加吧</p></div>`;
+    return;
+  }
+  const best = findBest();
+  const rows = [
+    { key: 'monthlySalary', label: '月薪(税前)', fmt: v => v ? v.toLocaleString() + ' 元' : '-' },
+    { key: 'annualPackage', label: '年薪(总包)', fmt: v => v ? v + ' 万' : '-' },
+    { key: 'signingBonus', label: '签字费', fmt: v => v ? v + ' 万' : '-' },
+    { key: 'yearEndBonus', label: '年终奖', fmt: v => v || '-' },
+    { key: 'workHours', label: '工作时间', fmt: v => v || '-' },
+    { key: 'insurance', label: '五险一金', fmt: v => v || '-' },
+    { key: 'housingSubsidy', label: '住房补贴', fmt: v => v ? v + ' 元/月' : '-' },
+  ];
+  container.innerHTML = `<div class="offer-cards">${offers.map(o => `
+    <div class="offer-card">
+      <div class="offer-card-header">
+        <div>
+          <div class="offer-card-company">${esc(o.company)}</div>
+          ${o.position ? `<div class="offer-card-position">${esc(o.position)}</div>` : ''}
+        </div>
+        <div class="offer-card-actions">
+          <button title="编辑" onclick="showOfferModal('${o.id}')">✏️</button>
+          <button class="delete" title="删除" onclick="deleteOffer('${o.id}')">🗑️</button>
+        </div>
+      </div>
+      ${o.city ? `<div class="offer-card-city">${esc(o.city)}</div>` : ''}
+      <div class="offer-rows">
+        ${rows.map(r => {
+          const isBest = best[r.key] === o.id;
+          return `<div class="offer-row${isBest ? ' best' : ''}">
+            <span class="offer-row-label">${r.label}</span>
+            <span class="offer-row-value">${r.fmt(o[r.key])}</span>
+          </div>`;
+        }).join('')}
+      </div>
+      ${o.notes ? `<div class="offer-card-notes">${esc(o.notes)}</div>` : ''}
+    </div>
+  `).join('')}</div>`;
 }
 
 // ── Checkbox & record ──

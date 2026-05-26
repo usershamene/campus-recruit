@@ -3,16 +3,16 @@ const fs = require('fs');
 const path = require('path');
 
 // ── Config ──
-const API_KEY = process.env.MIMO_API_KEY;
+const API_KEY = process.env.SF_API_KEY || process.env.MIMO_API_KEY;
 if (!API_KEY) {
-  console.error('请设置环境变量 MIMO_API_KEY，例如：');
-  console.error('  set MIMO_API_KEY=你的key');
+  console.error('请设置环境变量 SF_API_KEY，例如：');
+  console.error('  set SF_API_KEY=你的key');
   console.error('  node generate-profiles.js');
   process.exit(1);
 }
 
-const API_URL = 'https://api.xiaomimimo.com/v1/chat/completions';
-const MODEL = 'mimo-v2.5-pro';
+const API_URL = 'https://api.siliconflow.cn/v1/chat/completions';
+const MODEL = 'Qwen/Qwen2.5-14B-Instruct';
 const PROFILES_PATH = path.join(__dirname, 'data', 'company-profiles.json');
 const JOBS_PATH = path.join(__dirname, 'data', 'jobs.json');
 
@@ -36,8 +36,8 @@ function callMiMo(prompt) {
     const req = https.request(API_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'api-key': API_KEY,
+        'Content-Type': 'application/json; charset=utf-8',
+        'Authorization': `Bearer ${API_KEY}`,
       },
       timeout: 30000,
     }, res => {
@@ -54,7 +54,7 @@ function callMiMo(prompt) {
     });
     req.on('error', reject);
     req.on('timeout', () => { req.destroy(); reject(new Error('timeout')); });
-    req.write(body);
+    req.write(Buffer.from(body, 'utf-8'));
     req.end();
   });
 }
