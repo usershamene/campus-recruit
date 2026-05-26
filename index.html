@@ -353,6 +353,27 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 .modal-cancel { background: var(--card); color: var(--text2); border: 1px solid var(--border); }
 .modal-cancel:hover { border-color: var(--accent); color: var(--accent); }
 
+/* Company Detail Card */
+.company-card { width: 560px; max-height: 80vh; overflow-y: auto; }
+.company-card .cc-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.company-card .cc-name { font-size: 20px; font-weight: 700; }
+.company-card .cc-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.company-card .cc-tag { font-size: 12px; padding: 3px 10px; border-radius: 20px; background: rgba(204,120,92,.1); color: var(--accent); font-weight: 500; }
+.company-card .cc-section { margin-bottom: 16px; }
+.company-card .cc-section-title { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px; }
+.company-card .cc-positions { display: flex; flex-wrap: wrap; gap: 6px; }
+.company-card .cc-pos { font-size: 12px; padding: 4px 10px; border-radius: 6px; background: var(--bg); border: 1px solid var(--border); color: var(--text); }
+.company-card .cc-locations { font-size: 13px; color: var(--text); line-height: 1.8; }
+.company-card .cc-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.company-card .cc-stat { text-align: center; padding: 12px; background: var(--bg); border-radius: 10px; }
+.company-card .cc-stat-num { font-size: 22px; font-weight: 700; color: var(--accent); }
+.company-card .cc-stat-label { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.company-card .cc-links { display: flex; gap: 10px; flex-wrap: wrap; }
+.company-card .cc-link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); color: var(--text); text-decoration: none; transition: all .2s; }
+.company-card .cc-link:hover { border-color: var(--accent); color: var(--accent); }
+.col-company { cursor: pointer; }
+.col-company:hover { color: var(--accent); }
+
 /* Timeline */
 .timeline { padding: 16px 0; }
 .timeline-item { display: flex; gap: 14px; padding: 10px 0; font-size: 13px; }
@@ -569,6 +590,11 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
       <button class="modal-cancel" onclick="closeTimeline()">关闭</button>
     </div>
   </div>
+</div>
+
+<!-- Company Detail Modal -->
+<div class="modal-overlay" id="companyOverlay" onclick="if(event.target===this)closeCompanyCard()">
+  <div class="modal company-card" id="companyCard"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -923,7 +949,7 @@ function renderTable() {
       <td class="col-check"><input type="checkbox" data-idx="${i}" data-key="${esc(jobKey)}" ${isChecked ? 'checked' : ''} onchange="onCheckChange(this)"></td>
       <td class="col-no">${no}</td>
       <td class="col-date">${esc(job.publishDate)}</td>
-      <td class="col-company has-tip"><span class="tip">${esc(job.company)}</span>${esc(job.company)}</td>
+      <td class="col-company has-tip" data-idx="${i}" onclick="showCompanyDetailByIndex(${start}+${i})"><span class="tip">${esc(job.company)}</span>${esc(job.company)}</td>
       <td class="col-type"><span class="type-tag ${typeClass}">${esc(job.recruitmentType)}</span></td>
       <td class="col-position has-tip"><span class="tip">${esc(job.positions)}</span>${esc(job.positions)}</td>
       <td class="col-city has-tip"><span class="tip">${esc(job.location)}</span>${esc(job.location)}</td>
@@ -1358,6 +1384,73 @@ function deleteTimelineStage(index) {
 function closeTimeline() {
   timelineRecordId = null;
   document.getElementById('timelineOverlay').classList.remove('show');
+}
+
+// ── Company Detail Card ──
+function showCompanyDetailByIndex(idx) {
+  const job = filteredJobs[idx];
+  if (job) showCompanyDetail(job.company);
+}
+
+function showCompanyDetail(companyName) {
+  const jobs = allJobs.filter(j => j.company === companyName);
+  if (jobs.length === 0) return;
+
+  const types = [...new Set(jobs.map(j => j.companyType).filter(Boolean))];
+  const industries = [...new Set(jobs.map(j => j.industry).filter(Boolean))];
+  const positions = [...new Set(jobs.map(j => j.positions).filter(Boolean))];
+  const locations = [...new Set(jobs.flatMap(j => (j.location || '').split(/[,，、/|；;\s]+/).map(c => c.trim()).filter(Boolean)))];
+  const sources = [...new Set(jobs.map(j => j.source))];
+  const sourceMap = { deepoffer: 'DeepOffer', qiuzhifangzhou: '求职方舟', offerstar: 'OfferStar' };
+  const batchTypes = [...new Set(jobs.map(j => j.recruitmentType).filter(t => t && t !== '其他'))];
+
+  const encodedName = encodeURIComponent(companyName);
+  const links = [
+    { label: '牛客面经', url: `https://www.nowcoder.com/search/all?query=${encodedName}%20%E9%9D%A2%E7%BB%8F&type=post` },
+    { label: '知乎搜索', url: `https://www.zhihu.com/search?type=content&q=${encodedName}%20%E6%A0%A1%E6%8B%9B` },
+    { label: '看准网', url: `https://www.kanzhun.com/search/?query=${encodedName}` },
+  ];
+
+  const card = document.getElementById('companyCard');
+  card.innerHTML = `
+    <h3 style="margin-bottom:16px">${esc(companyName)}</h3>
+    <div class="cc-tags">
+      ${types.map(t => `<span class="cc-tag">${esc(t)}</span>`).join('')}
+      ${industries.map(i => `<span class="cc-tag">${esc(i)}</span>`).join('')}
+      ${batchTypes.map(b => `<span class="cc-tag">${esc(b)}</span>`).join('')}
+    </div>
+    <div class="cc-stats">
+      <div class="cc-stat"><div class="cc-stat-num">${positions.length}</div><div class="cc-stat-label">在招岗位</div></div>
+      <div class="cc-stat"><div class="cc-stat-num">${locations.length}</div><div class="cc-stat-label">招聘城市</div></div>
+      <div class="cc-stat"><div class="cc-stat-num">${jobs.length}</div><div class="cc-stat-label">招聘信息</div></div>
+    </div>
+    <div class="cc-section">
+      <div class="cc-section-title">在招岗位</div>
+      <div class="cc-positions">${positions.map(p => `<span class="cc-pos">${esc(p)}</span>`).join('')}</div>
+    </div>
+    <div class="cc-section">
+      <div class="cc-section-title">招聘城市</div>
+      <div class="cc-locations">${locations.join('、')}</div>
+    </div>
+    <div class="cc-section">
+      <div class="cc-section-title">数据来源</div>
+      <div class="cc-locations">${sources.map(s => sourceMap[s] || s).join('、')}</div>
+    </div>
+    <div class="cc-section">
+      <div class="cc-section-title">了解更多</div>
+      <div class="cc-links">
+        ${links.map(l => `<a class="cc-link" href="${l.url}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('')}
+      </div>
+    </div>
+    <div class="modal-btns" style="margin-top:16px">
+      <button class="modal-cancel" onclick="closeCompanyCard()">关闭</button>
+    </div>
+  `;
+  document.getElementById('companyOverlay').classList.add('show');
+}
+
+function closeCompanyCard() {
+  document.getElementById('companyOverlay').classList.remove('show');
 }
 
 // ── Export / Import ──
