@@ -1407,8 +1407,7 @@ function showCompanyDetail(companyName) {
   const encodedName = encodeURIComponent(companyName);
 
   // Aggregate career site domains from job data
-  const SKIP_DOMAINS = new Set(['mp.weixin.qq.com','v.wjx.cn','www.wjx.top','www.mohrss.gov.cn']);
-  const SKIP_PATTERNS = [/^\d+\.\d+\.\d+\.\d+$/, /\.(163|126|qq|foxmail|gmail|outlook)\.com$/, /\.qq\.com$/];
+  const SKIP_PATTERNS = [/^\d+\.\d+\.\d+\.\d+$/, /\.(163|126|qq|foxmail|gmail|outlook)\.com$/];
   const DOMAIN_NAMES = {
     'app.mokahr.com': 'Moka招聘', 'wecruit.hotjob.cn': '微招聘', 'campus.51job.com': '前程无忧',
     'www.iguopin.com': '国聘', 'www.moseeker.com': 'Moseeker', 'xiaoyuan.zhaopin.com': '智联招聘',
@@ -1416,28 +1415,23 @@ function showCompanyDetail(companyName) {
     'careers.pddglobalhr.com': '拼多多招聘', 'nio.jobs.feishu.cn': '蔚来招聘', 'sany.zhiye.com': '三一招聘',
     'young.yingjiesheng.com': '应届生求职网', 'zhaopin.xdf.cn': '新东方招聘', 'xyz.51job.com': '前程无忧',
     'rczp.china-railway.com.cn': '铁路招聘', 'travelsky.hotjob.cn': '航信招聘',
+    'mp.weixin.qq.com': '微信推文', 'v.wjx.cn': '问卷链接', 'www.wjx.top': '问卷链接',
+    'www.mohrss.gov.cn': '人社部公告',
   };
-  const careerDomains = new Set();
+  const seenDomains = new Set();
+  const links = [];
   for (const j of jobs) {
     if (!j.applyUrl) continue;
     try {
       const d = new URL(j.applyUrl).hostname;
-      if (SKIP_DOMAINS.has(d)) continue;
+      if (seenDomains.has(d)) continue;
       if (SKIP_PATTERNS.some(p => p.test(d))) continue;
-      careerDomains.add(d);
+      seenDomains.add(d);
+      links.push({ label: DOMAIN_NAMES[d] || d, url: j.applyUrl });
+      if (links.length >= 3) break;
     } catch {}
   }
-
-  const links = [];
-  const careerArr = [...careerDomains].slice(0, 3);
-  for (const d of careerArr) {
-    const proto = jobs.find(j => { try { return new URL(j.applyUrl).hostname === d; } catch { return false; } });
-    links.push({ label: DOMAIN_NAMES[d] || d, url: proto.applyUrl });
-  }
-  // Always show 爱企查
   links.push({ label: '爱企查', url: `https://aiqicha.baidu.com/s?q=${encodedName}` });
-  // Search engine fallback
-  links.push({ label: '百度搜索', url: `https://www.baidu.com/s?wd=${encodedName}%20%E6%A0%A1%E6%8B%9B%E5%AE%98%E7%BD%91` });
 
   const card = document.getElementById('companyCard');
   card.innerHTML = `
