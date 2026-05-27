@@ -289,6 +289,19 @@ async function main() {
   saveMeta(now.toISOString());
   console.log(`\nSaved: ${JOBS_PATH}`);
   console.log(`Next update will fetch from: ${todayStr}`);
+
+  // Identify new companies without profiles
+  const profilesPath = path.join(__dirname, 'data', 'company-profiles.json');
+  let profiles = {};
+  try { profiles = JSON.parse(fs.readFileSync(profilesPath, 'utf-8')); } catch {}
+  const allCompanies = [...new Set(processed.map(j => j.company))];
+  const missing = allCompanies.filter(c => !profiles[c]);
+  if (missing.length > 0) {
+    fs.writeFileSync(path.join(__dirname, 'data', 'pending-profiles.json'), JSON.stringify(missing, null, 2), 'utf-8');
+    console.log(`\n⚠ ${missing.length} companies without profiles → data/pending-profiles.json`);
+  } else {
+    console.log('\n✓ All companies have profiles');
+  }
 }
 
 main().catch(console.error);
