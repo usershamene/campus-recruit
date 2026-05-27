@@ -30,7 +30,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ ok: true, msg: '开始更新' }));
 
-    exec('node fetch-data.js && node process-data.js', { cwd: ROOT, timeout: 1800000, shell: true }, (err) => {
+    exec('node fetch-data.js', { cwd: ROOT, timeout: 1800000, shell: true }, (err) => {
       global._updating = false;
       const now = new Date().toISOString();
       const meta = { lastUpdate: now, success: !err };
