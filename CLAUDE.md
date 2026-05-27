@@ -34,8 +34,16 @@
 ```bash
 node server.js              # 启动本地服务器 http://localhost:8080
 node fetch-data.js          # 增量更新校招数据（抓取+合并+清洗+保存）
-node generate-profiles.js   # 生成企业简介（需 SF_API_KEY 环境变量）
+node save-profiles.js '{}'  # 写入企业简介（供 subagent 调用）
 ```
+
+## 增量简介生成流程
+
+每次 `fetch-data.js` 运行后：
+1. 自动检测新公司 → 写入 `data/pending-profiles.json`（gitignore）
+2. Claude subagent 读取 pending 列表，用 web search + AI 生成简介
+3. 调用 `node save-profiles.js '{...}'` 写入结果并清理 pending
+4. 提交推送 `company-profiles.json`
 
 ## 数据源
 
