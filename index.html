@@ -542,7 +542,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .quote-bar {
     text-align: center; padding: 0;
     font-size: 11px; color: var(--text2);
-    margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     position: static; width: 100%;
   }
   .user-name { display: none; }
@@ -1119,66 +1119,40 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 <script>
 // ── Inspirational quotes ──
 const QUOTES = [
-  { text: '所有的努力都不会白费，你付出多少时间和精力，都是在对未来的积累', author: '' },
   { text: '世界上什么都不公平，唯独时间最公平', author: '' },
   { text: '种一棵树最好的时间是十年前，其次是现在', author: '' },
-  { text: '你现在的气质里，藏着你走过的路、读过的书和爱过的人', author: '' },
   { text: '所谓万丈深渊，下去也是前程万里', author: '木心' },
-  { text: '在最黑暗的那段人生，是我自己把自己拉出深渊，没有那个人，我就做那个人', author: '中岛美嘉' },
-  { text: '一个能够升起月亮的身体，必然驮住了无数次日落', author: '余秀华' },
-  { text: '你才二十几岁，你可以成为任何你想成为的人', author: '' },
-  { text: '没有一颗心会因为追求梦想而受伤，当你真心渴望某样东西时，整个宇宙都会来帮忙', author: '保罗·柯艾略' },
   { text: '人生没有白走的路，每一步都算数', author: '' },
   { text: '你必须非常努力，才能看起来毫不费力', author: '' },
-  { text: '愿你一生努力，一生被爱，想要的都拥有，得不到的都释怀', author: '' },
   { text: '生活不会辜负每一个努力向上的人', author: '' },
-  { text: '少年与爱永不老去，即便披荆斩棘，丢失怒马鲜衣', author: '' },
   { text: '既然选择了远方，便只顾风雨兼程', author: '汪国真' },
   { text: '你的问题主要在于读书不多而想得太多', author: '杨绛' },
   { text: '做你自己，因为别人都有人做了', author: '王尔德' },
-  { text: '要有最朴素的生活和最遥远的梦想，即使明天天寒地冻，路远马亡', author: '海子' },
-  { text: '一个人至少拥有一个梦想，有一个理由去坚强', author: '' },
   { text: '把脸一直向着阳光，这样就不会见到阴影', author: '' },
-  { text: '世界上只有一种英雄主义，就是在认清生活的真相之后，依然热爱生活', author: '罗曼·罗兰' },
-  { text: '你不必生来勇敢，天赋过人，只要能投入勤奋，诚诚恳恳', author: '' },
-  { text: '每一个优秀的人都有一段沉默的时光，那段时光是付出了很多努力却得不到结果的日子，我们把它叫做扎根', author: '' },
   { text: '慢慢来，谁还没有一个努力的过程', author: '' },
   { text: '你要悄悄拔尖，然后惊艳所有人', author: '' },
   { text: '星光不负赶路人，时光不负有心人', author: '' },
-  { text: '不是因为看到了希望才坚持，而是坚持了才看到希望', author: '' },
-  { text: '你所做的事情，也许暂时看不到成果，但不要灰心或焦虑，你不是没有成长，而是在扎根', author: '' },
   { text: '生活明朗，万物可爱，人间值得，未来可期', author: '' },
   { text: '当你觉得晚了的时候，恰恰是最早的时候', author: '' },
-  { text: '那些看似不起波澜的日复一日，会在某天让你看到坚持的意义', author: '' },
   { text: '没有横空出世的运气，只有不为人知的努力', author: '' },
   { text: '愿你以渺小启程，以伟大结束', author: '' },
-  { text: '生活总会给你答案，但不会马上把一切都告诉你', author: '' },
-  { text: '你今天的努力，是幸运的伏笔，当下的付出，是明日的花开', author: '' },
   { text: '我们各自努力，最高处见', author: '' },
   { text: '前路浩浩荡荡，万事尽可期待', author: '' },
-  { text: '把每一件简单的事做好就是不简单，把每一件平凡的事做好就是不平凡', author: '张瑞敏' },
-  { text: '你跑得快，耳边才是风；你跑得慢，耳边自然就都是闲言碎语', author: '' },
   { text: '但行好事，莫问前程', author: '' },
   { text: '人间一趟，积极向上，不畏将来，不念过往', author: '' },
-  { text: '真正的进步不是焦虑的自我怀疑，而是平静的自我接纳', author: '' },
   { text: '与其担忧未来，不如现在好好努力', author: '' },
-  { text: '你要相信，你生命里遇到的每个人每件事，都有它的价值和意义', author: '' },
   { text: '成功的路上并不拥挤，因为坚持的人不多', author: '' },
   { text: '命运不会亏待正在努力变好的你', author: '' },
-  { text: '读书不是为了雄辩和驳斥，而是为了思考和权衡', author: '弗朗西斯·培根' },
   { text: '山高路远，看世界，也找自己', author: '' },
   { text: '世事千帆过，路的尽头会是温柔和月光', author: '' },
   { text: '任何值得去的地方，都没有捷径', author: '' },
-  { text: '你不能要求拥有一个没有风暴的人生海洋，因为痛苦和磨难是人生的一部分', author: '刘墉' },
-  { text: '别着急，你看这年复一年，春光不必趁早，冬霜不会迟到，过去的都会过去，该来的都在路上', author: '' },
-  { text: '你受的苦，吃的亏，担的责，扛的罪，忍的痛，到最后都会变成光，照亮你的路', author: '' },
   { text: '温柔半两，从容一生', author: '' },
   { text: '日子是过以后才知道，不是想以后才知道', author: '' },
-  { text: '所有的逆袭，都是有备而来；所有的光芒，都需要时间才能被看到', author: '' },
   { text: '你不能把这个世界让给你所鄙视的人', author: '安·兰德' },
   { text: '种自己的花，爱自己的宇宙', author: '' },
   { text: '没有人能替你承受，也没有人能拿走你的坚强', author: '' },
   { text: '人生海海，山山而川，不过尔尔', author: '' },
+  { text: '你才二十几岁，你可以成为任何你想成为的人', author: '' },
 ];
 let quoteIdx = Math.floor(Math.random() * QUOTES.length);
 function showQuote(idx) {
@@ -1863,6 +1837,8 @@ function switchPage(page) {
   offerWrap.classList.toggle('active', page === 'offer');
   if (filterBar) filterBar.style.display = page === 'main' ? '' : 'none';
   if (filterBtn) filterBtn.style.display = page === 'main' ? '' : 'none';
+  const controls = document.querySelector('.controls');
+  if (controls) controls.style.display = page === 'main' ? '' : 'none';
   // Sync tab active states in all 3 tab bars
   document.querySelectorAll('.tabs-left').forEach(bar => {
     const btns = bar.querySelectorAll('.tab-btn');
