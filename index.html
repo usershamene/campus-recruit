@@ -948,19 +948,13 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
     </div>
   </div>
 
-  <div class="controls">
-    <div class="search-box">
+  <div class="progress-toolbar">
+    <div class="progress-search">
       <input type="text" id="progressSearchInput" placeholder="搜索公司、岗位、城市...">
     </div>
-    <button class="mobile-filter-btn" id="progressFilterBtn" onclick="toggleProgressStageFilter(this)">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 3H2l8 9.46V19l4 2v-8.54z"/></svg>
-      阶段
-      <span class="filter-x" onclick="event.stopPropagation();clearProgressStageFilter()">&times;</span>
-    </button>
-    <div class="stage-filter-dropdown" id="stageFilterDropdown"></div>
-  </div>
-  <div class="progress-mobile-bar" id="progressMobileBar"></div>
-  <div class="progress-toolbar">
+    <select class="progress-filter-select" id="progressStageFilter">
+      <option value="">全部阶段</option>
+    </select>
     <select class="progress-filter-select" id="progressSortSelect">
       <option value="applyDate-desc">投递时间 ↓</option>
       <option value="applyDate-asc">投递时间 ↑</option>
@@ -2092,10 +2086,9 @@ function renderProgressStats() {
   container.innerHTML = html;
 }
 
-let selectedProgressStages = new Set();
-
 function getFilteredProgress() {
   const query = document.getElementById('progressSearchInput').value.toLowerCase().trim();
+  const stageFilter = document.getElementById('progressStageFilter').value;
   let records = [...progressRecords];
   if (query) {
     records = records.filter(r =>
@@ -2104,8 +2097,8 @@ function getFilteredProgress() {
       (r.city || '').toLowerCase().includes(query)
     );
   }
-  if (selectedProgressStages.size > 0) {
-    records = records.filter(r => selectedProgressStages.has(r.progress));
+  if (stageFilter) {
+    records = records.filter(r => r.progress === stageFilter);
   }
   const sortVal = document.getElementById('progressSortSelect').value;
   const [field, dir] = sortVal.split('-');
@@ -2154,9 +2147,15 @@ function renderProgressTable() {
 }
 
 function populateStageFilter() {
-  renderProgressStageDropdown();
-  renderProgressMobileBar();
-  updateProgressFilterBtn();
+  const select = document.getElementById('progressStageFilter');
+  if (!select) return;
+  const current = select.value;
+  select.innerHTML = '<option value="">全部阶段</option>';
+  STAGES.forEach(s => {
+    const count = progressRecords.filter(r => r.progress === s).length;
+    if (count > 0) select.innerHTML += `<option value="${s}">${s} (${count})</option>`;
+  });
+  select.value = current;
 }
 
 function renderProgressStageDropdown() {
@@ -2808,6 +2807,7 @@ document.getElementById('progressSearchInput').addEventListener('input', () => {
   clearTimeout(progressSearchTimer);
   progressSearchTimer = setTimeout(() => { renderProgressTable(); renderProgressCards(); }, 200);
 });
+document.getElementById('progressStageFilter').addEventListener('change', () => { renderProgressTable(); renderProgressCards(); });
 document.getElementById('progressSortSelect').addEventListener('change', () => { renderProgressTable(); renderProgressCards(); });
 
 // Initialize Supabase auth
