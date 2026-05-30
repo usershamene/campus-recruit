@@ -860,6 +860,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
         <span class="filter-x" onclick="event.stopPropagation();clearAllFilters()">&times;</span>
       </button>
     </div>
+    <div class="active-filters" id="activeFilters"></div>
     <div class="mobile-filter-bar" id="mobileFilterBar"></div>
   </div>
 </div>
@@ -1350,6 +1351,15 @@ function updateHeaderFilterState(type) {
 
 // ── Active filters display ──
 function renderActiveFilters() {
+  const container = document.getElementById('activeFilters');
+  if (container) {
+    let html = '';
+    for (const v of selectedCompanies) html += `<span class="active-tag">公司: ${esc(v)} <span class="remove" onclick="removeFilter('company','${esc(v)}')">&times;</span></span>`;
+    for (const v of selectedTypes) html += `<span class="active-tag">类型: ${esc(v)} <span class="remove" onclick="removeFilter('type','${esc(v)}')">&times;</span></span>`;
+    for (const v of selectedPositions) html += `<span class="active-tag">岗位: ${esc(v)} <span class="remove" onclick="removeFilter('pos','${esc(v)}')">&times;</span></span>`;
+    for (const v of selectedCities) html += `<span class="active-tag">城市: ${esc(v)} <span class="remove" onclick="removeFilter('city','${esc(v)}')">&times;</span></span>`;
+    container.innerHTML = html;
+  }
   renderMobileFilterBar();
 }
 
