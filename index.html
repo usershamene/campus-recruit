@@ -669,8 +669,9 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .progress-card-position { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
   .progress-card-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text2); margin-bottom: 10px; }
   .progress-card-stage { display: none; }
+  .progress-card { position: relative; padding-left: 12px; }
   .progress-card-top { position: relative; padding-right: 80px; }
-  .progress-stage-badge { position: absolute; top: 0; right: 0; font-size: 12px; padding: 2px 8px; border-radius: 4px; color: #374151; border: none; cursor: pointer; font-weight: 600; -webkit-appearance: none; appearance: none; background-image: none; min-width: 48px; text-align: center; opacity: 0.85; }
+  .progress-stage-badge { position: absolute; top: 0; right: 0; font-size: 14px; padding: 3px 10px; border-radius: 6px; color: #374151; border: none; cursor: pointer; font-weight: 600; -webkit-appearance: none; appearance: none; background-image: none; min-width: 52px; text-align: center; }
   .progress-stage-badge option { color: #333; background: #fff; }
   .progress-card-note { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--bg); margin-bottom: 10px; }
   .progress-card-actions { display: flex; gap: 8px; }
@@ -750,13 +751,23 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .offer-toolbar button, .offer-toolbar label { flex: 1; min-width: 0; }
 
   /* 投递进度工具栏 */
-  .progress-toolbar { flex-direction: row; flex-wrap: wrap; gap: 6px; }
-  .progress-search { min-width: 100%; }
-  .progress-search input { height: 40px; font-size: 14px; }
+  .progress-toolbar { flex-direction: row; flex-wrap: wrap; gap: 6px; margin-bottom: 0; }
   .progress-filter-select { flex: 1; min-width: 0; height: 36px; font-size: 12px; padding: 0 28px 0 8px; }
   .add-manual-btn { flex: 1; min-width: 0; height: 36px; font-size: 12px; padding: 0 8px; }
   .export-btn { flex: 1; min-width: 0; height: 36px; font-size: 12px; padding: 0 8px; }
   #progressTable { display: none !important; }
+  /* 阶段筛选下拉 */
+  .stage-filter-dropdown { display: none; position: absolute; top: 100%; right: 0; margin-top: 4px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,.1); z-index: 300; padding: 8px; min-width: 160px; max-height: 280px; overflow-y: auto; }
+  .stage-filter-dropdown.show { display: block; }
+  .stage-filter-option { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .stage-filter-option:hover { background: var(--accent-light); }
+  .stage-filter-option.selected { background: var(--accent-light); color: var(--accent); font-weight: 500; }
+  /* 进度移动端筛选条 */
+  .progress-mobile-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .progress-mobile-bar:empty { display: none; }
+  .progress-mobile-bar .mobile-filter-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: var(--accent-light); color: var(--accent); border-radius: 16px; font-size: 12px; cursor: pointer; max-width: 100%; white-space: nowrap; }
+  /* 进度卡片勾选框 */
+  .progress-card-check { position: absolute; top: 8px; left: 12px; width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
 
   /* 用户区域 */
   .phone-input-row { flex-direction: column; }
@@ -937,13 +948,19 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
     </div>
   </div>
 
-  <div class="progress-toolbar">
-    <div class="progress-search">
+  <div class="controls">
+    <div class="search-box">
       <input type="text" id="progressSearchInput" placeholder="搜索公司、岗位、城市...">
     </div>
-    <select class="progress-filter-select" id="progressStageFilter">
-      <option value="">全部阶段</option>
-    </select>
+    <button class="mobile-filter-btn" id="progressFilterBtn" onclick="toggleProgressStageFilter(this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 3H2l8 9.46V19l4 2v-8.54z"/></svg>
+      阶段
+      <span class="filter-x" onclick="event.stopPropagation();clearProgressStageFilter()">&times;</span>
+    </button>
+    <div class="stage-filter-dropdown" id="stageFilterDropdown"></div>
+  </div>
+  <div class="progress-mobile-bar" id="progressMobileBar"></div>
+  <div class="progress-toolbar">
     <select class="progress-filter-select" id="progressSortSelect">
       <option value="applyDate-desc">投递时间 ↓</option>
       <option value="applyDate-asc">投递时间 ↑</option>
@@ -1602,8 +1619,9 @@ function renderProgressCards() {
   }
   if (empty) empty.style.display = 'none';
   container.innerHTML = records.map(r => {
-    const color = STAGE_COLORS[r.progress] || '#3b82f6';
+    const color = STAGE_COLORS[r.progress] || 'rgba(59,130,246,.3)';
     return `<div class="progress-card">
+      <input type="checkbox" class="progress-card-check" data-id="${r.id}" onchange="onProgressCardCheck()">
       <div class="progress-card-top">
         <span class="progress-card-company">${esc(r.company)}</span>
         <select class="progress-stage-badge" style="background:${color}" onchange="updateStage('${r.id}', this.value);renderProgressCards()">
@@ -1802,9 +1820,9 @@ loadUpdateMeta();
 
 const STAGES = ['投递', '测评', '电邀', '群面', '一面', '二面', '三面', 'HR面', 'Offer', '入职', '拒绝'];
 const STAGE_COLORS = {
-  '投递': '#93c5fd', '测评': '#67e8f9', '电邀': '#c4b5fd', '群面': '#fcd34d',
-  '一面': '#fdba74', '二面': '#fca5a5', '三面': '#f87171',
-  'HR面': '#fda4af', 'Offer': '#86efac', '入职': '#6ee7b7', '拒绝': '#d1d5db',
+  '投递': 'rgba(147,197,253,.3)', '测评': 'rgba(103,232,249,.3)', '电邀': 'rgba(196,181,253,.3)', '群面': 'rgba(252,211,77,.3)',
+  '一面': 'rgba(253,186,116,.3)', '二面': 'rgba(252,165,165,.3)', '三面': 'rgba(248,113,113,.3)',
+  'HR面': 'rgba(253,164,175,.3)', 'Offer': 'rgba(134,239,172,.3)', '入职': 'rgba(110,231,183,.3)', '拒绝': 'rgba(209,213,219,.3)',
 };
 const STAGE_CLASS = {
   '投递': 'stage-apply', '测评': 'stage-test', '电邀': 'stage-call', '群面': 'stage-group',
@@ -2074,9 +2092,10 @@ function renderProgressStats() {
   container.innerHTML = html;
 }
 
+let selectedProgressStages = new Set();
+
 function getFilteredProgress() {
   const query = document.getElementById('progressSearchInput').value.toLowerCase().trim();
-  const stageFilter = document.getElementById('progressStageFilter').value;
   let records = [...progressRecords];
   if (query) {
     records = records.filter(r =>
@@ -2085,8 +2104,8 @@ function getFilteredProgress() {
       (r.city || '').toLowerCase().includes(query)
     );
   }
-  if (stageFilter) {
-    records = records.filter(r => r.progress === stageFilter);
+  if (selectedProgressStages.size > 0) {
+    records = records.filter(r => selectedProgressStages.has(r.progress));
   }
   const sortVal = document.getElementById('progressSortSelect').value;
   const [field, dir] = sortVal.split('-');
@@ -2135,14 +2154,75 @@ function renderProgressTable() {
 }
 
 function populateStageFilter() {
-  const select = document.getElementById('progressStageFilter');
-  const current = select.value;
-  select.innerHTML = '<option value="">全部阶段</option>';
-  STAGES.forEach(s => {
+  renderProgressStageDropdown();
+  renderProgressMobileBar();
+  updateProgressFilterBtn();
+}
+
+function renderProgressStageDropdown() {
+  const dd = document.getElementById('stageFilterDropdown');
+  if (!dd) return;
+  dd.innerHTML = STAGES.map(s => {
     const count = progressRecords.filter(r => r.progress === s).length;
-    if (count > 0) select.innerHTML += `<option value="${s}">${s} (${count})</option>`;
-  });
-  select.value = current;
+    const sel = selectedProgressStages.has(s) ? ' selected' : '';
+    return `<div class="stage-filter-option${sel}" onclick="toggleProgressStage('${s}')">${s} <span style="color:var(--text2);font-size:11px">(${count})</span></div>`;
+  }).join('');
+}
+
+function toggleProgressStage(stage) {
+  if (selectedProgressStages.has(stage)) selectedProgressStages.delete(stage);
+  else selectedProgressStages.add(stage);
+  renderProgressStageDropdown();
+  renderProgressMobileBar();
+  updateProgressFilterBtn();
+  renderProgressTable();
+  renderProgressCards();
+}
+
+function clearProgressStageFilter() {
+  selectedProgressStages.clear();
+  renderProgressStageDropdown();
+  renderProgressMobileBar();
+  updateProgressFilterBtn();
+  renderProgressTable();
+  renderProgressCards();
+}
+
+function toggleProgressStageFilter(btn) {
+  const dd = document.getElementById('stageFilterDropdown');
+  if (!dd) return;
+  const isOpen = dd.classList.contains('show');
+  dd.classList.toggle('show', !isOpen);
+  if (!isOpen) {
+    const close = (e) => {
+      if (!dd.contains(e.target) && !btn.contains(e.target)) {
+        dd.classList.remove('show');
+        document.removeEventListener('click', close);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', close), 0);
+  }
+}
+
+function updateProgressFilterBtn() {
+  const btn = document.getElementById('progressFilterBtn');
+  if (!btn) return;
+  btn.classList.toggle('has-filter', selectedProgressStages.size > 0);
+}
+
+function renderProgressMobileBar() {
+  const bar = document.getElementById('progressMobileBar');
+  if (!bar) return;
+  if (selectedProgressStages.size === 0) { bar.innerHTML = ''; return; }
+  bar.innerHTML = Array.from(selectedProgressStages).map(s =>
+    `<span class="mobile-filter-chip" onclick="toggleProgressStage('${s}')">${s} <span class="chip-x">&times;</span></span>`
+  ).join('');
+}
+
+function onProgressCardCheck() {
+  const checks = document.querySelectorAll('.progress-card-check:checked');
+  const btn = document.getElementById('batchDeleteBtn');
+  if (btn) btn.style.display = checks.length > 0 ? '' : 'none';
 }
 
 // ── Progress CRUD ──
@@ -2726,10 +2806,9 @@ saveOffers = function() {
 // ── Progress page event listeners ──
 document.getElementById('progressSearchInput').addEventListener('input', () => {
   clearTimeout(progressSearchTimer);
-  progressSearchTimer = setTimeout(renderProgressTable, 200);
+  progressSearchTimer = setTimeout(() => { renderProgressTable(); renderProgressCards(); }, 200);
 });
-document.getElementById('progressStageFilter').addEventListener('change', renderProgressTable);
-document.getElementById('progressSortSelect').addEventListener('change', renderProgressTable);
+document.getElementById('progressSortSelect').addEventListener('change', () => { renderProgressTable(); renderProgressCards(); });
 
 // Initialize Supabase auth
 initAuth();
