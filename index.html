@@ -40,15 +40,18 @@ button, input, select, a { transition-duration: .2s; }
 /* Header */
 .header { background: var(--card); border-bottom: 1px solid var(--border); padding: 24px 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 8px rgba(0,0,0,.03); }
 .header-inner { max-width: 1360px; margin: 0 auto; padding: 0 32px; }
-.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; flex: 1; }
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; position: relative; }
+.title-block { display: flex; flex-direction: column; gap: 2px; }
+.header-top .stats { position: absolute; left: 50%; transform: translateX(-50%); }
+.header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
 .header h1 span { color: var(--accent); }
+.update-time-wrap { flex-shrink: 0; }
+.update-time { font-size: 12px; color: var(--text2); }
 .stats { display: flex; gap: 24px; align-items: center; }
 .stat { text-align: center; }
 .stat-num { font-size: 20px; font-weight: 600; color: var(--accent); }
 .stat-label { font-size: 11px; color: var(--text2); letter-spacing: .5px; text-transform: uppercase; }
 .stat-today .stat-num { color: #5db872; }
-.update-time { font-size: 12px; color: var(--text2); }
 
 /* Controls */
 .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
@@ -528,13 +531,15 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
     flex-direction: row; flex-wrap: wrap; gap: 0;
     align-items: center; justify-content: space-between;
   }
-  .header-top h1 { font-size: 18px; flex-shrink: 0; order: 0; }
+  .title-block { flex-shrink: 0; }
+  .title-block h1 { font-size: 18px; }
+  .title-block .update-time-wrap { position: absolute; top: 100%; left: 0; margin-top: 2px; }
+  .header-top { position: relative; padding-bottom: 18px; }
   .quote-bar {
     text-align: left; padding: 0;
     font-size: 12px; color: var(--text2);
     margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .update-time-wrap { display: block; margin-bottom: 8px; }
   .update-time { font-size: 11px; color: var(--text2); }
   .stats { margin-top: 6px; }
   .stats { gap: 12px; flex-wrap: wrap; }
@@ -775,7 +780,18 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 <div class="header">
   <div class="header-inner">
     <div class="header-top">
-      <h1>校招信息<span>汇总</span></h1>
+      <div class="title-block">
+        <h1>校招信息<span>汇总</span></h1>
+        <div class="update-time-wrap">
+          <span class="update-time" id="updateTime"></span>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-num" id="statTotal">-</div><div class="stat-label">总岗位</div></div>
+        <div class="stat stat-today"><div class="stat-num" id="statToday">-</div><div class="stat-label">今日更新</div></div>
+        <div class="stat"><div class="stat-num" id="statCompany">-</div><div class="stat-label">企业</div></div>
+        <div class="stat"><div class="stat-num" id="statCity">-</div><div class="stat-label">城市</div></div>
+      </div>
       <div class="user-area" id="userArea">
         <button class="login-btn" id="loginBtn" onclick="showLoginModal()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -794,15 +810,6 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
     <div class="quote-bar">
       <span class="quote-text" id="quoteText"></span>
       <span class="quote-author" id="quoteAuthor"></span>
-    </div>
-    <div class="stats">
-      <div class="stat"><div class="stat-num" id="statTotal">-</div><div class="stat-label">总岗位</div></div>
-      <div class="stat stat-today"><div class="stat-num" id="statToday">-</div><div class="stat-label">今日更新</div></div>
-      <div class="stat"><div class="stat-num" id="statCompany">-</div><div class="stat-label">企业</div></div>
-      <div class="stat"><div class="stat-num" id="statCity">-</div><div class="stat-label">城市</div></div>
-    </div>
-    <div class="update-time-wrap">
-      <span class="update-time" id="updateTime"></span>
     </div>
     <div class="controls">
       <div class="search-box">
