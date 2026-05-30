@@ -87,17 +87,36 @@ async function isVisible(page, selector) {
   const updateTime = await isVisible(page, '.update-time');
   check('更新时间可见', updateTime, '');
 
-  // 标题和登录应在同一行
+  // 标题和登录应在同一行（水平对齐）
   const h1 = await getRect(page, '.header-top h1');
   const login = await getRect(page, '.user-area');
   if (h1 && login) {
-    check('标题和登录齐平（同一行）', Math.abs(h1.y - login.y) < 20, `h1.y: ${h1.y?.toFixed(0)}, login.y: ${login.y?.toFixed(0)}`);
+    check('标题和登录水平对齐', Math.abs(h1.y - login.y) < 15, `h1.y: ${h1.y?.toFixed(0)}, login.y: ${login.y?.toFixed(0)}`);
+  }
+
+  // 登录按钮应在右方
+  if (login) {
+    check('登录在右方', login.x > 200, `login.x: ${login.x?.toFixed(0)}`);
   }
 
   // 更新时间应在标题下方
   const updateTimeRect = await getRect(page, '.update-time-wrap');
   if (h1 && updateTimeRect) {
     check('更新时间在标题下方', updateTimeRect.y > h1.y + h1.height - 5, `h1.bottom: ${(h1.y + h1.height)?.toFixed(0)}, updateTime.y: ${updateTimeRect.y?.toFixed(0)}`);
+  }
+
+  // 统计应在更新时间下方
+  const statsRect = await getRect(page, '.stats');
+  if (updateTimeRect && statsRect) {
+    check('统计在更新时间下方', statsRect.y > updateTimeRect.y + updateTimeRect.height - 5, `updateTime.bottom: ${(updateTimeRect.y + updateTimeRect.height)?.toFixed(0)}, stats.y: ${statsRect.y?.toFixed(0)}`);
+  }
+
+  // 励志语句应居中
+  const quoteRect = await getRect(page, '.quote-bar');
+  if (quoteRect) {
+    const quoteCenter = quoteRect.x + quoteRect.width / 2;
+    const pageCenter = 375 / 2;
+    check('励志语句居中', Math.abs(quoteCenter - pageCenter) < 30, `quoteCenter: ${quoteRect.x?.toFixed(0)}+${quoteRect.width?.toFixed(0)}/2=${quoteCenter?.toFixed(0)}, pageCenter: ${pageCenter}`);
   }
 
   // ═══════════════════════════════════════
@@ -246,7 +265,7 @@ async function isVisible(page, selector) {
 
   // 进度工具栏
   const progressToolbar = await getComputedStyles(page, '.progress-toolbar', ['flexDirection']);
-  check('进度工具栏垂直排列', progressToolbar?.flexDirection === 'column', `实际: ${progressToolbar?.flexDirection}`);
+  check('进度工具栏横向排列', progressToolbar?.flexDirection === 'row', `实际: ${progressToolbar?.flexDirection}`);
 
   // ═══════════════════════════════════════
   // 7. 切换到 Offer 对比

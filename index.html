@@ -526,28 +526,52 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 @media (max-width: 768px) {
   /* Header 堆叠 */
   .header { padding: 12px 0; }
-  .header-inner { padding: 0 12px; }
+  .header-inner { padding: 0 12px; position: relative; }
   .header-top {
     flex-direction: row; flex-wrap: wrap; gap: 0;
-    align-items: center; justify-content: space-between;
+    align-items: flex-start; justify-content: space-between;
   }
-  .title-block { flex-shrink: 0; }
+  .title-block { flex-shrink: 0; display: flex; flex-direction: column; gap: 2px; margin-bottom: 6px; flex: 1; order: 0; }
   .title-block h1 { font-size: 18px; }
-  .title-block .update-time-wrap { position: absolute; top: 100%; left: 0; margin-top: 2px; }
-  .header-top { position: relative; padding-bottom: 18px; }
-  .quote-bar {
-    text-align: left; padding: 0;
-    font-size: 12px; color: var(--text2);
-    margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
+  .title-block .update-time-wrap { position: static; margin-top: 0; }
   .update-time { font-size: 11px; color: var(--text2); }
-  .stats { margin-top: 6px; }
-  .stats { gap: 12px; flex-wrap: wrap; }
-  .stat-num { font-size: 16px; }
-  .stat-label { font-size: 10px; }
-  .user-area { order: 0; margin-left: auto; position: static; flex-shrink: 0; }
+  .header-top .stats { position: static; transform: none; width: 100%; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; order: 2; }
+  .user-area { order: 1; margin-left: auto; flex-shrink: 0; }
+  .stat-num { font-size: 14px; }
+  .stat-label { font-size: 9px; }
+  .quote-bar {
+    text-align: center; padding: 0;
+    font-size: 11px; color: var(--text2);
+    margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    position: static; width: 100%;
+  }
   .user-name { display: none; }
   .header-top .active-filters { display: none; }
+  .mobile-filter-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .mobile-filter-bar:empty { display: none; }
+  .mobile-filter-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; background: var(--accent-light); color: var(--accent);
+    border-radius: 16px; font-size: 12px; cursor: pointer; position: relative;
+    max-width: 100%; white-space: nowrap;
+  }
+  .mobile-filter-chip .chip-x {
+    margin-left: 2px; font-size: 14px; opacity: .7; cursor: pointer; flex-shrink: 0;
+  }
+  .mobile-filter-chip .chip-x:hover { opacity: 1; }
+  .mobile-filter-chip-dropdown {
+    position: absolute; top: 100%; left: 0; margin-top: 4px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: 0 4px 16px rgba(0,0,0,.12); z-index: 300;
+    min-width: 180px; max-height: 240px; overflow-y: auto; display: none;
+  }
+  .mobile-filter-chip-dropdown.open { display: block; }
+  .mobile-filter-chip-dropdown-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; font-size: 13px; cursor: pointer;
+  }
+  .mobile-filter-chip-dropdown-item:hover { background: var(--accent-light); }
+  .mobile-filter-chip-dropdown-item .item-x { color: var(--text2); font-size: 14px; }
 
   /* 搜索框 + 筛选按钮 */
   .controls { flex-direction: row; gap: 8px; align-items: center; }
@@ -644,8 +668,10 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .progress-card-company { font-size: 15px; font-weight: 600; color: var(--text); }
   .progress-card-position { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
   .progress-card-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text2); margin-bottom: 10px; }
-  .progress-card-stage { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-  .progress-card-stage select { flex: 1; height: 36px; font-size: 13px; }
+  .progress-card-stage { display: none; }
+  .progress-card-top { position: relative; padding-right: 80px; }
+  .progress-stage-badge { position: absolute; top: 0; right: 0; font-size: 12px; padding: 2px 8px; border-radius: 4px; color: #fff; border: none; cursor: pointer; font-weight: 600; -webkit-appearance: none; appearance: none; background-image: none; min-width: 48px; text-align: center; }
+  .progress-stage-badge option { color: #333; background: #fff; }
   .progress-card-note { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--bg); margin-bottom: 10px; }
   .progress-card-actions { display: flex; gap: 8px; }
   .progress-card-actions .action-btn { flex: 1; height: 38px; font-size: 12px; }
@@ -724,11 +750,12 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .offer-toolbar button, .offer-toolbar label { flex: 1; min-width: 0; }
 
   /* 投递进度工具栏 */
-  .progress-toolbar { flex-direction: column; gap: 8px; }
+  .progress-toolbar { flex-direction: row; flex-wrap: wrap; gap: 6px; }
   .progress-search { min-width: 100%; }
-  .progress-search input { height: 44px; font-size: 16px; }
-  .progress-filter-select { width: 100%; height: 44px; font-size: 14px; }
-  .add-manual-btn, .export-btn { width: 100%; height: 44px; justify-content: center; }
+  .progress-search input { height: 40px; font-size: 14px; }
+  .progress-filter-select { flex: 1; min-width: 0; height: 36px; font-size: 12px; padding: 0 28px 0 8px; }
+  .add-manual-btn { flex: 1; min-width: 0; height: 36px; font-size: 12px; padding: 0 8px; }
+  .export-btn { flex: 1; min-width: 0; height: 36px; font-size: 12px; padding: 0 8px; }
   #progressTable { display: none !important; }
 
   /* 用户区域 */
@@ -823,6 +850,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
       </button>
     </div>
     <div class="active-filters" id="activeFilters"></div>
+    <div class="mobile-filter-bar" id="mobileFilterBar"></div>
   </div>
 </div>
 
@@ -1345,6 +1373,48 @@ function renderActiveFilters() {
   for (const v of selectedPositions) html += `<span class="active-tag">岗位: ${esc(v)} <span class="remove" onclick="removeFilter('pos','${esc(v)}')">&times;</span></span>`;
   for (const v of selectedCities) html += `<span class="active-tag">城市: ${esc(v)} <span class="remove" onclick="removeFilter('city','${esc(v)}')">&times;</span></span>`;
   container.innerHTML = html;
+  renderMobileFilterBar();
+}
+
+const FILTER_LABELS = { company: '公司', type: '类型', pos: '岗位', city: '城市' };
+function renderMobileFilterBar() {
+  const bar = document.getElementById('mobileFilterBar');
+  if (!bar) return;
+  const sets = { company: selectedCompanies, type: selectedTypes, pos: selectedPositions, city: selectedCities };
+  let html = '';
+  for (const [key, set] of Object.entries(sets)) {
+    if (set.size === 0) continue;
+    const arr = [...set];
+    const label = FILTER_LABELS[key];
+    const first = arr[0];
+    const summary = arr.length === 1 ? `${label}: ${first}` : `${label}: ${first}等 共${arr.length}个`;
+    html += `<div class="mobile-filter-chip" onclick="toggleMobileChipDropdown(this,'${key}')">
+      <span>${esc(summary)}</span>
+      <span class="chip-x" onclick="event.stopPropagation();removeFilterCategory('${key}')">&times;</span>
+      <div class="mobile-filter-chip-dropdown" id="chipDrop-${key}">
+        ${arr.map(v => `<div class="mobile-filter-chip-dropdown-item" onclick="event.stopPropagation();removeFilter('${key}','${esc(v)}')">
+          <span>${esc(v)}</span><span class="item-x">&times;</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }
+  bar.innerHTML = html;
+}
+function toggleMobileChipDropdown(el, key) {
+  const drop = el.querySelector('.mobile-filter-chip-dropdown');
+  document.querySelectorAll('.mobile-filter-chip-dropdown.open').forEach(d => { if (d !== drop) d.classList.remove('open'); });
+  drop.classList.toggle('open');
+}
+function removeFilterCategory(key) {
+  const setMap = { company: selectedCompanies, type: selectedTypes, pos: selectedPositions, city: selectedCities };
+  const listMap = { company: 'companyFilterList', type: 'typeFilterList', pos: 'posFilterList', city: 'cityFilterList' };
+  setMap[key].clear();
+  const list = document.getElementById(listMap[key]);
+  if (list) list.querySelectorAll('.col-filter-item input').forEach(cb => cb.checked = false);
+  applyFilter();
+  updateHeaderFilterState(key);
+  renderActiveFilters();
+  updateMobileFilterBtn();
 }
 function removeFilter(type, value) {
   const setMap = { company: selectedCompanies, type: selectedTypes, pos: selectedPositions, city: selectedCities };
@@ -1565,20 +1635,19 @@ function renderProgressCards() {
     return;
   }
   if (empty) empty.style.display = 'none';
-  const stageOptions = STAGES.map(s => `<option value="${s}">${s}</option>`).join('');
   container.innerHTML = records.map(r => {
-    const rc = ROW_CLASS_MAP[r.progress] || 'row-apply';
-    return `<div class="progress-card ${rc}">
+    const color = STAGE_COLORS[r.progress] || '#3b82f6';
+    return `<div class="progress-card">
       <div class="progress-card-top">
         <span class="progress-card-company">${esc(r.company)}</span>
+        <select class="progress-stage-badge" style="background:${color}" onchange="updateStage('${r.id}', this.value);renderProgressCards()">
+          ${STAGES.map(s => `<option value="${s}" ${s === r.progress ? 'selected' : ''}>${s}</option>`).join('')}
+        </select>
       </div>
       <div class="progress-card-position">${esc(r.position)}</div>
       <div class="progress-card-meta">
         <span>${esc(r.applyDate)}</span>
         <span>${esc(r.city || '-')}</span>
-      </div>
-      <div class="progress-card-stage">
-        <select class="progress-filter-select" onchange="updateStage('${r.id}', this.value);renderProgressCards()">${STAGES.map(s => `<option value="${s}" ${s === r.progress ? 'selected' : ''}>${s}</option>`).join('')}</select>
       </div>
       <input class="progress-card-note" value="${esc(r.note || '')}" placeholder="添加备注..." onchange="updateNote('${r.id}', this.value)">
       <div class="progress-card-actions">
@@ -1592,7 +1661,6 @@ function renderProgressCards() {
 
 // ── 筛选抽屉（二级结构） ──
 const FILTER_SET_MAP = { company: () => selectedCompanies, type: () => selectedTypes, pos: () => selectedPositions, city: () => selectedCities };
-const FILTER_LABELS = { company: '公司', type: '类型', pos: '岗位', city: '城市' };
 let drawerSelectedFilters = {};
 
 function openFilterDrawer() {
@@ -1734,14 +1802,19 @@ function clearAllFilters() {
 
 function getFilterOptions(type) {
   const map = {};
-  allJobs.forEach(job => {
-    let val;
-    if (type === 'company') val = job.company;
-    else if (type === 'type') val = job.recruitmentType;
-    else if (type === 'pos') val = job.positions;
-    else if (type === 'city') val = job.location;
-    if (val) map[val] = (map[val] || 0) + 1;
-  });
+  if (type === 'pos') {
+    allJobs.forEach(job => {
+      if (job._posTags) job._posTags.forEach(t => { map[t] = (map[t] || 0) + 1; });
+    });
+  } else {
+    allJobs.forEach(job => {
+      let val;
+      if (type === 'company') val = job.company;
+      else if (type === 'type') val = job.recruitmentType;
+      else if (type === 'city') val = job.location;
+      if (val) map[val] = (map[val] || 0) + 1;
+    });
+  }
   return Object.entries(map).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
 }
 
@@ -1762,6 +1835,11 @@ loadUpdateMeta();
 // ══════════════════════════════════════════
 
 const STAGES = ['投递', '测评', '电邀', '群面', '一面', '二面', '三面', 'HR面', 'Offer', '入职', '拒绝'];
+const STAGE_COLORS = {
+  '投递': '#3b82f6', '测评': '#06b6d4', '电邀': '#8b5cf6', '群面': '#f59e0b',
+  '一面': '#f97316', '二面': '#ea580c', '三面': '#dc2626',
+  'HR面': '#e11d48', 'Offer': '#16a34a', '入职': '#059669', '拒绝': '#6b7280',
+};
 const STAGE_CLASS = {
   '投递': 'stage-apply', '测评': 'stage-test', '电邀': 'stage-call', '群面': 'stage-group',
   '一面': 'stage-first', '二面': 'stage-second', '三面': 'stage-third',
@@ -1786,9 +1864,13 @@ function switchPage(page) {
   const mainWrap = document.querySelector('.main-wrap');
   const progressWrap = document.getElementById('progressWrap');
   const offerWrap = document.getElementById('offerWrap');
+  const filterBar = document.getElementById('mobileFilterBar');
+  const filterBtn = document.getElementById('mobileFilterBtn');
   mainWrap.classList.toggle('hidden', page !== 'main');
   progressWrap.classList.toggle('active', page === 'progress');
   offerWrap.classList.toggle('active', page === 'offer');
+  if (filterBar) filterBar.style.display = page === 'main' ? '' : 'none';
+  if (filterBtn) filterBtn.style.display = page === 'main' ? '' : 'none';
   // Sync tab active states in all 3 tab bars
   document.querySelectorAll('.tabs-left').forEach(bar => {
     const btns = bar.querySelectorAll('.tab-btn');
