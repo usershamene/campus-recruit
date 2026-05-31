@@ -5,3 +5,4 @@ data/*
 !data/company-profiles.json
 backup-v*/
 campus-recruit-pack.zip
+.codegraph/
