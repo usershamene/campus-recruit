@@ -1253,8 +1253,14 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
     <div class="phone-login-form">
       <input type="text" id="regUsername" placeholder="用户名" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
       <input type="email" id="regEmail" placeholder="邮箱地址" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
-      <input type="password" id="regPassword" placeholder="密码（至少6位）" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
-      <input type="password" id="regConfirmPassword" placeholder="确认密码" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
+      <div style="position:relative">
+        <input type="password" id="regPassword" placeholder="密码（至少6位）" style="width:100%;padding:10px 40px 10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
+        <button type="button" onclick="togglePwdVis('regPassword',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;color:var(--text2);padding:4px">👁</button>
+      </div>
+      <div style="position:relative">
+        <input type="password" id="regConfirmPassword" placeholder="确认密码" style="width:100%;padding:10px 40px 10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
+        <button type="button" onclick="togglePwdVis('regConfirmPassword',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;color:var(--text2);padding:4px">👁</button>
+      </div>
       <button class="send-code-btn" onclick="doRegister()" style="width:100%">注册</button>
       <div style="text-align:center;font-size:12px">
         <span style="color:var(--text2)">已有账号？</span>
@@ -2280,7 +2286,7 @@ let editingId = null;
 let progressSearchTimer = null;
 
 function saveProgress() {
-  localStorage.setItem('campus_recruit_progress', JSON.stringify(progressRecords));
+  localStorage.setItem(_pkey(), JSON.stringify(progressRecords));
 }
 
 // ── Page switching ──
@@ -2316,15 +2322,14 @@ function switchPage(page) {
 }
 
 // ── Offer Compare ──
-const OFFER_KEY = 'campus_recruit_offers';
 let offers = [];
 let editingOfferId = null;
 
 function loadOffers() {
-  try { offers = JSON.parse(localStorage.getItem(OFFER_KEY)) || []; } catch { offers = []; }
+  try { offers = JSON.parse(localStorage.getItem(_okey())) || []; } catch { offers = []; }
 }
 function saveOffers() {
-  localStorage.setItem(OFFER_KEY, JSON.stringify(offers));
+  localStorage.setItem(_okey(), JSON.stringify(offers));
 }
 
 function showOfferModal(id) {
@@ -3077,9 +3082,13 @@ if (!initSupabase()) {
 }
 let currentUser = null;
 
+// ── User-specific storage keys ──
+function _pkey() { return currentUser ? `cr_progress_${currentUser.id}` : 'campus_recruit_progress'; }
+function _okey() { return currentUser ? `cr_offers_${currentUser.id}` : 'campus_recruit_offers'; }
+
 // ── Auth State ──
 function loadProgress() {
-  try { progressRecords = JSON.parse(localStorage.getItem('campus_recruit_progress') || '[]'); } catch { progressRecords = []; }
+  try { progressRecords = JSON.parse(localStorage.getItem(_pkey()) || '[]'); } catch { progressRecords = []; }
 }
 async function syncAndRender() {
   loadProgress();
@@ -3147,6 +3156,11 @@ function showRegisterModal() {
 function closeRegisterModal() {
   document.getElementById('registerModalOverlay').classList.remove('show');
 }
+function togglePwdVis(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+  else { input.type = 'password'; btn.textContent = '👁'; }
+}
 function showProfileModal() {
   if (!currentUser) { showToast('请先登录'); return; }
   const meta = currentUser.user_metadata || {};
@@ -3191,10 +3205,10 @@ async function updatePassword() {
   if (authError) { showToast('当前密码错误'); return; }
   const { error } = await sb.auth.updateUser({ password: newPwd });
   if (error) { showToast('修改失败: ' + error.message); return; }
-  showToast('密码已修改');
-  document.getElementById('profileCurrentPwd').value = '';
-  document.getElementById('profileNewPwd').value = '';
-  document.getElementById('profileConfirmPwd').value = '';
+  showToast('密码已修改，请重新登录');
+  closeProfileModal();
+  await logoutUser();
+  showLoginModal();
 }
 
 async function loginWithGitHub() {
@@ -3217,8 +3231,10 @@ async function loginWithEmail() {
   if (data.session) {
     currentUser = data.user;
     updateUIForLoggedIn();
+    await mergeLocalToCloud();
+    await syncAndRender();
   }
-  showToast('登录成功');
+  showToast('登录成功，数据已同步');
   closeLoginModal();
 }
 
@@ -3240,6 +3256,8 @@ async function doRegister() {
   if (data.session) {
     currentUser = data.user;
     updateUIForLoggedIn();
+    await mergeLocalToCloud();
+    await syncAndRender();
   }
   showToast('注册成功，已自动登录');
   closeRegisterModal();
@@ -3247,10 +3265,12 @@ async function doRegister() {
 
 async function logoutUser() {
   if (sb) await sb.auth.signOut();
-  localStorage.removeItem('campus_recruit_progress');
-  localStorage.removeItem('campus_recruit_offers');
+  currentUser = null;
   progressRecords = [];
   offers = [];
+  updateUIForLoggedOut();
+  loadProgress();
+  loadOffers();
   renderProgressPage();
   renderOffers();
   showToast('已退出登录');
