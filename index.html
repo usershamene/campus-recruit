@@ -3007,7 +3007,12 @@ function importProgress(event) {
 
 const SUPABASE_URL = 'https://sxlowhgltzlautbfmvgh.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4bG93aGdsdHpsYXV0YmZtdmdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4ODM3NjIsImV4cCI6MjA5NTQ1OTc2Mn0.uHQdb3AavDsXF-1M_yQU6VaHhee42IAZFIVZWz-9nuU';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+let sb = null;
+try {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+} catch(e) {
+  console.warn('Supabase init failed:', e);
+}
 let currentUser = null;
 
 // ── Auth State ──
@@ -3075,6 +3080,7 @@ function closeLoginModal() {
 }
 
 async function loginWithGitHub() {
+  if (!sb) { showToast('登录服务暂不可用'); return; }
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'github',
     options: { redirectTo: window.location.origin + window.location.pathname }
@@ -3083,6 +3089,7 @@ async function loginWithGitHub() {
 }
 
 async function loginWithEmail() {
+  if (!sb) { showToast('登录服务暂不可用'); return; }
   const email = document.getElementById('emailInput').value.trim();
   const password = document.getElementById('passwordInput').value;
   if (!email || !email.includes('@')) { showToast('请输入正确的邮箱'); return; }
@@ -3094,6 +3101,7 @@ async function loginWithEmail() {
 }
 
 async function registerWithEmail() {
+  if (!sb) { showToast('登录服务暂不可用'); return; }
   const email = document.getElementById('emailInput').value.trim();
   const password = document.getElementById('passwordInput').value;
   if (!email || !email.includes('@')) { showToast('请输入正确的邮箱'); return; }
@@ -3239,7 +3247,7 @@ document.getElementById('progressStageFilter').addEventListener('change', () => 
 document.getElementById('progressSortSelect').addEventListener('change', () => { updateProgressFilterLabel(); renderProgressContent(); });
 
 // Initialize Supabase auth
-initAuth();
+if (sb) { initAuth().catch(e => console.warn('Auth init failed:', e)); }
 </script>
 </body>
 </html>
