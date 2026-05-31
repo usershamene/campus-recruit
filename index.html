@@ -504,7 +504,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 .send-code-btn:disabled { opacity: .5; cursor: not-allowed; }
 
 /* Company Detail Card */
-.company-card { width: 560px; max-height: 80vh; overflow-y: auto; }
+.company-card { width: 560px; max-height: none; overflow: visible; }
 .cc-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 .cc-logo { width: 40px; height: 40px; border-radius: 8px; object-fit: contain; background: var(--bg); border: 1px solid var(--border); flex-shrink: 0; }
 .cc-logo-fallback { width: 40px; height: 40px; border-radius: 8px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0; }
@@ -637,7 +637,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .tab-btn:first-child { border-left: none !important; }
   .tab-btn.active { border-bottom-color: var(--accent); background: var(--accent-light); color: var(--accent); }
   .tabs-right { display: none; }
-  .offer-actions-bar { display: flex; gap: 6px; margin-bottom: 8px; }
+  .offer-actions-bar { display: flex; gap: 6px; margin-bottom: 8px; margin-top: 4px; }
   .offer-actions-bar .add-manual-btn,
   .offer-actions-bar .export-btn { flex: 1; min-width: 0; height: 36px; font-size: 12px; padding: 0 6px; white-space: nowrap; }
   body { padding-bottom: 60px; }
@@ -793,7 +793,8 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .offer-modal .modal-row select {
     flex: 1; height: 40px; font-size: 14px;
   }
-  .company-card { width: 92vw !important; max-height: 50vh !important; border-radius: 16px !important; position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; bottom: auto !important; right: auto !important; margin: 0 !important; }
+  #companyOverlay { align-items: flex-end !important; justify-content: center !important; }
+  .company-card { width: 100% !important; height: auto !important; max-height: 50vh !important; border-radius: 16px 16px 0 0 !important; position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; top: auto !important; transform: none !important; margin: 0 !important; overflow-y: auto !important; animation: drawerUp .25s ease; }
 
   /* 登录抽屉 */
   .login-modal {
@@ -810,11 +811,13 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 
   /* Offer 对比单列 */
   .offer-cards { grid-template-columns: 1fr; }
+  .offer-card { position: relative; padding-left: 36px; }
+  .offer-select-check { position: absolute; top: 24px; left: 12px; z-index: 1; }
   .offer-toolbar { flex-wrap: wrap; }
   .offer-toolbar button, .offer-toolbar label { flex: 1; min-width: 0; }
 
   /* 投递进度工具栏 */
-  .progress-toolbar { flex-direction: row; flex-wrap: wrap; gap: 6px; margin-bottom: 0; }
+  .progress-toolbar { flex-direction: row; flex-wrap: wrap; gap: 6px; margin-bottom: 0; margin-top: 4px; }
   .progress-filter-select { flex: 1; min-width: 0; height: 36px; font-size: 12px; padding: 0 28px 0 8px; }
   .progress-actions-row { display: flex; gap: 6px; width: 100%; }
   .progress-actions-row .add-manual-btn,
@@ -876,6 +879,72 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .progress-card { padding: 12px; }
   .filter-drawer { padding: 16px 12px; }
 }
+
+/* ═══ 补充样式优化 ═══ */
+
+/* Toast 增强 */
+.toast { backdrop-filter: blur(8px); background: rgba(20,20,19,.92); letter-spacing: .3px; }
+
+/* 筛选菜单统一圆角和阴影 */
+.col-filter-dd { border-radius: var(--radius); }
+.col-filter-dd .col-filter-item { border-radius: 6px; margin: 0 4px; padding: 8px 10px; }
+.col-filter-dd .col-filter-item:hover { border-radius: 6px; }
+
+/* 筛选抽屉统一风格 */
+.filter-drawer { backdrop-filter: blur(12px); }
+.filter-drawer-close:hover { background: var(--accent-light); color: var(--accent); }
+.filter-drawer-btns button { font-weight: 500; letter-spacing: .3px; }
+.filter-drawer-confirm:hover { opacity: .9; }
+.filter-drawer-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+/* 进度阶段标签统一圆角 */
+.progress-stage-badge { border-radius: 16px; font-weight: 500; letter-spacing: .3px; }
+
+/* Offer 卡片统一风格 */
+.offer-card { transition: box-shadow .2s, transform .2s; }
+.offer-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); transform: translateY(-2px); }
+
+/* 按钮统一 hover 过渡 */
+.add-manual-btn, .export-btn, .clear-btn, .mobile-filter-btn { transition: all .2s ease; }
+.add-manual-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(204,120,92,.25); }
+
+/* 输入框统一 focus 样式 */
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(204,120,92,.1); }
+
+/* 空状态统一风格 */
+.empty { padding: 40px 20px; text-align: center; }
+.empty-icon { font-size: 48px; margin-bottom: 12px; opacity: .5; }
+.empty p { font-size: 14px; color: var(--text2); }
+
+/* 公司详情卡片统一 */
+.company-card { backdrop-filter: blur(8px); }
+.cc-tag { border-radius: 16px; font-weight: 500; }
+
+/* 滚动条统一 */
+.filter-drawer-body::-webkit-scrollbar { width: 4px; }
+.filter-drawer-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.col-filter-list::-webkit-scrollbar { width: 4px; }
+.col-filter-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* 选中态统一 */
+.offer-select-check.checked { background: var(--accent); border-color: var(--accent); }
+.offer-select-check.checked::after { content: '✓'; color: #fff; font-size: 12px; font-weight: 700; }
+
+/* 进度卡片移动端统一 */
+.progress-card { border-radius: var(--radius); transition: box-shadow .2s; }
+.progress-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+
+/* 招聘岗位卡片移动端统一 */
+.job-card { border-radius: var(--radius); transition: box-shadow .2s; }
+.job-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+
+/* 时间线弹窗统一 */
+.timeline-modal { border-radius: 16px; }
+.timeline-stage { border-radius: var(--radius); }
+
+/* 登录按钮统一 */
+.login-btn { transition: all .2s ease; }
+.login-btn:hover { background: var(--accent-light); color: var(--accent); }
 </style>
 </head>
 <body>
@@ -1019,10 +1088,10 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
       <input type="text" id="progressSearchInput" placeholder="搜索公司、岗位、城市...">
     </div>
     <select class="progress-filter-select" id="progressStageFilter">
-      <option value="">全部阶段</option>
+      <option value="">筛选</option>
     </select>
     <select class="progress-filter-select" id="progressSortSelect">
-      <option value="applyDate-desc">投递时间 ↓</option>
+      <option value="applyDate-desc">排序</option>
       <option value="applyDate-asc">投递时间 ↑</option>
       <option value="company-asc">公司 A-Z</option>
       <option value="progress-asc">进度阶段</option>
@@ -2569,11 +2638,30 @@ function populateStageFilter() {
   if (!select) return;
   const current = select.value;
   const counts = getStageCounts();
-  select.innerHTML = '<option value="">全部阶段</option>';
+  select.innerHTML = '<option value="">筛选</option>';
   STAGES.forEach(s => {
     if (counts[s] > 0) select.innerHTML += `<option value="${s}">${s} (${counts[s]})</option>`;
   });
   select.value = current;
+}
+function updateProgressFilterLabel() {
+  const stageVal = document.getElementById('progressStageFilter').value;
+  const sortVal = document.getElementById('progressSortSelect').value;
+  const stageSelect = document.getElementById('progressStageFilter');
+  const sortSelect = document.getElementById('progressSortSelect');
+  // 更新阶段筛选标签
+  if (!stageVal) {
+    stageSelect.options[0].text = '筛选';
+  } else {
+    stageSelect.options[0].text = stageVal;
+  }
+  // 更新排序标签
+  const sortLabels = { 'applyDate-desc': '投递时间 ↓', 'applyDate-asc': '投递时间 ↑', 'company-asc': '公司 A-Z', 'progress-asc': '进度阶段' };
+  if (sortVal === 'applyDate-desc') {
+    sortSelect.options[0].text = '排序';
+  } else {
+    sortSelect.options[0].text = sortLabels[sortVal] || '排序';
+  }
 }
 
 function onProgressCardCheck() {
@@ -3174,8 +3262,8 @@ document.getElementById('progressSearchInput').addEventListener('input', () => {
   clearTimeout(progressSearchTimer);
   progressSearchTimer = setTimeout(renderProgressContent, 200);
 });
-document.getElementById('progressStageFilter').addEventListener('change', renderProgressContent);
-document.getElementById('progressSortSelect').addEventListener('change', renderProgressContent);
+document.getElementById('progressStageFilter').addEventListener('change', () => { updateProgressFilterLabel(); renderProgressContent(); });
+document.getElementById('progressSortSelect').addEventListener('change', () => { updateProgressFilterLabel(); renderProgressContent(); });
 
 // Initialize Supabase auth
 initAuth();
