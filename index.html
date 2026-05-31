@@ -1228,9 +1228,12 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
     </button>
     <div class="login-divider"><span>或</span></div>
     <div class="phone-login-form">
-      <input type="email" id="emailInput" placeholder="输入邮箱地址" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text)">
-      <button class="send-code-btn" id="sendCodeBtn" onclick="sendEmailLink()">发送登录链接</button>
-      <p style="font-size:12px;color:var(--text2);margin:4px 0 0">点击邮件中的链接即可登录，无需密码</p>
+      <input type="email" id="emailInput" placeholder="邮箱地址" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
+      <input type="password" id="passwordInput" placeholder="密码（至少6位）" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
+      <div style="display:flex;gap:8px">
+        <button class="send-code-btn" id="loginBtn2" onclick="loginWithEmail()" style="flex:1">登录</button>
+        <button class="send-code-btn" id="registerBtn" onclick="registerWithEmail()" style="flex:1;background:var(--card);color:var(--text);border:1px solid var(--border)">注册</button>
+      </div>
     </div>
     <div class="modal-btns" style="margin-top:16px">
       <button class="modal-cancel" onclick="closeLoginModal()">关闭</button>
@@ -3079,21 +3082,27 @@ async function loginWithGitHub() {
   if (error) showToast('登录失败: ' + error.message);
 }
 
-let emailTimer = null;
-async function sendEmailLink() {
+async function loginWithEmail() {
   const email = document.getElementById('emailInput').value.trim();
-  if (!email || !email.includes('@')) { showToast('请输入正确的邮箱地址'); return; }
-  const btn = document.getElementById('sendCodeBtn');
-  btn.disabled = true;
-  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin + window.location.pathname } });
-  if (error) { showToast('发送失败: ' + error.message); btn.disabled = false; return; }
-  showToast('登录链接已发送到邮箱，请查收');
-  let sec = 60;
-  btn.textContent = sec + 's';
-  emailTimer = setInterval(() => {
-    sec--;
-    btn.textContent = sec > 0 ? sec + 's' : '重新发送';
-    if (sec <= 0) { clearInterval(emailTimer); btn.disabled = false; btn.textContent = '发送登录链接'; }
+  const password = document.getElementById('passwordInput').value;
+  if (!email || !email.includes('@')) { showToast('请输入正确的邮箱'); return; }
+  if (!password || password.length < 6) { showToast('密码至少6位'); return; }
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) { showToast('登录失败: ' + error.message); return; }
+  showToast('登录成功');
+  closeLoginModal();
+}
+
+async function registerWithEmail() {
+  const email = document.getElementById('emailInput').value.trim();
+  const password = document.getElementById('passwordInput').value;
+  if (!email || !email.includes('@')) { showToast('请输入正确的邮箱'); return; }
+  if (!password || password.length < 6) { showToast('密码至少6位'); return; }
+  const { error } = await sb.auth.signUp({ email, password });
+  if (error) { showToast('注册失败: ' + error.message); return; }
+  showToast('注册成功，已自动登录');
+  closeLoginModal();
+}
   }, 1000);
 }
 
