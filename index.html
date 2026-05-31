@@ -11,8 +11,14 @@
   /* 暖色调色板 */
   --bg: #faf9f5; --card: #fff; --border: #e6dfd8; --text: #141413; --text2: #6c6a64;
   --accent: #cc785c; --accent-light: #fef0eb; --accent-hover: #a9583e;
-  --tag-bg: #f5f0e8; --radius: 8px; --shadow: 0 1px 4px rgba(0,0,0,.04);
+  --tag-bg: #f5f0e8; --radius: 8px; --radius-sm: 6px; --shadow: 0 1px 4px rgba(0,0,0,.04);
   --surface-card: #f5f0e8; --hairline: #ebe6df;
+  /* 层级管理 */
+  --z-header: 100; --z-tab: 200; --z-dropdown: 300;
+  --z-overlay: 500; --z-drawer: 501; --z-toast: 1000;
+  /* 语义色 */
+  --danger: #dc2626; --danger-bg: #fef2f2; --danger-border: #fecaca;
+  --success: #059669; --success-light: #5db872; --success-bg: #ecfdf5;
 }
 body { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
 a { color: var(--accent); text-decoration: none; transition: color .2s; }
@@ -38,7 +44,7 @@ button, input, select, a { transition-duration: .2s; }
 }
 
 /* Header */
-.header { background: var(--card); border-bottom: 1px solid var(--border); padding: 24px 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 8px rgba(0,0,0,.03); }
+.header { background: var(--card); border-bottom: 1px solid var(--border); padding: 24px 0; position: sticky; top: 0; z-index: var(--z-header); box-shadow: 0 1px 8px rgba(0,0,0,.03); }
 .header-inner { max-width: 1360px; margin: 0 auto; padding: 0 32px; }
 .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; position: relative; }
 .title-block { display: flex; flex-direction: column; gap: 2px; }
@@ -81,10 +87,25 @@ button, input, select, a { transition-duration: .2s; }
   height: 40px; padding: 0 14px; border: 1px solid var(--border); border-radius: var(--radius);
   background: var(--card); font-size: 13px; color: var(--text2); cursor: pointer; transition: all .2s;
 }
+
+/* 内联样式提取 */
+.loading-msg { margin-top: 12px; }
+.col-th-no { width: 50px; }
+.col-th-date { width: 100px; }
+.col-th-deadline { width: 110px; }
+.col-th-link { width: 100px; }
+.col-th-actions { width: 160px; }
+.danger-btn { color: var(--danger); border-color: var(--danger-border); background: var(--danger-bg); }
+.file-label { cursor: pointer; margin: 0; display: inline-flex; align-items: center; justify-content: center; }
+.hidden-input { display: none; }
+.timeline-modal { width: 520px; max-height: 80vh; overflow-y: auto; }
+.login-subtitle { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+.filter-drawer-body { overflow-y: auto; flex: 1; min-height: 0; }
 .clear-btn:hover { color: var(--accent); border-color: var(--accent); }
 
 /* Active filters */
 .active-filters { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.mobile-filter-bar { display: none; }
 .active-tag {
   display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px;
   background: var(--accent-light); color: var(--accent); border-radius: 20px; font-size: 12px; font-weight: 500;
@@ -128,7 +149,7 @@ th .sort-icon::after { content: "\25B2"; }
 .col-filter-dd {
   position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%); min-width: 280px; max-width: 340px;
   max-height: 380px; background: var(--card); border: 1px solid var(--border);
-  border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.1); z-index: 300;
+  border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.1); z-index: var(--z-dropdown);
   display: none; flex-direction: column; animation: ddIn .15s ease; overflow: hidden;
 }
 @keyframes ddIn { from { opacity: 0; transform: translateX(-50%) translateY(-4px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
@@ -219,7 +240,7 @@ td.col-link .notice-link:hover, .notice-link:hover { background: var(--border); 
 /* Toast */
 .toast {
   position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); padding: 12px 28px;
-  background: #141413; color: #fff; border-radius: 10px; font-size: 13px; z-index: 9999;
+  background: #141413; color: #fff; border-radius: 10px; font-size: 13px; z-index: var(--z-toast);
   opacity: 0; transition: all .3s; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,.12);
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
@@ -348,7 +369,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 
 /* Modal */
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 500;
+  position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: var(--z-overlay);
   display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px);
 }
 .modal-overlay.show { display: flex; }
@@ -436,7 +457,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 .user-dropdown {
   display: none; position: absolute; top: calc(100% + 4px); right: 0;
   background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-  box-shadow: 0 8px 24px rgba(0,0,0,.1); min-width: 140px; z-index: 200;
+  box-shadow: 0 8px 24px rgba(0,0,0,.1); min-width: 140px; z-index: var(--z-tab);
 }
 .user-dropdown::before {
   content: ''; position: absolute; top: -12px; left: 0; right: 0; height: 12px;
@@ -475,12 +496,6 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 .send-code-btn:hover, .verify-code-btn:hover { background: var(--accent-hover); }
 .send-code-btn:disabled { opacity: .5; cursor: not-allowed; }
 
-@media (max-width: 768px) {
-  .user-name { display: none; }
-  .phone-input-row { flex-direction: column; }
-  .phone-input-row select { width: 100%; }
-}
-
 /* Company Detail Card */
 .company-card { width: 560px; max-height: 80vh; overflow-y: auto; }
 .cc-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
@@ -513,7 +528,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 .has-tip .tip {
   display: none; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
   background: #141413; color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 12px;
-  white-space: normal; max-width: 320px; min-width: 80px; word-break: break-all; z-index: 200;
+  white-space: normal; max-width: 320px; min-width: 80px; word-break: break-all; z-index: var(--z-tab);
   pointer-events: none; line-height: 1.5; box-shadow: 0 4px 16px rgba(0,0,0,.12);
 }
 .has-tip .tip::after {
@@ -562,7 +577,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .mobile-filter-chip-dropdown {
     position: absolute; top: 100%; left: 0; margin-top: 4px;
     background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-    box-shadow: 0 4px 16px rgba(0,0,0,.12); z-index: 300;
+    box-shadow: 0 4px 16px rgba(0,0,0,.12); z-index: var(--z-dropdown);
     min-width: 180px; max-height: 240px; overflow-y: auto; display: none;
   }
   .mobile-filter-chip-dropdown.open { display: block; }
@@ -597,7 +612,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   /* Tab 固定底部 */
   .tabs {
     position: fixed; bottom: 0; left: 0; right: 0;
-    z-index: 200; background: var(--card);
+    z-index: var(--z-tab); background: var(--card);
     border-top: 1px solid var(--border);
     padding: 8px 12px; box-shadow: 0 -2px 12px rgba(0,0,0,.06);
     margin: 0; border-radius: 0;
@@ -624,7 +639,6 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .progress-cards { display: block !important; }
 
   /* 岗位卡片 */
-  .job-cards { display: none; }
   .job-card {
     background: var(--card); border-radius: var(--radius);
     border: 1px solid var(--border); padding: 14px;
@@ -658,7 +672,6 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .job-card-pagination button:not(:disabled):hover { border-color: var(--accent); color: var(--accent); }
 
   /* 进度卡片 */
-  .progress-cards { display: none; }
   .progress-card {
     background: var(--card); border-radius: var(--radius);
     border: 1px solid var(--border); padding: 14px;
@@ -679,7 +692,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 
   /* 筛选抽屉 */
   .filter-drawer-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 500;
+    position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: var(--z-overlay);
     display: none; backdrop-filter: blur(2px);
   }
   .filter-drawer-overlay.show { display: block !important; }
@@ -687,7 +700,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
     position: fixed; bottom: 0; left: 0; right: 0;
     background: var(--card); border-radius: 16px 16px 0 0;
     padding: 16px; max-height: 75vh; display: flex; flex-direction: column;
-    z-index: 501; transform: translateY(100%); transition: transform .25s ease;
+    z-index: var(--z-drawer); transform: translateY(100%); transition: transform .25s ease;
     box-shadow: 0 -8px 32px rgba(0,0,0,.12);
   }
   .filter-drawer.show { display: block !important; transform: translateY(0); }
@@ -757,7 +770,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .export-btn { flex: 1; min-width: 0; height: 36px; font-size: 12px; padding: 0 8px; }
   #progressTable { display: none !important; }
   /* 阶段筛选下拉 */
-  .stage-filter-dropdown { display: none; position: absolute; top: 100%; right: 0; margin-top: 4px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,.1); z-index: 300; padding: 8px; min-width: 160px; max-height: 280px; overflow-y: auto; }
+  .stage-filter-dropdown { display: none; position: absolute; top: 100%; right: 0; margin-top: 4px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,.1); z-index: var(--z-dropdown); padding: 8px; min-width: 160px; max-height: 280px; overflow-y: auto; }
   .stage-filter-dropdown.show { display: block; }
   .stage-filter-option { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; }
   .stage-filter-option:hover { background: var(--accent-light); }
@@ -786,7 +799,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
     position: fixed; bottom: 56px; left: 0; right: 0;
     background: var(--card); border-top: 1px solid var(--border);
     padding: 10px 16px; display: flex; align-items: center; justify-content: space-between;
-    z-index: 199; box-shadow: 0 -2px 12px rgba(0,0,0,.06);
+    z-index: calc(var(--z-tab) - 1); box-shadow: 0 -2px 12px rgba(0,0,0,.06);
     transform: translateY(100%); transition: transform .25s ease;
   }
   .mobile-record-bar.show { display: flex !important; transform: translateY(0); }
@@ -831,7 +844,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
         <div class="stat"><div class="stat-num" id="statCity">-</div><div class="stat-label">城市</div></div>
       </div>
       <div class="user-area" id="userArea">
-        <button class="login-btn" id="loginBtn" onclick="showLoginModal()">
+        <button class="login-btn" id="loginBtn" onclick="showLoginModal()" aria-label="登录">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           登录
         </button>
@@ -867,10 +880,10 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 
 <div class="table-wrap main-wrap">
   <div class="tabs">
-    <div class="tabs-left">
-      <button class="tab-btn active" onclick="switchPage('main')">招聘岗位</button>
-      <button class="tab-btn" onclick="switchPage('progress')">投递进度</button>
-      <button class="tab-btn" onclick="switchPage('offer')">Offer 对比</button>
+    <div class="tabs-left" role="tablist">
+      <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchPage('main')">招聘岗位</button>
+      <button class="tab-btn" role="tab" aria-selected="false" onclick="switchPage('progress')">投递进度</button>
+      <button class="tab-btn" role="tab" aria-selected="false" onclick="switchPage('offer')">Offer 对比</button>
     </div>
     <div class="tabs-right">
       <button class="record-btn" id="recordBtn" onclick="recordSelected()" disabled>+ 记录投递</button>
@@ -878,13 +891,13 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
     </div>
   </div>
   <div class="table-card">
-    <div class="loading" id="loading"><div class="spinner"></div><p style="margin-top:12px">加载数据中...</p></div>
+    <div class="loading" id="loading"><div class="spinner"></div><p class="loading-msg">加载数据中...</p></div>
     <table id="mainTable" style="display:none">
       <thead>
         <tr>
-          <th class="col-check"><input type="checkbox" id="checkAll" onchange="toggleCheckAll(this)"></th>
-          <th style="width:50px">#</th>
-          <th class="sortable" data-sort="publishDate" style="width:100px">发布日期 <span class="sort-icon"></span></th>
+          <th class="col-check"><input type="checkbox" id="checkAll" onchange="toggleCheckAll(this)" aria-label="全选"></th>
+          <th class="col-th-no">#</th>
+          <th class="sortable col-th-date" data-sort="publishDate">发布日期 <span class="sort-icon"></span></th>
           <th>
             <span class="th-filter" id="companyFilterHeader" data-type="company">
               <span class="th-inner">公司 <span class="filter-icon">&#9660;</span></span>
@@ -921,8 +934,8 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
               </div>
             </span>
           </th>
-          <th class="sortable" data-sort="deadline" style="width:110px">截止日期 <span class="sort-icon"></span></th>
-          <th style="width:100px">链接</th>
+          <th class="sortable col-th-deadline" data-sort="deadline">截止日期 <span class="sort-icon"></span></th>
+          <th class="col-th-link">链接</th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -939,10 +952,10 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 <!-- Progress Page -->
 <div class="progress-wrap" id="progressWrap">
   <div class="tabs">
-    <div class="tabs-left">
-      <button class="tab-btn" onclick="switchPage('main')">招聘岗位</button>
-      <button class="tab-btn active" onclick="switchPage('progress')">投递进度</button>
-      <button class="tab-btn" onclick="switchPage('offer')">Offer 对比</button>
+    <div class="tabs-left" role="tablist">
+      <button class="tab-btn" role="tab" aria-selected="false" onclick="switchPage('main')">招聘岗位</button>
+      <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchPage('progress')">投递进度</button>
+      <button class="tab-btn" role="tab" aria-selected="false" onclick="switchPage('offer')">Offer 对比</button>
     </div>
     <div class="tabs-right">
       <div class="progress-stats" id="progressStats"></div>
@@ -964,9 +977,9 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
     </select>
     <button class="add-manual-btn" onclick="showAddModal()">+ 手动添加</button>
     <button class="export-btn" onclick="exportProgress()">导出备份</button>
-    <button class="export-btn" id="batchDeleteBtn" onclick="batchDeleteProgress()" style="color:#dc2626;border-color:#fecaca;background:#fef2f2">批量删除</button>
-    <label class="export-btn" style="cursor:pointer;margin:0;display:inline-flex;align-items:center;justify-content:center">
-      <input type="file" accept=".json" style="display:none" onchange="importProgress(event)">
+    <button class="export-btn danger-btn" id="batchDeleteBtn" onclick="batchDeleteProgress()">批量删除</button>
+    <label class="export-btn file-label">
+      <input type="file" accept=".json" class="hidden-input" onchange="importProgress(event)">
       导入
     </label>
   </div>
@@ -975,14 +988,14 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
     <table id="progressTable">
       <thead>
         <tr>
-          <th class="col-check"><input type="checkbox" id="pCheckAll" onchange="toggleProgressCheckAll(this)"></th>
-          <th style="width:100px">投递时间</th>
+          <th class="col-check"><input type="checkbox" id="pCheckAll" onchange="toggleProgressCheckAll(this)" aria-label="全选"></th>
+          <th class="col-th-date">投递时间</th>
           <th>公司</th>
           <th>岗位</th>
           <th>城市</th>
           <th style="width:100px">进度</th>
           <th>备注</th>
-          <th style="width:160px">操作</th>
+          <th class="col-th-actions">操作</th>
         </tr>
       </thead>
       <tbody id="progressTbody"></tbody>
@@ -998,10 +1011,10 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 <!-- Offer Compare Page -->
 <div class="offer-wrap" id="offerWrap">
   <div class="tabs">
-    <div class="tabs-left">
-      <button class="tab-btn" onclick="switchPage('main')">招聘岗位</button>
-      <button class="tab-btn" onclick="switchPage('progress')">投递进度</button>
-      <button class="tab-btn active" onclick="switchPage('offer')">Offer 对比</button>
+    <div class="tabs-left" role="tablist">
+      <button class="tab-btn" role="tab" aria-selected="false" onclick="switchPage('main')">招聘岗位</button>
+      <button class="tab-btn" role="tab" aria-selected="false" onclick="switchPage('progress')">投递进度</button>
+      <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchPage('offer')">Offer 对比</button>
     </div>
     <div class="tabs-right">
       <button class="add-manual-btn" onclick="showOfferModal()">+ 添加 Offer</button>
@@ -1049,7 +1062,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 </div>
 
 <!-- Add/Edit Modal -->
-<div class="modal-overlay" id="modalOverlay">
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true">
   <div class="modal">
     <h3 id="modalTitle">添加投递记录</h3>
     <div class="modal-row"><label>公司</label><input type="text" id="modalCompany"></div>
@@ -1066,8 +1079,8 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 </div>
 
 <!-- Timeline Modal -->
-<div class="modal-overlay" id="timelineOverlay">
-  <div class="modal" style="width:520px;max-height:80vh;overflow-y:auto">
+<div class="modal-overlay" id="timelineOverlay" role="dialog" aria-modal="true">
+  <div class="modal timeline-modal">
     <h3 id="timelineTitle">进度时间线</h3>
     <div class="timeline" id="timelineContent"></div>
     <div class="modal-btns">
@@ -1077,7 +1090,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 </div>
 
 <!-- Company Detail Modal -->
-<div class="modal-overlay" id="companyOverlay" onclick="if(event.target===this)closeCompanyCard()">
+<div class="modal-overlay" id="companyOverlay" onclick="if(event.target===this)closeCompanyCard()" role="dialog" aria-modal="true">
   <div class="modal company-card" id="companyCard"></div>
 </div>
 
@@ -1085,7 +1098,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 <div class="modal-overlay login-modal" id="loginModalOverlay">
   <div class="modal">
     <h3>登录 / 注册</h3>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:24px">登录后数据将自动云端同步，多设备共享</p>
+    <p class="login-subtitle">登录后数据将自动云端同步，多设备共享</p>
     <button class="login-github-btn" onclick="loginWithGitHub()">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
       使用 GitHub 登录
@@ -1113,7 +1126,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
     <span>筛选条件</span>
     <button class="filter-drawer-close" onclick="closeFilterDrawer()">&times;</button>
   </div>
-  <div id="filterDrawerContent" style="overflow-y:auto;flex:1;min-height:0"></div>
+  <div id="filterDrawerContent" class="filter-drawer-body"></div>
   <div class="filter-drawer-btns">
     <button class="filter-drawer-reset" onclick="resetFilters()">重置</button>
     <button class="filter-drawer-confirm" onclick="applyFilterDrawer()">确定</button>
@@ -1186,6 +1199,31 @@ let selectedCompanies = new Set();
 let selectedTypes = new Set();
 let searchTimer = null;
 let selectedJobKeys = new Set();
+
+// ── DOM Cache ──
+const $ = {
+  get searchInput() { return document.getElementById('searchInput'); },
+  get progressStageFilter() { return document.getElementById('progressStageFilter'); },
+  get modalCompany() { return document.getElementById('modalCompany'); },
+  get modalPosition() { return document.getElementById('modalPosition'); },
+  get modalCity() { return document.getElementById('modalCity'); },
+  get modalDate() { return document.getElementById('modalDate'); },
+  get modalStage() { return document.getElementById('modalStage'); },
+  get modalNote() { return document.getElementById('modalNote'); },
+  get modalOverlay() { return document.getElementById('modalOverlay'); },
+};
+
+// ── Filter constants ──
+const FILTER_SET_MAP_JOBS = {
+  get company() { return selectedCompanies; },
+  get type() { return selectedTypes; },
+  get pos() { return selectedPositions; },
+  get city() { return selectedCities; },
+};
+const FILTER_LIST_MAP = {
+  company: 'companyFilterList', type: 'typeFilterList',
+  pos: 'posFilterList', city: 'cityFilterList',
+};
 
 // ── Toast ──
 function showToast(msg, duration) {
@@ -1345,19 +1383,31 @@ document.querySelectorAll('.col-filter-dd').forEach(dd => dd.addEventListener('c
 // ── Update header filter indicator ──
 function updateHeaderFilterState(type) {
   const map = { company: 'companyFilterHeader', type: 'typeFilterHeader', pos: 'posFilterHeader', city: 'cityFilterHeader' };
-  const setMap = { company: selectedCompanies, type: selectedTypes, pos: selectedPositions, city: selectedCities };
-  document.getElementById(map[type]).classList.toggle('has-filter', setMap[type].size > 0);
+  document.getElementById(map[type]).classList.toggle('has-filter', FILTER_SET_MAP_JOBS[type].size > 0);
 }
 
 // ── Active filters display ──
 function renderActiveFilters() {
   const container = document.getElementById('activeFilters');
   if (container) {
+    const groups = [
+      { key: 'company', label: '公司', set: selectedCompanies },
+      { key: 'type', label: '类型', set: selectedTypes },
+      { key: 'pos', label: '岗位', set: selectedPositions },
+      { key: 'city', label: '城市', set: selectedCities },
+    ];
     let html = '';
-    for (const v of selectedCompanies) html += `<span class="active-tag">公司: ${esc(v)} <span class="remove" onclick="removeFilter('company','${esc(v)}')">&times;</span></span>`;
-    for (const v of selectedTypes) html += `<span class="active-tag">类型: ${esc(v)} <span class="remove" onclick="removeFilter('type','${esc(v)}')">&times;</span></span>`;
-    for (const v of selectedPositions) html += `<span class="active-tag">岗位: ${esc(v)} <span class="remove" onclick="removeFilter('pos','${esc(v)}')">&times;</span></span>`;
-    for (const v of selectedCities) html += `<span class="active-tag">城市: ${esc(v)} <span class="remove" onclick="removeFilter('city','${esc(v)}')">&times;</span></span>`;
+    for (const g of groups) {
+      if (g.set.size === 0) continue;
+      const arr = [...g.set];
+      if (arr.length === 1) {
+        html += `<span class="active-tag">${g.label}: ${esc(arr[0])} <span class="remove" onclick="removeFilter('${g.key}','${esc(arr[0])}')">&times;</span></span>`;
+      } else if (arr.length === 2) {
+        html += `<span class="active-tag">${g.label}: ${esc(arr[0])}、${esc(arr[1])} <span class="remove" onclick="removeFilterCategory('${g.key}')">&times;</span></span>`;
+      } else {
+        html += `<span class="active-tag">${g.label}: ${esc(arr[0])}、${esc(arr[1])} 等 共${arr.length}个 <span class="remove" onclick="removeFilterCategory('${g.key}')">&times;</span></span>`;
+      }
+    }
     container.innerHTML = html;
   }
   renderMobileFilterBar();
@@ -1393,10 +1443,8 @@ function toggleMobileChipDropdown(el, key) {
   drop.classList.toggle('open');
 }
 function removeFilterCategory(key) {
-  const setMap = { company: selectedCompanies, type: selectedTypes, pos: selectedPositions, city: selectedCities };
-  const listMap = { company: 'companyFilterList', type: 'typeFilterList', pos: 'posFilterList', city: 'cityFilterList' };
-  setMap[key].clear();
-  const list = document.getElementById(listMap[key]);
+  FILTER_SET_MAP_JOBS[key].clear();
+  const list = document.getElementById(FILTER_LIST_MAP[key]);
   if (list) list.querySelectorAll('.col-filter-item input').forEach(cb => cb.checked = false);
   applyFilter();
   updateHeaderFilterState(key);
@@ -1404,10 +1452,8 @@ function removeFilterCategory(key) {
   updateMobileFilterBtn();
 }
 function removeFilter(type, value) {
-  const setMap = { company: selectedCompanies, type: selectedTypes, pos: selectedPositions, city: selectedCities };
-  const listMap = { company: 'companyFilterList', type: 'typeFilterList', pos: 'posFilterList', city: 'cityFilterList' };
-  setMap[type].delete(value);
-  const cb = document.getElementById(listMap[type]).querySelector(`.col-filter-item[data-name="${CSS.escape(value)}"] input`);
+  FILTER_SET_MAP_JOBS[type].delete(value);
+  const cb = document.getElementById(FILTER_LIST_MAP[type]).querySelector(`.col-filter-item[data-name="${CSS.escape(value)}"] input`);
   if (cb) cb.checked = false;
   applyFilter();
   updateHeaderFilterState(type);
@@ -1418,7 +1464,7 @@ function removeFilter(type, value) {
 // ── Clear all ──
 document.getElementById('clearAllBtn').addEventListener('click', () => {
   selectedCities.clear(); selectedPositions.clear(); selectedCompanies.clear(); selectedTypes.clear();
-  document.getElementById('searchInput').value = '';
+  $.searchInput.value = '';
   document.querySelectorAll('.col-filter-item input').forEach(cb => cb.checked = false);
   ['company', 'type', 'pos', 'city'].forEach(t => updateHeaderFilterState(t));
   renderActiveFilters();
@@ -1427,14 +1473,14 @@ document.getElementById('clearAllBtn').addEventListener('click', () => {
 });
 
 // ── Search ──
-document.getElementById('searchInput').addEventListener('input', () => {
+$.searchInput.addEventListener('input', () => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => { currentPage = 1; applyFilter(); }, 200);
 });
 
 // ── Apply filter + search ──
 function applyFilter() {
-  const query = document.getElementById('searchInput').value.toLowerCase().trim();
+  const query = $.searchInput.value.toLowerCase().trim();
   filteredJobs = allJobs.filter(job => {
     if (query) {
       const hay = `${job.company} ${job.positions} ${job.location} ${job.industry || ''} ${job.recruitmentType || ''}`.toLowerCase();
@@ -1521,7 +1567,7 @@ function isUrgent(deadline) {
   } catch { return false; }
 }
 
-function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function esc(s) { if (!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 // ── Pagination ──
 function renderPagination() {
@@ -1611,10 +1657,10 @@ function renderJobCardPagination() {
   `;
 }
 
-function renderProgressCards() {
+function renderProgressCards(records) {
   const container = document.getElementById('progressCards');
   if (!container) return;
-  const records = getFilteredProgress();
+  if (!records) records = getFilteredProgress();
   const empty = document.getElementById('progressEmpty');
   if (records.length === 0) {
     container.innerHTML = '';
@@ -1629,7 +1675,7 @@ function renderProgressCards() {
       <div class="progress-card-top">
         <span class="progress-card-company">${esc(r.company)}</span>
         <select class="progress-stage-badge" style="background:${color}" onchange="updateStage('${r.id}', this.value);renderProgressCards()">
-          ${STAGES.map(s => `<option value="${s}" ${s === r.progress ? 'selected' : ''}>${s}</option>`).join('')}
+          ${buildStageOptions(r.progress)}
         </select>
       </div>
       <div class="progress-card-position">${esc(r.position)}</div>
@@ -1651,17 +1697,26 @@ function renderProgressCards() {
 const FILTER_SET_MAP = { company: () => selectedCompanies, type: () => selectedTypes, pos: () => selectedPositions, city: () => selectedCities };
 let drawerSelectedFilters = {};
 
+let drawerScrollY = 0;
 function openFilterDrawer() {
   drawerSelectedFilters = {};
   Object.keys(FILTER_SET_MAP).forEach(key => {
     drawerSelectedFilters[key] = new Set(FILTER_SET_MAP[key]());
   });
   buildFilterDrawerContent();
+  drawerScrollY = window.scrollY;
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${drawerScrollY}px`;
+  document.body.style.width = '100%';
   document.getElementById('filterDrawerOverlay').classList.add('show');
   document.getElementById('filterDrawer').classList.add('show');
 }
 
 function closeFilterDrawer() {
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+  window.scrollTo(0, drawerScrollY);
   document.getElementById('filterDrawerOverlay').classList.remove('show');
   document.getElementById('filterDrawer').classList.remove('show');
 }
@@ -1760,7 +1815,7 @@ function applyFilterDrawer() {
 function resetFilters() {
   selectedCities.clear(); selectedPositions.clear(); selectedCompanies.clear(); selectedTypes.clear();
   drawerSelectedFilters = {};
-  document.getElementById('searchInput').value = '';
+  $.searchInput.value = '';
   document.querySelectorAll('.col-filter-item input').forEach(cb => cb.checked = false);
   ['company', 'type', 'pos', 'city'].forEach(t => updateHeaderFilterState(t));
   currentPage = 1;
@@ -1779,7 +1834,7 @@ function updateMobileFilterBtn() {
 
 function clearAllFilters() {
   selectedCities.clear(); selectedPositions.clear(); selectedCompanies.clear(); selectedTypes.clear();
-  document.getElementById('searchInput').value = '';
+  $.searchInput.value = '';
   document.querySelectorAll('.col-filter-item input').forEach(cb => cb.checked = false);
   ['company', 'type', 'pos', 'city'].forEach(t => updateHeaderFilterState(t));
   currentPage = 1;
@@ -1839,6 +1894,17 @@ const ROW_CLASS_MAP = {
   'HR面': 'row-hr', 'Offer': 'row-offer', '入职': 'row-join', '拒绝': 'row-reject',
 };
 
+// ── Shared helpers ──
+function buildStageOptions(current) {
+  return STAGES.map(s => `<option value="${s}" ${s === current ? 'selected' : ''}>${s}</option>`).join('');
+}
+function getStageCounts() {
+  const counts = {};
+  STAGES.forEach(s => { counts[s] = 0; });
+  progressRecords.forEach(r => { if (counts[r.progress] !== undefined) counts[r.progress]++; });
+  return counts;
+}
+
 let progressRecords = [];
 let editingId = null;
 let progressSearchTimer = null;
@@ -1859,6 +1925,8 @@ function switchPage(page) {
   offerWrap.classList.toggle('active', page === 'offer');
   if (filterBar) filterBar.style.display = page === 'main' ? '' : 'none';
   if (filterBtn) filterBtn.style.display = page === 'main' ? '' : 'none';
+  const activeFilters = document.getElementById('activeFilters');
+  if (activeFilters) activeFilters.style.display = page === 'main' ? '' : 'none';
   const controls = document.querySelector('.controls');
   if (controls) controls.style.display = page === 'main' ? '' : 'none';
   // Sync tab active states in all 3 tab bars
@@ -2073,19 +2141,21 @@ function recordSelected() {
 }
 
 // ── Progress page rendering ──
+function renderProgressContent() {
+  const records = getFilteredProgress();
+  renderProgressTable(records);
+  renderProgressCards(records);
+}
 function renderProgressPage() {
   renderProgressStats();
-  renderProgressTable();
-  renderProgressCards();
+  renderProgressContent();
   populateStageFilter();
 }
 
 function renderProgressStats() {
   const container = document.getElementById('progressStats');
   const total = progressRecords.length;
-  const stageCount = {};
-  STAGES.forEach(s => { stageCount[s] = 0; });
-  progressRecords.forEach(r => { stageCount[r.progress] = (stageCount[r.progress] || 0) + 1; });
+  const stageCount = getStageCounts();
   let html = `<div class="pstat"><div class="pstat-num" style="color:var(--accent)">${total}</div><div class="pstat-label">总投递</div></div>`;
   for (const stage of STAGES) {
     if (stageCount[stage] > 0) {
@@ -2124,8 +2194,8 @@ function getFilteredProgress() {
   return records;
 }
 
-function renderProgressTable() {
-  const records = getFilteredProgress();
+function renderProgressTable(records) {
+  if (!records) records = getFilteredProgress();
   const tbody = document.getElementById('progressTbody');
   const empty = document.getElementById('progressEmpty');
   if (records.length === 0) {
@@ -2136,7 +2206,7 @@ function renderProgressTable() {
   empty.style.display = 'none';
   tbody.innerHTML = records.map(r => {
     const rc = ROW_CLASS_MAP[r.progress] || 'row-apply';
-    const stageOptions = STAGES.map(s => `<option value="${s}" ${s === r.progress ? 'selected' : ''}>${s}</option>`).join('');
+    const stageOptions = buildStageOptions(r.progress);
     return `<tr data-id="${r.id}" class="${rc}">
       <td class="col-check"><input type="checkbox" data-id="${r.id}" onchange="updateBatchDeleteBtn()"></td>
       <td class="col-date">${esc(r.applyDate)}</td>
@@ -2157,75 +2227,15 @@ function renderProgressTable() {
 }
 
 function populateStageFilter() {
-  const select = document.getElementById('progressStageFilter');
+  const select = $.progressStageFilter;
   if (!select) return;
   const current = select.value;
+  const counts = getStageCounts();
   select.innerHTML = '<option value="">全部阶段</option>';
   STAGES.forEach(s => {
-    const count = progressRecords.filter(r => r.progress === s).length;
-    if (count > 0) select.innerHTML += `<option value="${s}">${s} (${count})</option>`;
+    if (counts[s] > 0) select.innerHTML += `<option value="${s}">${s} (${counts[s]})</option>`;
   });
   select.value = current;
-}
-
-function renderProgressStageDropdown() {
-  const dd = document.getElementById('stageFilterDropdown');
-  if (!dd) return;
-  dd.innerHTML = STAGES.map(s => {
-    const count = progressRecords.filter(r => r.progress === s).length;
-    const sel = selectedProgressStages.has(s) ? ' selected' : '';
-    return `<div class="stage-filter-option${sel}" onclick="toggleProgressStage('${s}')">${s} <span style="color:var(--text2);font-size:11px">(${count})</span></div>`;
-  }).join('');
-}
-
-function toggleProgressStage(stage) {
-  if (selectedProgressStages.has(stage)) selectedProgressStages.delete(stage);
-  else selectedProgressStages.add(stage);
-  renderProgressStageDropdown();
-  renderProgressMobileBar();
-  updateProgressFilterBtn();
-  renderProgressTable();
-  renderProgressCards();
-}
-
-function clearProgressStageFilter() {
-  selectedProgressStages.clear();
-  renderProgressStageDropdown();
-  renderProgressMobileBar();
-  updateProgressFilterBtn();
-  renderProgressTable();
-  renderProgressCards();
-}
-
-function toggleProgressStageFilter(btn) {
-  const dd = document.getElementById('stageFilterDropdown');
-  if (!dd) return;
-  const isOpen = dd.classList.contains('show');
-  dd.classList.toggle('show', !isOpen);
-  if (!isOpen) {
-    const close = (e) => {
-      if (!dd.contains(e.target) && !btn.contains(e.target)) {
-        dd.classList.remove('show');
-        document.removeEventListener('click', close);
-      }
-    };
-    setTimeout(() => document.addEventListener('click', close), 0);
-  }
-}
-
-function updateProgressFilterBtn() {
-  const btn = document.getElementById('progressFilterBtn');
-  if (!btn) return;
-  btn.classList.toggle('has-filter', selectedProgressStages.size > 0);
-}
-
-function renderProgressMobileBar() {
-  const bar = document.getElementById('progressMobileBar');
-  if (!bar) return;
-  if (selectedProgressStages.size === 0) { bar.innerHTML = ''; return; }
-  bar.innerHTML = Array.from(selectedProgressStages).map(s =>
-    `<span class="mobile-filter-chip" onclick="toggleProgressStage('${s}')">${s} <span class="chip-x">&times;</span></span>`
-  ).join('');
 }
 
 function onProgressCardCheck() {
@@ -2293,14 +2303,13 @@ function batchDeleteProgress() {
 function showAddModal() {
   editingId = null;
   document.getElementById('modalTitle').textContent = '添加投递记录';
-  document.getElementById('modalCompany').value = '';
-  document.getElementById('modalPosition').value = '';
-  document.getElementById('modalCity').value = '';
-  document.getElementById('modalDate').value = new Date().toISOString().split('T')[0];
-  const stageSelect = document.getElementById('modalStage');
-  stageSelect.innerHTML = STAGES.map(s => `<option value="${s}">${s}</option>`).join('');
-  document.getElementById('modalNote').value = '';
-  document.getElementById('modalOverlay').classList.add('show');
+  $.modalCompany.value = '';
+  $.modalPosition.value = '';
+  $.modalCity.value = '';
+  $.modalDate.value = new Date().toISOString().split('T')[0];
+  $.modalStage.innerHTML = buildStageOptions('');
+  $.modalNote.value = '';
+  $.modalOverlay.classList.add('show');
 }
 
 function showEditModal(id) {
@@ -2308,27 +2317,26 @@ function showEditModal(id) {
   if (!r) return;
   editingId = id;
   document.getElementById('modalTitle').textContent = '编辑投递记录';
-  document.getElementById('modalCompany').value = r.company || '';
-  document.getElementById('modalPosition').value = r.position || '';
-  document.getElementById('modalCity').value = r.city || '';
-  document.getElementById('modalDate').value = r.applyDate || '';
-  const stageSelect = document.getElementById('modalStage');
-  stageSelect.innerHTML = STAGES.map(s => `<option value="${s}" ${s === r.progress ? 'selected' : ''}>${s}</option>`).join('');
-  document.getElementById('modalNote').value = r.note || '';
-  document.getElementById('modalOverlay').classList.add('show');
+  $.modalCompany.value = r.company || '';
+  $.modalPosition.value = r.position || '';
+  $.modalCity.value = r.city || '';
+  $.modalDate.value = r.applyDate || '';
+  $.modalStage.innerHTML = buildStageOptions(r.progress);
+  $.modalNote.value = r.note || '';
+  $.modalOverlay.classList.add('show');
 }
 
 function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('show');
+  $.modalOverlay.classList.remove('show');
 }
 
 function confirmModal() {
-  const company = document.getElementById('modalCompany').value.trim();
-  const position = document.getElementById('modalPosition').value.trim();
-  const city = document.getElementById('modalCity').value.trim();
-  const date = document.getElementById('modalDate').value;
-  const stage = document.getElementById('modalStage').value;
-  const note = document.getElementById('modalNote').value.trim();
+  const company = $.modalCompany.value.trim();
+  const position = $.modalPosition.value.trim();
+  const city = $.modalCity.value.trim();
+  const date = $.modalDate.value;
+  const stage = $.modalStage.value;
+  const note = $.modalNote.value.trim();
   if (!company) { showToast('请输入公司名称'); return; }
   if (editingId) {
     const r = progressRecords.find(r => r.id === editingId);
@@ -2580,24 +2588,28 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 let currentUser = null;
 
 // ── Auth State ──
+function loadProgress() {
+  try { progressRecords = JSON.parse(localStorage.getItem('campus_recruit_progress') || '[]'); } catch { progressRecords = []; }
+}
+async function syncAndRender() {
+  loadProgress();
+  loadOffers();
+  await syncFromCloud();
+  renderProgressPage();
+  renderOffers();
+}
 async function initAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
     currentUser = session.user;
     updateUIForLoggedIn();
-    // Load local data first, then sync from cloud
-    try { progressRecords = JSON.parse(localStorage.getItem('campus_recruit_progress') || '[]'); } catch {}
-    loadOffers();
-    await syncFromCloud();
-    renderProgressPage();
-    renderOffers();
+    await syncAndRender();
   }
   sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session) {
       currentUser = session.user;
       updateUIForLoggedIn();
-      // Load local data first, then merge and sync
-      try { progressRecords = JSON.parse(localStorage.getItem('campus_recruit_progress') || '[]'); } catch {}
+      loadProgress();
       loadOffers();
       await mergeLocalToCloud();
       await syncFromCloud();
@@ -2772,33 +2784,21 @@ async function syncNow() {
 // Debounced cloud writes
 let _syncPTimer = null, _syncOTimer = null;
 
-async function syncProgressToCloud() {
+async function syncToCloud(table, records, mapper) {
   if (!currentUser) return;
   try {
-    const rows = progressRecords.map(_progressToUpload);
-    if (rows.length > 0) await sb.from('progress_records').upsert(rows, { onConflict: 'id' });
+    const rows = records.map(mapper);
+    if (rows.length > 0) await sb.from(table).upsert(rows, { onConflict: 'id' });
     const localIds = new Set(rows.map(r => r.id));
-    const { data: cloudRows } = await sb.from('progress_records').select('id').eq('user_id', currentUser.id);
+    const { data: cloudRows } = await sb.from(table).select('id').eq('user_id', currentUser.id);
     if (cloudRows) {
       const toDelete = cloudRows.filter(r => !localIds.has(r.id)).map(r => r.id);
-      if (toDelete.length > 0) await sb.from('progress_records').delete().in('id', toDelete);
+      if (toDelete.length > 0) await sb.from(table).delete().in('id', toDelete);
     }
-  } catch (e) { console.error('[sync] syncProgressToCloud:', e); }
+  } catch (e) { console.error(`[sync] syncToCloud(${table}):`, e); }
 }
-
-async function syncOffersToCloud() {
-  if (!currentUser) return;
-  try {
-    const rows = offers.map(_offerToUpload);
-    if (rows.length > 0) await sb.from('offers').upsert(rows, { onConflict: 'id' });
-    const localIds = new Set(rows.map(r => r.id));
-    const { data: cloudRows } = await sb.from('offers').select('id').eq('user_id', currentUser.id);
-    if (cloudRows) {
-      const toDelete = cloudRows.filter(r => !localIds.has(r.id)).map(r => r.id);
-      if (toDelete.length > 0) await sb.from('offers').delete().in('id', toDelete);
-    }
-  } catch (e) { console.error('[sync] syncOffersToCloud:', e); }
-}
+async function syncProgressToCloud() { await syncToCloud('progress_records', progressRecords, _progressToUpload); }
+async function syncOffersToCloud() { await syncToCloud('offers', offers, _offerToUpload); }
 
 // Patch save functions to auto-sync
 const _origSaveProgress = saveProgress;
@@ -2815,10 +2815,10 @@ saveOffers = function() {
 // ── Progress page event listeners ──
 document.getElementById('progressSearchInput').addEventListener('input', () => {
   clearTimeout(progressSearchTimer);
-  progressSearchTimer = setTimeout(() => { renderProgressTable(); renderProgressCards(); }, 200);
+  progressSearchTimer = setTimeout(renderProgressContent, 200);
 });
-document.getElementById('progressStageFilter').addEventListener('change', () => { renderProgressTable(); renderProgressCards(); });
-document.getElementById('progressSortSelect').addEventListener('change', () => { renderProgressTable(); renderProgressCards(); });
+document.getElementById('progressStageFilter').addEventListener('change', renderProgressContent);
+document.getElementById('progressSortSelect').addEventListener('change', renderProgressContent);
 
 // Initialize Supabase auth
 initAuth();
