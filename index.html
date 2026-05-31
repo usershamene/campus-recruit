@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>校招信息汇总</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" async onload="window._sbLoaded=true" onerror="console.warn('Supabase CDN failed')"></script>
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
@@ -1584,6 +1584,13 @@ function getTypeStyle(type) {
 
 // ── Load data ──
 function loadData() {
+  // Timeout: show error if data doesn't load in 10s
+  const _loadTimeout = setTimeout(() => {
+    const el = document.getElementById('loading');
+    if (el && el.style.display !== 'none') {
+      el.innerHTML = '<p style="color:#e74c3c">数据加载超时，请刷新页面重试</p>';
+    }
+  }, 10000);
   fetch('data/jobs.json')
     .then(r => r.json())
     .then(data => {
@@ -1616,6 +1623,7 @@ function loadData() {
       buildColFilterList('posFilterList', posCount, selectedPositions, 'pos');
       buildColFilterList('cityFilterList', cityCount, selectedCities, 'city');
       applyFilter();
+      clearTimeout(_loadTimeout);
       document.getElementById('loading').style.display = 'none';
       document.getElementById('mainTable').style.display = '';
       document.getElementById('paginationWrap').style.display = '';
@@ -3008,10 +3016,17 @@ function importProgress(event) {
 const SUPABASE_URL = 'https://sxlowhgltzlautbfmvgh.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4bG93aGdsdHpsYXV0YmZtdmdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4ODM3NjIsImV4cCI6MjA5NTQ1OTc2Mn0.uHQdb3AavDsXF-1M_yQU6VaHhee42IAZFIVZWz-9nuU';
 let sb = null;
-try {
-  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-} catch(e) {
-  console.warn('Supabase init failed:', e);
+function initSupabase() {
+  if (window.supabase && window.supabase.createClient) {
+    try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON); } catch(e) { console.warn('Supabase init failed:', e); }
+    return true;
+  }
+  return false;
+}
+if (!initSupabase()) {
+  // Wait up to 5s for CDN to load
+  const _sbWait = setInterval(() => { if (initSupabase()) clearInterval(_sbWait); }, 500);
+  setTimeout(() => clearInterval(_sbWait), 5000);
 }
 let currentUser = null;
 
