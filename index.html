@@ -3141,8 +3141,12 @@ async function loginWithEmail() {
   const password = document.getElementById('passwordInput').value;
   if (!email || !email.includes('@')) { showToast('请输入正确的邮箱'); return; }
   if (!password || password.length < 6) { showToast('密码至少6位'); return; }
-  const { error } = await sb.auth.signInWithPassword({ email, password });
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error) { showToast('登录失败: ' + error.message); return; }
+  if (data.session) {
+    currentUser = data.user;
+    updateUIForLoggedIn();
+  }
   showToast('登录成功');
   closeLoginModal();
 }
@@ -3160,6 +3164,10 @@ async function doRegister() {
     options: { data: { username, full_name: username } }
   });
   if (error) { showToast('注册失败: ' + error.message); return; }
+  if (data.session) {
+    currentUser = data.user;
+    updateUIForLoggedIn();
+  }
   showToast('注册成功，已自动登录');
   closeRegisterModal();
 }
