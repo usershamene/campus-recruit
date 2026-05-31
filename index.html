@@ -35,7 +35,7 @@ button, input, select, a { transition-duration: .2s; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text2); }
 
 /* Quote */
-.quote-bar { text-align: center; padding: 12px 0 8px; }
+.quote-bar { text-align: center; padding: 0; }
 .quote-text {
   font-size: 15px; font-weight: 400; color: var(--text2); letter-spacing: .3px; line-height: 1.6;
 }
@@ -44,9 +44,9 @@ button, input, select, a { transition-duration: .2s; }
 }
 
 /* Header */
-.header { background: var(--card); border-bottom: 1px solid var(--border); padding: 24px 0; position: sticky; top: 0; z-index: var(--z-header); box-shadow: 0 1px 8px rgba(0,0,0,.03); }
+.header { background: var(--card); border-bottom: 1px solid var(--border); padding: 24px 0 12px; position: sticky; top: 0; z-index: var(--z-header); box-shadow: 0 1px 8px rgba(0,0,0,.03); }
 .header-inner { max-width: 1360px; margin: 0 auto; padding: 0 32px; }
-.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; position: relative; }
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0; position: relative; }
 .title-block { display: flex; flex-direction: column; gap: 2px; }
 .header-top .stats { position: absolute; left: 50%; transform: translateX(-50%); }
 .header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
@@ -95,7 +95,8 @@ button, input, select, a { transition-duration: .2s; }
 .col-th-deadline { width: 110px; }
 .col-th-link { width: 100px; }
 .col-th-actions { width: 160px; }
-.danger-btn { color: var(--danger); border-color: var(--danger-border); background: var(--danger-bg); }
+.danger-btn { color: var(--danger); border-color: var(--danger); background: var(--card); }
+.danger-btn:hover { background: var(--danger-bg); }
 .file-label { cursor: pointer; margin: 0; display: inline-flex; align-items: center; justify-content: center; }
 .hidden-input { display: none; }
 .timeline-modal { width: 520px; max-height: 80vh; overflow-y: auto; }
@@ -115,7 +116,7 @@ button, input, select, a { transition-duration: .2s; }
 
 /* Table */
 .table-wrap { max-width: 1360px; margin: 24px auto; padding: 0 32px; }
-.table-card { background: var(--card); border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.04); overflow: hidden; }
+.table-card { background: var(--card); border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.04); overflow: visible; }
 table { width: 100%; border-collapse: collapse; }
 thead { background: var(--surface-card); }
 th {
@@ -149,7 +150,7 @@ th .sort-icon::after { content: "\25B2"; }
 .col-filter-dd {
   position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%); min-width: 280px; max-width: 340px;
   max-height: 380px; background: var(--card); border: 1px solid var(--border);
-  border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.1); z-index: var(--z-dropdown);
+  border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.1); z-index: calc(var(--z-header) - 1);
   display: none; flex-direction: column; animation: ddIn .15s ease; overflow: hidden;
 }
 @keyframes ddIn { from { opacity: 0; transform: translateX(-50%) translateY(-4px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
@@ -180,6 +181,7 @@ td {
   vertical-align: middle;
 }
 tr:hover td { background: rgba(204,120,92,.02); }
+.empty-row td { height: 44px; border-bottom: 1px solid var(--hairline); }
 td.col-no { width: 50px; text-align: center; color: var(--text2); font-size: 12px; font-weight: 500; }
 td.col-date { width: 100px; white-space: nowrap; font-size: 12px; color: var(--text2); }
 td.col-company { font-weight: 500; max-width: 180px; text-align: center; }
@@ -290,6 +292,7 @@ td.col-check input, th.col-check input { width: 16px; height: 16px; accent-color
 
 /* Progress toolbar */
 .progress-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.progress-actions-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .progress-search { flex: 1; min-width: 200px; }
 .progress-search input {
   width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--border);
@@ -312,6 +315,8 @@ td.col-check input, th.col-check input { width: 16px; height: 16px; accent-color
   background: var(--card); color: var(--text2); font-size: 13px; cursor: pointer; transition: all .2s;
 }
 .export-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.export-btn.danger-btn { color: var(--danger); border-color: var(--danger); background: var(--danger-bg); }
+.export-btn.danger-btn:hover { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
 
 /* Progress stage tags */
 .stage-apply { background: #e0f2fe; color: #0284c7; }
@@ -430,6 +435,8 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 .offer-row.best .offer-row-value { color: #059669; }
 .offer-row.best::after { content: "✓"; font-size: 11px; color: #059669; margin-left: 6px; }
 .offer-card-notes { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--text2); line-height: 1.5; }
+.offer-select-check.checked { background: var(--accent); border-color: var(--accent); }
+.offer-select-check.checked::after { content: "✓"; color: #fff; font-size: 12px; font-weight: 700; }
 .offer-empty {
   text-align: center; padding: 80px 20px; color: var(--text2);
 }
@@ -541,6 +548,8 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 @media (max-width: 768px) {
   /* Header 堆叠 */
   .header { padding: 12px 0; }
+  .header.compact { padding-bottom: 0; }
+  .header.compact .quote-bar { margin-bottom: 8px; }
   .header-inner { padding: 0 12px; position: relative; }
   .header-top {
     flex-direction: row; flex-wrap: wrap; gap: 0;
@@ -550,18 +559,20 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .title-block h1 { font-size: 18px; }
   .title-block .update-time-wrap { position: static; margin-top: 0; }
   .update-time { font-size: 11px; color: var(--text2); }
-  .header-top .stats { position: static; transform: none; width: 100%; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; order: 2; }
+  .header-top .stats { position: static; transform: none; width: 100%; gap: 8px; flex-wrap: wrap; margin-bottom: 2px; order: 2; }
   .user-area { order: 1; margin-left: auto; flex-shrink: 0; }
   .stat-num { font-size: 14px; }
   .stat-label { font-size: 9px; }
+  .header-inner { position: relative; }
   .quote-bar {
     text-align: center; padding: 0;
     font-size: 11px; color: var(--text2);
-    margin-bottom: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    position: static; width: 100%;
+    margin-bottom: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    position: absolute; top: 2px; left: 50%; transform: translateX(-50%);
+    width: auto; max-width: 40%; z-index: 1; pointer-events: none;
   }
   .user-name { display: none; }
-  .header-top .active-filters { display: none; }
+  .active-filters { display: none; }
   .mobile-filter-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .mobile-filter-bar:empty { display: none; }
   .mobile-filter-chip {
@@ -626,10 +637,14 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .tab-btn:first-child { border-left: none !important; }
   .tab-btn.active { border-bottom-color: var(--accent); background: var(--accent-light); color: var(--accent); }
   .tabs-right { display: none; }
+  .offer-actions-bar { display: flex; gap: 6px; margin-bottom: 8px; }
+  .offer-actions-bar .add-manual-btn,
+  .offer-actions-bar .export-btn { flex: 1; min-width: 0; height: 36px; font-size: 12px; padding: 0 6px; white-space: nowrap; }
   body { padding-bottom: 60px; }
 
   /* 主内容区域 */
-  .table-wrap, .progress-wrap, .offer-wrap { padding: 0 12px; margin: 12px auto; }
+  .table-wrap { padding: 0 12px; margin: 12px auto; }
+  .progress-wrap, .offer-wrap { padding: 0 12px; margin: 0 auto 12px; }
   .table-card { border-radius: var(--radius); }
 
   /* 隐藏桌面端表格，显示卡片 */
@@ -648,8 +663,8 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .job-card-company { font-size: 15px; font-weight: 600; color: var(--text); cursor: pointer; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .job-card-company:hover { color: var(--accent); }
   .job-card-type { font-size: 11px; padding: 2px 8px; border-radius: 12px; white-space: nowrap; }
-  .job-card-check { flex-shrink: 0; }
-  .job-card-check input { width: 18px; height: 18px; accent-color: var(--accent); }
+  .job-card-check { flex-shrink: 0; display: flex; align-items: center; }
+  .job-card-check input { width: 18px; height: 18px; accent-color: var(--accent); vertical-align: middle; }
   .job-card-position { font-size: 14px; color: var(--text); margin-bottom: 8px; line-height: 1.4; }
   .job-card-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text2); margin-bottom: 10px; }
   .job-card-meta span { display: flex; align-items: center; gap: 3px; }
@@ -677,14 +692,13 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
     border: 1px solid var(--border); padding: 14px;
     margin-bottom: 10px;
   }
-  .progress-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-  .progress-card-company { font-size: 15px; font-weight: 600; color: var(--text); }
+  .progress-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .progress-card-company { font-size: 15px; font-weight: 600; color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .progress-card-position { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
   .progress-card-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text2); margin-bottom: 10px; }
   .progress-card-stage { display: none; }
   .progress-card { position: relative; padding-left: 12px; }
-  .progress-card-top { position: relative; padding-right: 80px; }
-  .progress-stage-badge { position: absolute; top: 0; right: 0; font-size: 14px; padding: 3px 10px; border-radius: 6px; color: #374151; border: none; cursor: pointer; font-weight: 600; -webkit-appearance: none; appearance: none; background-image: none; min-width: 52px; text-align: center; }
+  .progress-stage-badge { font-size: 14px; padding: 3px 10px; border-radius: 6px; color: #374151; border: none; cursor: pointer; font-weight: 600; -webkit-appearance: none; appearance: none; background-image: none; min-width: 52px; text-align: center; flex-shrink: 0; }
   .progress-stage-badge option { color: #333; background: #fff; }
   .progress-card-note { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--bg); margin-bottom: 10px; }
   .progress-card-actions { display: flex; gap: 8px; }
@@ -756,7 +770,43 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .modal-btns { flex-direction: column; gap: 8px; }
   .modal-btns button { height: 44px; width: 100%; }
   .offer-modal .modal-row label { width: auto; }
-  .company-card { width: 100% !important; max-height: 100% !important; border-radius: 0 !important; }
+
+  /* Offer 编辑抽屉 */
+  .offer-modal {
+    align-items: flex-end !important; justify-content: center !important;
+  }
+  .offer-modal .modal {
+    width: 100% !important; height: 75vh !important;
+    max-width: 100% !important; max-height: 75vh !important;
+    border-radius: 16px 16px 0 0 !important; padding: 16px !important;
+    overflow-y: auto; animation: drawerUp .25s ease;
+  }
+  @keyframes drawerUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .offer-modal .modal h3 { font-size: 16px; margin-bottom: 16px; text-align: center; }
+  .offer-modal .modal-row {
+    flex-direction: row; align-items: center; gap: 12px; margin-bottom: 12px;
+  }
+  .offer-modal .modal-row label {
+    width: 80px; min-width: 80px; text-align: right; font-size: 13px; color: var(--text2); flex-shrink: 0;
+  }
+  .offer-modal .modal-row input,
+  .offer-modal .modal-row select {
+    flex: 1; height: 40px; font-size: 14px;
+  }
+  .company-card { width: 92vw !important; max-height: 50vh !important; border-radius: 16px !important; position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; bottom: auto !important; right: auto !important; margin: 0 !important; }
+
+  /* 登录抽屉 */
+  .login-modal {
+    align-items: flex-end !important; justify-content: center !important;
+  }
+  .login-modal .modal {
+    width: 100% !important; height: auto !important;
+    max-width: 100% !important; max-height: 80vh !important;
+    border-radius: 16px 16px 0 0 !important; padding: 20px 16px !important;
+    overflow-y: auto; animation: drawerUp .25s ease;
+  }
+  .login-modal .modal h3 { font-size: 16px; margin-bottom: 8px; }
+  .login-modal .login-subtitle { font-size: 12px; margin-bottom: 16px; }
 
   /* Offer 对比单列 */
   .offer-cards { grid-template-columns: 1fr; }
@@ -766,8 +816,9 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   /* 投递进度工具栏 */
   .progress-toolbar { flex-direction: row; flex-wrap: wrap; gap: 6px; margin-bottom: 0; }
   .progress-filter-select { flex: 1; min-width: 0; height: 36px; font-size: 12px; padding: 0 28px 0 8px; }
-  .add-manual-btn { flex: 1; min-width: 0; height: 36px; font-size: 12px; padding: 0 8px; }
-  .export-btn { flex: 1; min-width: 0; height: 36px; font-size: 12px; padding: 0 8px; }
+  .progress-actions-row { display: flex; gap: 6px; width: 100%; }
+  .progress-actions-row .add-manual-btn,
+  .progress-actions-row .export-btn { flex: 1; min-width: 0; height: 36px; font-size: 12px; padding: 0 6px; white-space: nowrap; }
   #progressTable { display: none !important; }
   /* 阶段筛选下拉 */
   .stage-filter-dropdown { display: none; position: absolute; top: 100%; right: 0; margin-top: 4px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,.1); z-index: var(--z-dropdown); padding: 8px; min-width: 160px; max-height: 280px; overflow-y: auto; }
@@ -779,12 +830,13 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .progress-mobile-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
   .progress-mobile-bar:empty { display: none; }
   .progress-mobile-bar .mobile-filter-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: var(--accent-light); color: var(--accent); border-radius: 16px; font-size: 12px; cursor: pointer; max-width: 100%; white-space: nowrap; }
-  /* 进度卡片勾选框 */
-  .progress-card-check { position: absolute; top: 8px; left: 12px; width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
+  /* 进度卡片勾选框 — 与招聘岗位一致，flex 流式 */
+  .progress-card-check { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; vertical-align: middle; }
 
   /* 用户区域 */
-  .phone-input-row { flex-direction: column; }
-  .phone-input-row select { width: 100%; }
+  .phone-input-row { flex-direction: row; gap: 8px; }
+  .phone-input-row select { width: auto; flex: 0 0 90px; height: 44px; font-size: 14px; }
+  .phone-input-row input { flex: 1; height: 44px; font-size: 14px; }
 
   /* 统计紧凑 */
   .progress-stats { flex-wrap: wrap; gap: 6px; }
@@ -975,13 +1027,15 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
       <option value="company-asc">公司 A-Z</option>
       <option value="progress-asc">进度阶段</option>
     </select>
-    <button class="add-manual-btn" onclick="showAddModal()">+ 手动添加</button>
-    <button class="export-btn" onclick="exportProgress()">导出备份</button>
-    <button class="export-btn danger-btn" id="batchDeleteBtn" onclick="batchDeleteProgress()">批量删除</button>
-    <label class="export-btn file-label">
-      <input type="file" accept=".json" class="hidden-input" onchange="importProgress(event)">
-      导入
-    </label>
+    <div class="progress-actions-row">
+      <button class="add-manual-btn" onclick="showAddModal()">+ 手动添加</button>
+      <button class="export-btn" onclick="exportProgress()">导出备份</button>
+      <button class="export-btn danger-btn" id="batchDeleteBtn" onclick="batchDeleteProgress()">批量删除</button>
+      <label class="export-btn file-label">
+        <input type="file" accept=".json" class="hidden-input" onchange="importProgress(event)">
+        导入
+      </label>
+    </div>
   </div>
 
   <div class="table-card">
@@ -1016,9 +1070,14 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
       <button class="tab-btn" role="tab" aria-selected="false" onclick="switchPage('progress')">投递进度</button>
       <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchPage('offer')">Offer 对比</button>
     </div>
-    <div class="tabs-right">
-      <button class="add-manual-btn" onclick="showOfferModal()">+ 添加 Offer</button>
-    </div>
+  </div>
+  <div class="offer-actions-bar">
+    <button class="add-manual-btn" onclick="showOfferModal()">+ 手动添加</button>
+    <button class="export-btn" onclick="exportOffers()">导出备份</button>
+    <button class="export-btn danger-btn" id="batchDeleteOfferBtn" onclick="batchDeleteOffers()">批量删除</button>
+    <label class="export-btn file-label">
+      <input type="file" accept=".json" class="hidden-input" onchange="importOffers(event)">导入
+    </label>
   </div>
   <div id="offerContent"></div>
 </div>
@@ -1143,54 +1202,235 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 
 <script>
 // ── Inspirational quotes ──
-const QUOTES = [
-  { text: '世界上什么都不公平，唯独时间最公平', author: '' },
-  { text: '种一棵树最好的时间是十年前，其次是现在', author: '' },
-  { text: '所谓万丈深渊，下去也是前程万里', author: '木心' },
-  { text: '人生没有白走的路，每一步都算数', author: '' },
-  { text: '你必须非常努力，才能看起来毫不费力', author: '' },
-  { text: '生活不会辜负每一个努力向上的人', author: '' },
-  { text: '既然选择了远方，便只顾风雨兼程', author: '汪国真' },
-  { text: '你的问题主要在于读书不多而想得太多', author: '杨绛' },
-  { text: '做你自己，因为别人都有人做了', author: '王尔德' },
-  { text: '把脸一直向着阳光，这样就不会见到阴影', author: '' },
-  { text: '慢慢来，谁还没有一个努力的过程', author: '' },
-  { text: '你要悄悄拔尖，然后惊艳所有人', author: '' },
-  { text: '星光不负赶路人，时光不负有心人', author: '' },
-  { text: '生活明朗，万物可爱，人间值得，未来可期', author: '' },
-  { text: '当你觉得晚了的时候，恰恰是最早的时候', author: '' },
-  { text: '没有横空出世的运气，只有不为人知的努力', author: '' },
-  { text: '愿你以渺小启程，以伟大结束', author: '' },
-  { text: '我们各自努力，最高处见', author: '' },
-  { text: '前路浩浩荡荡，万事尽可期待', author: '' },
-  { text: '但行好事，莫问前程', author: '' },
-  { text: '人间一趟，积极向上，不畏将来，不念过往', author: '' },
-  { text: '与其担忧未来，不如现在好好努力', author: '' },
-  { text: '成功的路上并不拥挤，因为坚持的人不多', author: '' },
-  { text: '命运不会亏待正在努力变好的你', author: '' },
-  { text: '山高路远，看世界，也找自己', author: '' },
-  { text: '世事千帆过，路的尽头会是温柔和月光', author: '' },
-  { text: '任何值得去的地方，都没有捷径', author: '' },
-  { text: '温柔半两，从容一生', author: '' },
-  { text: '日子是过以后才知道，不是想以后才知道', author: '' },
-  { text: '你不能把这个世界让给你所鄙视的人', author: '安·兰德' },
-  { text: '种自己的花，爱自己的宇宙', author: '' },
-  { text: '没有人能替你承受，也没有人能拿走你的坚强', author: '' },
-  { text: '人生海海，山山而川，不过尔尔', author: '' },
-  { text: '你才二十几岁，你可以成为任何你想成为的人', author: '' },
+const QUOTES_PC = [
+  '世界上什么都不公平，唯独时间最公平，它给每个人都是一天二十四小时',
+  '种一棵树最好的时间是十年前，其次是现在，别让今天的懒惰成为明天的遗憾',
+  '所谓万丈深渊，下去也是前程万里，勇敢地迈出那一步吧',
+  '人生没有白走的路，每一步都算数，所有的经历都会成为你的财富',
+  '你必须非常努力，才能看起来毫不费力，成功的背后是无数个日夜的坚持',
+  '生活不会辜负每一个努力向上的人，你的付出终将得到回报',
+  '既然选择了远方，便只顾风雨兼程，不要因为困难而放弃最初的梦想',
+  '你的问题主要在于读书不多而想得太多，行动才是解决问题的最好方式',
+  '把脸一直向着阳光，这样就不会见到阴影，保持积极的心态面对一切',
+  '慢慢来，谁还没有一个努力的过程，重要的是你一直在路上',
+  '你要悄悄拔尖，然后惊艳所有人，默默努力的人终会发光',
+  '星光不负赶路人，时光不负有心人，坚持下去你会看到希望',
+  '生活明朗，万物可爱，人间值得，未来可期，每一天都是新的开始',
+  '当你觉得晚了的时候，恰恰是最早的时候，永远不要放弃开始的勇气',
+  '没有横空出世的运气，只有不为人知的努力，成功从来不是偶然',
+  '愿你以渺小启程，以伟大结束，每个人都有无限的可能',
+  '我们各自努力，最高处见，在顶峰相遇是最浪漫的约定',
+  '前路浩浩荡荡，万事尽可期待，美好的事情即将发生',
+  '但行好事，莫问前程，做好当下该做的事情',
+  '人间一趟，积极向上，不畏将来，不念过往，活在当下最重要',
+  '与其担忧未来，不如现在好好努力，行动是治愈焦虑的良药',
+  '成功的路上并不拥挤，因为坚持的人不多，你能坚持就已经赢了大多数人',
+  '命运不会亏待正在努力变好的你，上天会眷顾每一个勤奋的人',
+  '山高路远，看世界，也找自己，在旅途中发现更好的自己',
+  '世事千帆过，路的尽头会是温柔和月光，所有的苦难都会过去',
+  '任何值得去的地方，都没有捷径，脚踏实地才能走得更远',
+  '温柔半两，从容一生，用平和的心态面对生活的起起落落',
+  '你不能把这个世界让给你所鄙视的人，要成为自己想成为的人',
+  '种自己的花，爱自己的宇宙，经营好自己的小世界',
+  '没有人能替你承受，也没有人能拿走你的坚强，你是自己最坚强的后盾',
+  '人生海海，山山而川，不过尔尔，看淡一切才能活得自在',
+  '你才二十几岁，你可以成为任何你想成为的人，年轻就是最大的资本',
+  '所有的努力都不会被辜负，时间会证明一切，相信自己',
+  '生活从来不会亏待努力的人，你所做的每一点努力都会在未来回报你',
+  '不要等待机会，而要创造机会，主动出击才能掌握命运',
+  '成功不是将来才有的，而是从决定去做的那一刻起持续累积而成',
+  '每一个优秀的人，都有一段沉默的时光，那段时光是付出了很多努力却得不到结果的日子',
+  '你今天的努力，是幸运的伏笔，当下的付出，是明日的花开',
+  '愿你所有的努力都不被辜负，愿你所有的梦想都能实现',
+  '生活就像海洋，只有意志坚强的人才能到达彼岸',
+  '世上没有绝望的处境，只有对处境绝望的人',
+  '每一个不曾起舞的日子，都是对生命的辜负',
+  '无论你遇见谁，他都是你生命该出现的人，绝非偶然',
+  '人生就像一杯茶，不会苦一辈子，但总会苦一阵子',
+  '你所做的事情，也许暂时看不到成果，但不要灰心或焦虑',
+  '不是因为看到了希望才坚持，而是坚持了才看到希望',
+  '生命中最好的事情，往往发生在你快要放弃的时候',
+  '勇敢地做自己，不要为任何人而改变，如果他们不能接受最差的你',
+  '每个人都有属于自己的时区，不必羡慕别人走得快',
+  '你的人生不会因为别人的看法而改变，只会因为你的行动而改变',
+  '所有的光鲜亮丽，背后都有不为人知的付出',
+  '不要因为走得太远，而忘了为什么出发',
+  '生活不是等待暴风雨过去，而是学会在雨中起舞',
+  '成功的人不是赢在起点，而是赢在转折点',
+  '你的坚持终将美好，所有的付出都会有所回报',
+  '没有人能让你放弃梦想，你自己试试就会放弃了',
+  '既然人生的幕布已经拉开，就一定要积极演出',
+  '没有一种不通过蔑视忍受和奋斗就可以征服的命运',
+  '只有经历过地狱般的磨练，才能炼出创造天堂的力量',
+  '生活给了你一个比别人低的起点，是想告诉你用一生去奋斗出一个绝地反击的故事',
+  '不为模糊不清的未来担忧，只为清清楚楚的现在努力',
+  '人生最大的失败不是跌倒，而是从来不敢向前奔跑',
+  '你必须暗自努力，才能在人前显得轻松如意',
+  '梦想不会逃跑，会逃跑的永远都是自己',
+  '当你的才华还撑不起你的野心时，你就应该静下心来学习',
+  '这个世界上没有所谓的天才，只有不努力的笨蛋',
+  '你现在的努力，是为了以后有更多的选择',
+  '所有的成功都来自于不懈的努力和奔跑',
+  '不管前方的路有多苦，只要走的方向正确，不管多么崎岖不平',
+  '人生没有如果，只有后果和结果，少问别人为什么，多问自己凭什么',
+  '你要做的就是让自己的选择变得正确',
+  '每一个优秀的人，都有一段沉默的时光',
+  '不要让未来的你，讨厌现在的自己',
+  '成功的秘诀在于每天都比别人多努力一点',
+  '生活不会因为你是女生就善待你',
+  '你必须非常努力，才能看起来毫不费力',
+  '不管多远的路，都能走到尽头，不管多深的痛苦，也会有结束的一天',
+  '把努力当成一种习惯，而不是一时的热血',
+  '你若不坚强，谁替你勇敢',
+  '如果你看到前面的阴影，别怕，那是因为你背后有阳光',
+  '没有谁能击垮你，除非你自甘堕落',
+  '你受的苦，吃的亏，担的责，扛的罪，忍的痛，到最后都会变成光',
+  '不要因为没有掌声而放弃梦想，你需要的是坚持而不是观众',
+  '每一个你羡慕的收获，都是别人用心拼来的',
+  '命运给你一个比别人低的起点，是想告诉你用你的一生去奋斗出一个绝地反击的故事',
+  '努力的意义就是以后的日子，放眼望去全部都是自己喜欢的人和事',
+  '现在不玩命，将来命玩你',
+  '你有多努力，就有多特殊',
+  '所有你逆流而上的时光，都会成为你日后横刀立马的底气',
+  '哪有什么一夜成名，其实都是百炼成钢',
+  '不要假装努力，结果不会陪你演戏',
+  '你想要的，岁月凭什么给你',
+  '所有的逆袭，都是有备而来',
+  '你要悄悄努力，然后惊艳所有人',
+  '生活原本沉闷，但跑起来就有风',
+  '把自己活成一束光，自信坦荡，光芒万丈',
+  '你未必出类拔萃，但一定与众不同',
+  '努力不一定成功，但放弃一定失败',
+  '有理想在的地方，地狱就是天堂',
+  '人生就像一场马拉松，不在于瞬间的爆发，而在于途中的坚持',
+  '你今天的日积月早，终将成为别人的望尘莫及',
+  '当你觉得撑不下去的时候，再坚持一下',
+  '你的潜力远比你表现出来的强大得多',
+  '没有白费的努力，也没有碰巧的成功',
+  '人生最重要的不是所站的位置，而是所朝的方向',
+  '你走过的路，会成为回忆里的风景',
+  '只有不断找寻机会的人才会及时把握机会',
+  '再长的路，一步步也能走完，再短的路，不迈开双脚也无法到达',
+  '成功不是属于跑得最快的人，而是属于一直在跑的人',
 ];
+const QUOTES_MOBILE = [
+  '时间最公平，珍惜每一天',
+  '种树最好的时间是现在',
+  '深渊下去也是前程万里',
+  '每一步都算数',
+  '努力才能毫不费力',
+  '生活不负努力的人',
+  '风雨兼程，不负远方',
+  '行动是最好的答案',
+  '向着阳光，不惧阴影',
+  '慢慢来，一直在路上',
+  '悄悄拔尖，惊艳众人',
+  '星光不负赶路人',
+  '人间值得，未来可期',
+  '现在开始永远不晚',
+  '努力的人运气不会差',
+  '以渺小启程，以伟大结束',
+  '各自努力，最高处见',
+  '前路浩荡，万事可期',
+  '但行好事，莫问前程',
+  '积极向上，不畏将来',
+  '行动治愈焦虑',
+  '坚持就是胜利',
+  '努力的人被命运善待',
+  '看世界，找自己',
+  '苦难终将过去',
+  '没有捷径，只有脚踏实地',
+  '温柔从容过一生',
+  '成为想成为的人',
+  '种自己的花，爱自己',
+  '你是自己的后盾',
+  '看淡一切，活得自在',
+  '年轻就是资本',
+  '努力不会被辜负',
+  '时间会证明一切',
+  '创造机会，不等机会',
+  '坚持才能看到希望',
+  '付出终有回报',
+  '命运掌握在自己手中',
+  '做自己的太阳',
+  '你比想象中更强大',
+  '越努力越幸运',
+  '活成一束光',
+  '相信自己可以',
+  '不辜负每一天',
+  '全力以赴，无怨无悔',
+  '勇敢做自己',
+  '梦想不会逃跑',
+  '每一天都是新的开始',
+  '保持热爱，奔赴山海',
+  '未来可期，人间值得',
+  '你值得拥有更好的',
+  '慢慢来，比较快',
+  '逆风翻盘，向阳而生',
+  '所有美好都会如期而至',
+  '熬过低谷，就是晴天',
+  '你的人生你做主',
+  '努力是奇迹的另一个名字',
+  '向前走，别回头',
+  '心中有光，何惧风霜',
+  '坚持的人才能看到黎明',
+  '你一定可以的',
+  '不负韶华，不负自己',
+  '把每一天都活成值得纪念',
+  '心有所向，路就不会远',
+  '今日努力，明日可期',
+  '最坏的结果不过是大器晚成',
+  '披荆斩棘，一路前行',
+  '每一步都是成长',
+  '加油，你可以的',
+  '别放弃，黎明前最黑暗',
+  '你的坚持终将美好',
+  '心若向阳，无谓悲伤',
+  '做最好的自己',
+  '你就是自己的光',
+  '没有到不了的明天',
+  '努力让生活更美好',
+  '保持微笑，继续前行',
+  '一切都会好起来的',
+  '你是独一无二的',
+  '勇敢追梦，不负此生',
+  '今天的汗水是明天的收获',
+  '山高水长，未来可期',
+  '拼尽全力，不留遗憾',
+  '风雨之后见彩虹',
+  '你比自己想象的更优秀',
+  '永远不要放弃希望',
+  '用努力书写人生',
+  '每一步都离梦想更近',
+  '别害怕，大胆往前走',
+  '生命不息，奋斗不止',
+  '你的努力终将闪耀',
+  '未来属于努力的人',
+  '心怀希望，所向披靡',
+  '坚持到底就是胜利',
+  '做自己人生的主角',
+  '不惧未来，不念过去',
+  '把不可能变成可能',
+  '你就是自己的英雄',
+  '人生因努力而精彩',
+  '保持初心，方得始终',
+  '微笑面对每一天',
+  '阳光总在风雨后',
+];
+const _isMobile = window.innerWidth <= 768;
+const QUOTES = _isMobile ? QUOTES_MOBILE : QUOTES_PC;
 let quoteIdx = Math.floor(Math.random() * QUOTES.length);
 function showQuote(idx) {
   const q = QUOTES[idx];
-  document.getElementById('quoteText').textContent = q.text;
-  document.getElementById('quoteAuthor').textContent = q.author ? '— ' + q.author : '';
+  document.getElementById('quoteText').textContent = q;
+  document.getElementById('quoteAuthor').textContent = '';
 }
 showQuote(quoteIdx);
 
 let allJobs = [];
 let filteredJobs = [];
 let currentPage = 1;
-let pageSize = 50;
+// pageSize 通过 getPageSize() 动态返回：移动端 10 / 桌面端 50
 let sortField = 'publishDate';
 let sortDir = 'desc';
 let selectedCities = new Set();
@@ -1523,13 +1763,13 @@ document.querySelectorAll('th.sortable').forEach(th => {
 // ── Render table ──
 function renderTable() {
   const tbody = document.getElementById('tbody');
-  const start = (currentPage - 1) * pageSize;
-  const pageJobs = filteredJobs.slice(start, start + pageSize);
+  const start = (currentPage - 1) * getPageSize();
+  const pageJobs = filteredJobs.slice(start, start + getPageSize());
   if (pageJobs.length === 0) {
     tbody.innerHTML = '<tr><td colspan="9"><div class="empty"><div class="empty-icon">&#128269;</div><p>没有找到匹配的结果</p></div></td></tr>';
     return;
   }
-  tbody.innerHTML = pageJobs.map((job, i) => {
+  const rows = pageJobs.map((job, i) => {
     const no = start + i + 1;
     const deadlineClass = isUrgent(job.deadline) ? 'urgent' : '';
     const typeClass = getTypeStyle(job.recruitmentType);
@@ -1555,7 +1795,13 @@ function renderTable() {
       <td class="col-deadline ${deadlineClass}">${esc(job.deadline || '-')}</td>
       <td class="col-link">${links.join('')}</td>
     </tr>`;
-  }).join('');
+  });
+  // 补齐空白行，保证表格至少10行高度
+  const MIN_ROWS = 10;
+  for (let i = pageJobs.length; i < MIN_ROWS; i++) {
+    rows.push('<tr class="empty-row"><td colspan="9">&nbsp;</td></tr>');
+  }
+  tbody.innerHTML = rows.join('');
 }
 
 function isUrgent(deadline) {
@@ -1572,10 +1818,10 @@ function esc(s) { if (!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g
 // ── Pagination ──
 function renderPagination() {
   const total = filteredJobs.length;
-  const totalPages = Math.ceil(total / pageSize);
+  const totalPages = Math.ceil(total / getPageSize());
   if (currentPage > totalPages) currentPage = totalPages || 1;
-  const start = (currentPage - 1) * pageSize + 1;
-  const end = Math.min(currentPage * pageSize, total);
+  const start = (currentPage - 1) * getPageSize() + 1;
+  const end = Math.min(currentPage * getPageSize(), total);
   document.getElementById('pageInfo').textContent = total > 0 ? `显示 ${start}-${end}，共 ${total} 条` : '无数据';
   const pag = document.getElementById('pagination');
   let html = `<button class="page-btn" ${currentPage <= 1 ? 'disabled' : ''} onclick="goPage(${currentPage - 1})">&lsaquo;</button>`;
@@ -1602,12 +1848,13 @@ function goPage(p) { currentPage = p; renderTable(); renderPagination(); renderJ
 // ══════════════════════════════════════════
 
 function isMobile() { return window.innerWidth <= 768; }
+function getPageSize() { return isMobile() ? 10 : 50; }
 
 function renderJobCards() {
   const container = document.getElementById('jobCards');
   if (!container) return;
-  const start = (currentPage - 1) * pageSize;
-  const pageJobs = filteredJobs.slice(start, start + pageSize);
+  const start = (currentPage - 1) * getPageSize();
+  const pageJobs = filteredJobs.slice(start, start + getPageSize());
   if (pageJobs.length === 0) {
     container.innerHTML = '<div class="empty"><div class="empty-icon">&#128269;</div><p>没有找到匹配的结果</p></div>';
     return;
@@ -1645,11 +1892,11 @@ function renderJobCardPagination() {
   if (!container) return;
   if (!isMobile()) { container.style.display = 'none'; return; }
   const total = filteredJobs.length;
-  const totalPages = Math.ceil(total / pageSize);
+  const totalPages = Math.ceil(total / getPageSize());
   if (totalPages <= 1) { container.style.display = 'none'; return; }
   container.style.display = 'flex';
-  const start = (currentPage - 1) * pageSize + 1;
-  const end = Math.min(currentPage * pageSize, total);
+  const start = (currentPage - 1) * getPageSize() + 1;
+  const end = Math.min(currentPage * getPageSize(), total);
   container.innerHTML = `
     <button ${currentPage <= 1 ? 'disabled' : ''} onclick="goPage(${currentPage - 1})">上一页</button>
     <span>${start}-${end} / ${total}</span>
@@ -1671,12 +1918,12 @@ function renderProgressCards(records) {
   container.innerHTML = records.map(r => {
     const color = STAGE_COLORS[r.progress] || 'rgba(59,130,246,.3)';
     return `<div class="progress-card">
-      <input type="checkbox" class="progress-card-check" data-id="${r.id}" onchange="onProgressCardCheck()">
       <div class="progress-card-top">
         <span class="progress-card-company">${esc(r.company)}</span>
         <select class="progress-stage-badge" style="background:${color}" onchange="updateStage('${r.id}', this.value);renderProgressCards()">
           ${buildStageOptions(r.progress)}
         </select>
+        <input type="checkbox" class="progress-card-check" data-id="${r.id}" onchange="onProgressCardCheck()">
       </div>
       <div class="progress-card-position">${esc(r.position)}</div>
       <div class="progress-card-meta">
@@ -1772,7 +2019,12 @@ function filterCategoryOptions(key, term) {
 
 function toggleFilterCategory(key) {
   const el = document.getElementById(`fcat-${key}`);
-  if (el) el.classList.toggle('open');
+  if (!el) return;
+  const isOpen = el.classList.contains('open');
+  // 收起所有分类
+  document.querySelectorAll('.filter-category.open').forEach(c => c.classList.remove('open'));
+  // 展开当前点击的（原本收起的才展开）
+  if (!isOpen) el.classList.add('open');
 }
 
 function toggleDrawerOption(type, value, el) {
@@ -1929,6 +2181,9 @@ function switchPage(page) {
   if (activeFilters) activeFilters.style.display = page === 'main' ? '' : 'none';
   const controls = document.querySelector('.controls');
   if (controls) controls.style.display = page === 'main' ? '' : 'none';
+  // 移动端：投递进度/Offer对比页面缩减header底部间距
+  const header = document.querySelector('.header');
+  if (header) header.classList.toggle('compact', page !== 'main');
   // Sync tab active states in all 3 tab bars
   document.querySelectorAll('.tabs-left').forEach(bar => {
     const btns = bar.querySelectorAll('.tab-btn');
@@ -2055,9 +2310,12 @@ function renderOffers() {
   container.innerHTML = `<div class="offer-cards">${offers.map(o => `
     <div class="offer-card">
       <div class="offer-card-header">
-        <div>
-          <div class="offer-card-company">${esc(o.company)}</div>
-          ${o.position ? `<div class="offer-card-position">${esc(o.position)}</div>` : ''}
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="offer-select-check ${selectedOfferIds.has(o.id) ? 'checked' : ''}" onclick="toggleOfferCheck('${o.id}',this)" style="width:18px;height:18px;border:1.5px solid var(--border);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"></div>
+          <div>
+            <div class="offer-card-company">${esc(o.company)}</div>
+            ${o.position ? `<div class="offer-card-position">${esc(o.position)}</div>` : ''}
+          </div>
         </div>
         <div class="offer-card-actions">
           <button title="编辑" onclick="showOfferModal('${o.id}')">✏️</button>
@@ -2077,6 +2335,85 @@ function renderOffers() {
       ${o.notes ? `<div class="offer-card-notes">${esc(o.notes)}</div>` : ''}
     </div>
   `).join('')}</div>`;
+  updateOfferBatchBtn();
+}
+
+// ── Offer 批量操作 ──
+let selectedOfferIds = new Set();
+
+function toggleOfferCheck(id, el) {
+  if (selectedOfferIds.has(id)) { selectedOfferIds.delete(id); el.classList.remove('checked'); }
+  else { selectedOfferIds.add(id); el.classList.add('checked'); }
+  updateOfferBatchBtn();
+}
+
+function toggleAllOffers() {
+  const allChecked = offers.length > 0 && selectedOfferIds.size === offers.length;
+  selectedOfferIds.clear();
+  if (!allChecked) offers.forEach(o => selectedOfferIds.add(o.id));
+  document.querySelectorAll('.offer-select-check').forEach(el => {
+    el.classList.toggle('checked', !allChecked);
+  });
+  updateOfferBatchBtn();
+}
+
+function updateOfferBatchBtn() {
+  // 移动端始终显示，桌面端根据选中状态显示/隐藏
+  const btn = document.getElementById('batchDeleteOfferBtn');
+  if (!btn) return;
+  const isMobile = window.innerWidth <= 768;
+  btn.style.display = isMobile ? '' : (selectedOfferIds.size > 0 ? '' : 'none');
+}
+
+function exportOffers() {
+  if (offers.length === 0) { showToast('暂无 Offer 数据'); return; }
+  const blob = new Blob([JSON.stringify(offers, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `offers_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('导出成功');
+}
+
+function importOffers(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!Array.isArray(imported)) { showToast('文件格式错误'); return; }
+      const existingIds = new Set(offers.map(o => o.id));
+      let added = 0;
+      imported.forEach(item => {
+        if (item.company) {
+          if (!item.id || existingIds.has(item.id)) {
+            item.id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+          }
+          offers.push(item);
+          added++;
+        }
+      });
+      saveOffers();
+      renderOffers();
+      syncToCloud('offers', offers, o => ({ id: o.id, user_id: currentUser.id, data: o }));
+      showToast(`导入成功，新增 ${added} 条`);
+    } catch { showToast('文件解析失败'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function batchDeleteOffers() {
+  if (selectedOfferIds.size === 0) return;
+  if (!confirm(`确定删除选中的 ${selectedOfferIds.size} 个 Offer？`)) return;
+  offers = offers.filter(o => !selectedOfferIds.has(o.id));
+  selectedOfferIds.clear();
+  saveOffers();
+  renderOffers();
+  syncToCloud('offers', offers, o => ({ id: o.id, user_id: currentUser.id, data: o }));
+  showToast('批量删除成功');
 }
 
 // ── Checkbox & record ──
@@ -2089,8 +2426,8 @@ function onCheckChange(cb) {
   updateRecordBtn();
 }
 function toggleCheckAll(cb) {
-  const start = (currentPage - 1) * pageSize;
-  const pageJobs = filteredJobs.slice(start, start + pageSize);
+  const start = (currentPage - 1) * getPageSize();
+  const pageJobs = filteredJobs.slice(start, start + getPageSize());
   pageJobs.forEach(job => {
     const key = getJobKey(job);
     if (cb.checked) selectedJobKeys.add(key); else selectedJobKeys.delete(key);
@@ -2136,6 +2473,7 @@ function recordSelected() {
   selectedJobKeys.clear();
   document.getElementById('checkAll').checked = false;
   document.querySelectorAll('#tbody .col-check input').forEach(c => { c.checked = false; });
+  document.querySelectorAll('.job-card-check input').forEach(c => { c.checked = false; });
   updateRecordBtn();
   showToast(added > 0 ? `已记录 ${added} 条投递` : '选中的记录已存在');
 }
@@ -2248,10 +2586,29 @@ function onProgressCardCheck() {
 function updateStage(id, newStage) {
   const r = progressRecords.find(r => r.id === id);
   if (!r) return;
+  const oldStage = r.progress;
   r.progress = newStage;
   if (!r.history) r.history = [];
   r.history.push({ stage: newStage, time: new Date().toISOString() });
   saveProgress();
+  // 标记为 Offer 时自动添加到 Offer 对比
+  if (newStage === 'Offer' && oldStage !== 'Offer') {
+    const exists = offers.some(o => o.company === r.company && o.position === r.position);
+    if (!exists) {
+      offers.push({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        company: r.company,
+        position: r.position,
+        city: r.city || '',
+        monthlySalary: 0, annualPackage: 0, signingBonus: 0,
+        yearEndBonus: '', workHours: '', insurance: '',
+        housingSubsidy: 0, notes: '',
+        createdAt: new Date().toISOString()
+      });
+      saveOffers();
+      showToast(`已自动添加到 Offer 对比：${r.company}`);
+    }
+  }
   // Update row background class
   const row = document.querySelector(`#progressTbody tr[data-id="${id}"]`);
   if (row) {
