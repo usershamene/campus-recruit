@@ -3085,7 +3085,7 @@ async function sendEmailLink() {
   if (!email || !email.includes('@')) { showToast('请输入正确的邮箱地址'); return; }
   const btn = document.getElementById('sendCodeBtn');
   btn.disabled = true;
-  const { error } = await sb.auth.signInWithOtp({ email });
+  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin + window.location.pathname } });
   if (error) { showToast('发送失败: ' + error.message); btn.disabled = false; return; }
   showToast('登录链接已发送到邮箱，请查收');
   let sec = 60;
