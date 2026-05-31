@@ -971,7 +971,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
           <span class="user-name" id="userName"></span>
           <div class="user-dropdown">
             <button onclick="syncNow()">立即同步</button>
-            <button onclick="logoutUser()">切换账号</button>
+            <button onclick="showProfileModal()">账户管理</button>
+            <button onclick="switchAccount()">切换账号</button>
             <div class="dropdown-divider"></div>
             <button onclick="logoutUser()" style="color:var(--danger)">退出登录</button>
           </div>
@@ -1253,10 +1254,35 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
       <input type="text" id="regUsername" placeholder="用户名" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
       <input type="email" id="regEmail" placeholder="邮箱地址" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
       <input type="password" id="regPassword" placeholder="密码（至少6位）" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
+      <input type="password" id="regConfirmPassword" placeholder="确认密码" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
       <button class="send-code-btn" onclick="doRegister()" style="width:100%">注册</button>
       <div style="text-align:center;font-size:12px">
         <span style="color:var(--text2)">已有账号？</span>
         <a href="javascript:void(0)" onclick="closeRegisterModal();showLoginModal()" style="color:var(--accent);text-decoration:none">去登录</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Modal -->
+<div class="modal-overlay login-modal" id="profileModalOverlay">
+  <div class="modal" style="position:relative">
+    <button onclick="closeProfileModal()" style="position:absolute;top:12px;right:12px;width:28px;height:28px;border:none;background:none;font-size:20px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:all .2s" onmouseover="this.style.background='var(--accent-light)';this.style.color='var(--accent)'" onmouseout="this.style.background='none';this.style.color='var(--text2)'">&times;</button>
+    <h3>账户管理</h3>
+    <div style="text-align:left;margin-top:16px">
+      <div style="margin-bottom:16px">
+        <label style="font-size:13px;color:var(--text2);display:block;margin-bottom:6px">用户名</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="profileUsername" style="flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
+          <button onclick="updateUsername()" style="padding:0 16px;border:1px solid var(--accent);border-radius:8px;background:none;color:var(--accent);font-size:13px;cursor:pointer;white-space:nowrap">保存</button>
+        </div>
+      </div>
+      <div style="margin-bottom:8px">
+        <label style="font-size:13px;color:var(--text2);display:block;margin-bottom:6px">修改密码</label>
+        <input type="password" id="profileCurrentPwd" placeholder="当前密码" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text);margin-bottom:8px">
+        <input type="password" id="profileNewPwd" placeholder="新密码（至少6位）" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text);margin-bottom:8px">
+        <input type="password" id="profileConfirmPwd" placeholder="确认新密码" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text);margin-bottom:8px">
+        <button onclick="updatePassword()" style="width:100%;padding:10px;border:1px solid var(--accent);border-radius:8px;background:none;color:var(--accent);font-size:13px;cursor:pointer">修改密码</button>
       </div>
     </div>
   </div>
@@ -3121,6 +3147,55 @@ function showRegisterModal() {
 function closeRegisterModal() {
   document.getElementById('registerModalOverlay').classList.remove('show');
 }
+function showProfileModal() {
+  if (!currentUser) { showToast('请先登录'); return; }
+  const meta = currentUser.user_metadata || {};
+  document.getElementById('profileUsername').value = meta.username || meta.full_name || '';
+  document.getElementById('profileCurrentPwd').value = '';
+  document.getElementById('profileNewPwd').value = '';
+  document.getElementById('profileConfirmPwd').value = '';
+  document.getElementById('profileModalOverlay').classList.add('show');
+}
+function closeProfileModal() {
+  document.getElementById('profileModalOverlay').classList.remove('show');
+}
+
+async function switchAccount() {
+  if (sb) await sb.auth.signOut();
+  currentUser = null;
+  updateUIForLoggedOut();
+  showLoginModal();
+}
+
+async function updateUsername() {
+  if (!sb || !currentUser) { showToast('请先登录'); return; }
+  const username = document.getElementById('profileUsername').value.trim();
+  if (!username || username.length < 2) { showToast('用户名至少2个字符'); return; }
+  const { error } = await sb.auth.updateUser({ data: { username, full_name: username } });
+  if (error) { showToast('修改失败: ' + error.message); return; }
+  currentUser.user_metadata = { ...currentUser.user_metadata, username, full_name: username };
+  updateUIForLoggedIn();
+  showToast('用户名已更新');
+}
+
+async function updatePassword() {
+  if (!sb || !currentUser) { showToast('请先登录'); return; }
+  const currentPwd = document.getElementById('profileCurrentPwd').value;
+  const newPwd = document.getElementById('profileNewPwd').value;
+  const confirmPwd = document.getElementById('profileConfirmPwd').value;
+  if (!currentPwd) { showToast('请输入当前密码'); return; }
+  if (!newPwd || newPwd.length < 6) { showToast('新密码至少6位'); return; }
+  if (newPwd !== confirmPwd) { showToast('两次密码不一致'); return; }
+  // Verify current password by re-authenticating
+  const { error: authError } = await sb.auth.signInWithPassword({ email: currentUser.email, password: currentPwd });
+  if (authError) { showToast('当前密码错误'); return; }
+  const { error } = await sb.auth.updateUser({ password: newPwd });
+  if (error) { showToast('修改失败: ' + error.message); return; }
+  showToast('密码已修改');
+  document.getElementById('profileCurrentPwd').value = '';
+  document.getElementById('profileNewPwd').value = '';
+  document.getElementById('profileConfirmPwd').value = '';
+}
 
 async function loginWithGitHub() {
   if (!sb) { showToast('登录服务暂不可用'); return; }
@@ -3152,9 +3227,11 @@ async function doRegister() {
   const username = document.getElementById('regUsername').value.trim();
   const email = document.getElementById('regEmail').value.trim();
   const password = document.getElementById('regPassword').value;
+  const confirmPassword = document.getElementById('regConfirmPassword').value;
   if (!username || username.length < 2) { showToast('用户名至少2个字符'); return; }
   if (!email || !email.includes('@')) { showToast('请输入正确的邮箱'); return; }
   if (!password || password.length < 6) { showToast('密码至少6位'); return; }
+  if (password !== confirmPassword) { showToast('两次密码不一致'); return; }
   const { data, error } = await sb.auth.signUp({
     email, password,
     options: { data: { username, full_name: username } }
