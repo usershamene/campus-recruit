@@ -3111,8 +3111,6 @@ async function registerWithEmail() {
   showToast('注册成功，已自动登录');
   closeLoginModal();
 }
-  }, 1000);
-}
 
 async function logoutUser() {
   await sb.auth.signOut();
