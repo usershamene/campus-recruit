@@ -942,6 +942,57 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 /* 登录按钮统一 */
 .login-btn { transition: all .2s ease; }
 .login-btn:hover { background: var(--accent-light); color: var(--accent); }
+
+/* 使用教程 */
+.tutorial-overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; visibility: hidden; transition: all .3s ease;
+}
+.tutorial-overlay.show { opacity: 1; visibility: visible; }
+.tutorial-box {
+  width: 90%; max-width: 400px; background: var(--card);
+  border-radius: 16px; overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  transform: translateY(20px); transition: transform .3s ease;
+}
+.tutorial-overlay.show .tutorial-box { transform: translateY(0); }
+.tutorial-slides { position: relative; overflow: hidden; }
+.tutorial-slide {
+  display: none; padding: 32px 24px 24px; text-align: center; min-height: 320px;
+  flex-direction: column; align-items: center; justify-content: center;
+}
+.tutorial-slide.active { display: flex; }
+.tutorial-icon { font-size: 48px; margin-bottom: 16px; }
+.tutorial-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+.tutorial-desc { font-size: 14px; color: var(--text2); line-height: 1.8; }
+.tutorial-desc li { text-align: left; margin-bottom: 6px; list-style: none; }
+.tutorial-desc li::before { content: '✦ '; color: var(--accent); }
+.tutorial-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px; border-top: 1px solid var(--border);
+}
+.tutorial-dots { display: flex; gap: 6px; }
+.tutorial-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border); transition: all .2s;
+}
+.tutorial-dot.active { background: var(--accent); width: 20px; border-radius: 4px; }
+.tutorial-btn {
+  padding: 8px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;
+  cursor: pointer; border: none; transition: all .2s;
+}
+.tutorial-next { background: var(--accent); color: #fff; }
+.tutorial-next:hover { background: var(--accent-hover); }
+.tutorial-skip { background: none; color: var(--text2); }
+.tutorial-skip:hover { color: var(--text); }
+@media (max-width: 768px) {
+  .tutorial-box { width: 85%; }
+  .tutorial-slide { min-height: 280px; padding: 24px 20px 20px; }
+  .tutorial-icon { font-size: 40px; }
+  .tutorial-title { font-size: 18px; }
+}
 </style>
 </head>
 <body>
@@ -972,6 +1023,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
           <div class="user-dropdown">
             <button onclick="showProfileModal()">账户管理</button>
             <button onclick="switchAccount()">切换账号</button>
+            <button onclick="showTutorial()">使用教程</button>
             <div class="dropdown-divider"></div>
             <button onclick="logoutUser()" style="color:var(--danger)">退出登录</button>
           </div>
@@ -1229,10 +1281,14 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
     <p class="login-subtitle">登录后数据将自动云端同步，多设备共享</p>
     <div class="phone-login-form">
       <input type="email" id="emailInput" placeholder="邮箱地址" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
-      <input type="password" id="passwordInput" placeholder="密码" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
+      <div style="position:relative">
+        <input type="password" id="passwordInput" placeholder="密码" style="width:100%;padding:10px 40px 10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
+        <button type="button" onclick="togglePwdVis('passwordInput',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;color:var(--text2);padding:4px;font-size:16px">👁</button>
+      </div>
       <button class="send-code-btn" id="loginBtn2" onclick="loginWithEmail()" style="width:100%">登录</button>
       <div style="display:flex;justify-content:space-between;font-size:12px">
         <a href="javascript:void(0)" onclick="closeLoginModal();showRegisterModal()" style="color:var(--accent);text-decoration:none">注册账号</a>
+        <a href="javascript:void(0)" onclick="closeLoginModal();showTutorial()" style="color:var(--accent);text-decoration:none">使用教程</a>
       </div>
     </div>
     <div class="login-divider"><span>或</span></div>
@@ -1254,9 +1310,12 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
       <input type="email" id="regEmail" placeholder="邮箱地址" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
       <div style="position:relative">
         <input type="password" id="regPassword" placeholder="密码（至少6位）" style="width:100%;padding:10px 40px 10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
-        <button type="button" onclick="togglePwdVis('regPassword',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;color:var(--text2);padding:4px">👁</button>
+        <button type="button" onclick="togglePwdVis('regPassword',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;color:var(--text2);padding:4px;font-size:16px">👁</button>
       </div>
-      <input type="password" id="regConfirmPassword" placeholder="确认密码" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
+      <div style="position:relative">
+        <input type="password" id="regConfirmPassword" placeholder="确认密码" style="width:100%;padding:10px 40px 10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
+        <button type="button" onclick="togglePwdVis('regConfirmPassword',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;color:var(--text2);padding:4px;font-size:16px">👁</button>
+      </div>
       <button class="send-code-btn" onclick="doRegister()" style="width:100%">注册</button>
       <div style="text-align:center;font-size:12px">
         <span style="color:var(--text2)">已有账号？</span>
@@ -1281,10 +1340,89 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
       </div>
       <div style="margin-bottom:8px">
         <label style="font-size:13px;color:var(--text2);display:block;margin-bottom:6px">修改密码</label>
-        <input type="password" id="profileCurrentPwd" placeholder="当前密码" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text);margin-bottom:8px">
-        <input type="password" id="profileNewPwd" placeholder="新密码（至少6位）" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text);margin-bottom:8px">
-        <input type="password" id="profileConfirmPwd" placeholder="确认新密码" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text);margin-bottom:8px">
+        <div style="position:relative;margin-bottom:8px">
+          <input type="password" id="profileCurrentPwd" placeholder="当前密码" style="width:100%;padding:10px 40px 10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
+          <button type="button" onclick="togglePwdVis('profileCurrentPwd',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;color:var(--text2);padding:4px;font-size:16px">👁</button>
+        </div>
+        <div style="position:relative;margin-bottom:8px">
+          <input type="password" id="profileNewPwd" placeholder="新密码（至少6位）" style="width:100%;padding:10px 40px 10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
+          <button type="button" onclick="togglePwdVis('profileNewPwd',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;color:var(--text2);padding:4px;font-size:16px">👁</button>
+        </div>
+        <div style="position:relative;margin-bottom:8px">
+          <input type="password" id="profileConfirmPwd" placeholder="确认新密码" style="width:100%;padding:10px 40px 10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
+          <button type="button" onclick="togglePwdVis('profileConfirmPwd',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;color:var(--text2);padding:4px;font-size:16px">👁</button>
+        </div>
         <button onclick="updatePassword()" style="width:100%;padding:10px;border:1px solid var(--accent);border-radius:8px;background:none;color:var(--accent);font-size:13px;cursor:pointer">修改密码</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 使用教程 -->
+<div class="tutorial-overlay" id="tutorialOverlay">
+  <div class="tutorial-box">
+    <div class="tutorial-slides">
+      <div class="tutorial-slide active" data-step="0">
+        <div class="tutorial-icon">🎯</div>
+        <div class="tutorial-title">欢迎使用校招信息汇总</div>
+        <div class="tutorial-desc">一站式校园招聘信息平台<br>聚合多家企业校招信息，助你高效求职</div>
+      </div>
+      <div class="tutorial-slide" data-step="1">
+        <div class="tutorial-icon">🔍</div>
+        <div class="tutorial-title">招聘岗位</div>
+        <div class="tutorial-desc">
+          <ul>
+            <li>搜索框输入关键词快速查找</li>
+            <li>筛选按钮按公司、类型、城市筛选</li>
+            <li>点击公司名查看企业详情</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tutorial-slide" data-step="2">
+        <div class="tutorial-icon">📋</div>
+        <div class="tutorial-title">投递进度</div>
+        <div class="tutorial-desc">
+          <ul>
+            <li>点击「+记录」添加投递信息</li>
+            <li>下拉选择阶段：投递→笔试→面试→Offer</li>
+            <li>勾选后可批量删除</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tutorial-slide" data-step="3">
+        <div class="tutorial-icon">⚖️</div>
+        <div class="tutorial-title">Offer对比</div>
+        <div class="tutorial-desc">
+          <ul>
+            <li>添加多个Offer进行对比</li>
+            <li>填写薪资、福利、工作时间等</li>
+            <li>一目了然选择最优Offer</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tutorial-slide" data-step="4">
+        <div class="tutorial-icon">☁️</div>
+        <div class="tutorial-title">登录同步</div>
+        <div class="tutorial-desc">
+          <ul>
+            <li>注册账号，数据自动云端同步</li>
+            <li>多设备共享投递记录</li>
+            <li>点击右上角登录按钮开始</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="tutorial-footer">
+      <div class="tutorial-dots" id="tutorialDots">
+        <span class="tutorial-dot active"></span>
+        <span class="tutorial-dot"></span>
+        <span class="tutorial-dot"></span>
+        <span class="tutorial-dot"></span>
+        <span class="tutorial-dot"></span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="tutorial-btn tutorial-skip" id="tutorialSkip" onclick="closeTutorial()">跳过</button>
+        <button class="tutorial-btn tutorial-next" id="tutorialNext" onclick="tutorialNext()">下一步</button>
       </div>
     </div>
   </div>
@@ -2331,31 +2469,35 @@ function saveOffers() {
 }
 
 function showOfferModal(id) {
-  editingOfferId = id || null;
-  const overlay = document.getElementById('offerModalOverlay');
-  const title = document.getElementById('offerModalTitle');
-  if (id) {
-    title.textContent = '编辑 Offer';
-    const o = offers.find(x => x.id === id);
-    if (!o) return;
-    document.getElementById('offerCompany').value = o.company || '';
-    document.getElementById('offerPosition').value = o.position || '';
-    document.getElementById('offerCity').value = o.city || '';
-    document.getElementById('offerMonthly').value = o.monthlySalary || '';
-    document.getElementById('offerAnnual').value = o.annualPackage || '';
-    document.getElementById('offerSigning').value = o.signingBonus || '';
-    document.getElementById('offerYearEnd').value = o.yearEndBonus || '';
-    document.getElementById('offerWorkHours').value = o.workHours || '';
-    document.getElementById('offerInsurance').value = o.insurance || '';
-    document.getElementById('offerHousing').value = o.housingSubsidy || '';
-    document.getElementById('offerNotes').value = o.notes || '';
-  } else {
-    title.textContent = '添加 Offer';
-    ['offerCompany','offerPosition','offerCity','offerMonthly','offerAnnual','offerSigning','offerYearEnd','offerWorkHours','offerInsurance','offerHousing','offerNotes'].forEach(id => {
-      document.getElementById(id).value = '';
-    });
-  }
-  overlay.classList.add('show');
+  const _open = () => {
+    editingOfferId = id || null;
+    const overlay = document.getElementById('offerModalOverlay');
+    const title = document.getElementById('offerModalTitle');
+    if (id) {
+      title.textContent = '编辑 Offer';
+      const o = offers.find(x => x.id === id);
+      if (!o) return;
+      document.getElementById('offerCompany').value = o.company || '';
+      document.getElementById('offerPosition').value = o.position || '';
+      document.getElementById('offerCity').value = o.city || '';
+      document.getElementById('offerMonthly').value = o.monthlySalary || '';
+      document.getElementById('offerAnnual').value = o.annualPackage || '';
+      document.getElementById('offerSigning').value = o.signingBonus || '';
+      document.getElementById('offerYearEnd').value = o.yearEndBonus || '';
+      document.getElementById('offerWorkHours').value = o.workHours || '';
+      document.getElementById('offerInsurance').value = o.insurance || '';
+      document.getElementById('offerHousing').value = o.housingSubsidy || '';
+      document.getElementById('offerNotes').value = o.notes || '';
+    } else {
+      title.textContent = '添加 Offer';
+      ['offerCompany','offerPosition','offerCity','offerMonthly','offerAnnual','offerSigning','offerYearEnd','offerWorkHours','offerInsurance','offerHousing','offerNotes'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+    }
+    overlay.classList.add('show');
+  };
+  if (!currentUser && !id) { showLoginReminder(_open); return; }
+  _open();
 }
 
 function closeOfferModal() {
@@ -2570,6 +2712,11 @@ function updateRecordBtn() {
   }
 }
 function recordSelected() {
+  const _do = () => { _doRecordSelected(); };
+  if (!currentUser) { showLoginReminder(_do); return; }
+  _doRecordSelected();
+}
+function _doRecordSelected() {
   if (selectedJobKeys.size === 0) return;
   let added = 0;
   selectedJobKeys.forEach(key => {
@@ -2796,9 +2943,79 @@ function batchDeleteProgress() {
   showToast(`已删除 ${ids.length} 条记录`);
 }
 
+// ── Login reminder（sessionStorage，每次访问重新提醒） ──
+function showLoginReminder(onProceed) {
+  if (sessionStorage.getItem('cr_login_dismissed')) { onProceed(); return; }
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay show';
+  overlay.style.cssText = 'z-index:1500';
+  overlay.innerHTML = `
+    <div class="modal" style="text-align:center;padding:24px">
+      <div style="font-size:36px;margin-bottom:12px">💡</div>
+      <h3 style="margin-bottom:8px">提示</h3>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:20px">登录后数据将自动云端同步，多设备共享<br>未登录时数据仅保存在当前设备</p>
+      <div style="display:flex;gap:10px">
+        <button id="lrDismiss" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text2);cursor:pointer;font-size:14px">我已知晓</button>
+        <button id="lrLogin" style="flex:1;padding:10px;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;font-size:14px">立即登录</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#lrDismiss').onclick = () => { sessionStorage.setItem('cr_login_dismissed', '1'); overlay.remove(); onProceed(); };
+  overlay.querySelector('#lrLogin').onclick = () => { overlay.remove(); showLoginModal(); };
+}
+
+// ── 离开页面提醒（未登录用户有数据时） ──
+function _hasLocalData() {
+  if (progressRecords.length > 0 || offers.length > 0) return true;
+  const p = JSON.parse(localStorage.getItem('campus_recruit_progress') || '[]');
+  const o = JSON.parse(localStorage.getItem('campus_recruit_offers') || '[]');
+  return p.length > 0 || o.length > 0;
+}
+window.addEventListener('beforeunload', function(e) {
+  if (!currentUser && _hasLocalData()) {
+    e.preventDefault();
+    e.returnValue = '您有未保存的投递记录，确定离开吗？';
+  }
+});
+
+// ── 未登录数据合并到已登录账户 ──
+function mergeLocalToUser() {
+  if (!currentUser) return;
+  const localP = JSON.parse(localStorage.getItem('campus_recruit_progress') || '[]');
+  const localO = JSON.parse(localStorage.getItem('campus_recruit_offers') || '[]');
+  if (localP.length === 0 && localO.length === 0) return;
+  const userP = JSON.parse(localStorage.getItem(_pkey()) || '[]');
+  const userO = JSON.parse(localStorage.getItem(_okey()) || '[]');
+  if (localP.length > 0) {
+    const existing = new Set(userP.map(r => r.company + '|' + r.position));
+    localP.forEach(r => { if (!existing.has(r.company + '|' + r.position)) userP.push(r); });
+    localStorage.setItem(_pkey(), JSON.stringify(userP));
+    progressRecords = userP;
+  }
+  if (localO.length > 0) {
+    const existing = new Set(userO.map(r => r.company + '|' + r.position));
+    localO.forEach(r => { if (!existing.has(r.company + '|' + r.position)) userO.push(r); });
+    localStorage.setItem(_okey(), JSON.stringify(userO));
+    offers = userO;
+  }
+  localStorage.removeItem('campus_recruit_progress');
+  localStorage.removeItem('campus_recruit_offers');
+  showToast(`已合并 ${localP.length} 条投递、${localO.length} 条 Offer`);
+}
+
 // ── Modal: Add / Edit ──
 function showAddModal() {
-  editingId = null;
+  const _open = () => {
+    editingId = null;
+    document.getElementById('modalTitle').textContent = '添加投递记录';
+    $.modalCompany.value = ''; $.modalPosition.value = ''; $.modalCity.value = '';
+    $.modalDate.value = new Date().toISOString().split('T')[0];
+    $.modalStage.innerHTML = buildStageOptions('');
+    $.modalNote.value = '';
+    $.modalOverlay.classList.add('show');
+  };
+  if (!currentUser) { showLoginReminder(_open); return; }
+  _open();
   document.getElementById('modalTitle').textContent = '添加投递记录';
   $.modalCompany.value = '';
   $.modalPosition.value = '';
@@ -3105,6 +3322,7 @@ async function initAuth() {
   sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session) {
       currentUser = session.user;
+      mergeLocalToUser();
       updateUIForLoggedIn();
       loadProgress();
       loadOffers();
@@ -3228,6 +3446,7 @@ async function loginWithEmail() {
   if (error) { showToast('登录失败: ' + error.message); return; }
   if (data.session) {
     currentUser = data.user;
+    mergeLocalToUser();
     updateUIForLoggedIn();
     await mergeLocalToCloud();
     await syncAndRender();
@@ -3253,6 +3472,7 @@ async function doRegister() {
   if (error) { showToast('注册失败: ' + error.message); return; }
   if (data.session) {
     currentUser = data.user;
+    mergeLocalToUser();
     updateUIForLoggedIn();
     await mergeLocalToCloud();
     await syncAndRender();
@@ -3397,6 +3617,32 @@ document.getElementById('progressSortSelect').addEventListener('change', () => {
 
 // Initialize Supabase auth
 if (sb) { initAuth().catch(e => console.warn('Auth init failed:', e)); }
+
+// ── Tutorial ──
+let _tutStep = 0;
+const _tutTotal = 5;
+function showTutorial() {
+  _tutStep = 0;
+  _updateTutSlide();
+  document.getElementById('tutorialOverlay').classList.add('show');
+}
+function closeTutorial() {
+  document.getElementById('tutorialOverlay').classList.remove('show');
+  sessionStorage.setItem('cr_tutorial_done', '1');
+}
+function tutorialNext() {
+  if (_tutStep >= _tutTotal - 1) { closeTutorial(); return; }
+  _tutStep++;
+  _updateTutSlide();
+}
+function _updateTutSlide() {
+  document.querySelectorAll('.tutorial-slide').forEach((s, i) => s.classList.toggle('active', i === _tutStep));
+  document.querySelectorAll('.tutorial-dot').forEach((d, i) => d.classList.toggle('active', i === _tutStep));
+  document.getElementById('tutorialSkip').style.display = _tutStep < _tutTotal - 1 ? '' : 'none';
+  document.getElementById('tutorialNext').textContent = _tutStep < _tutTotal - 1 ? '下一步' : '开始使用';
+}
+// Show on first visit
+if (!sessionStorage.getItem('cr_tutorial_done')) { setTimeout(showTutorial, 500); }
 </script>
 </body>
 </html>
