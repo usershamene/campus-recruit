@@ -1,10 +1,12 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
 
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 const ROOT = __dirname;
+const UPDATE_SECRET = process.env.UPDATE_SECRET || ''; // 为空时允许本地访问
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:8080'];
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css',
@@ -14,12 +16,37 @@ const MIME = {
   '.svg': 'image/svg+xml',
 };
 
+// 安全响应头
+function setSecurityHeaders(res) {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+}
+
 const server = http.createServer((req, res) => {
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  setSecurityHeaders(res);
+
+  // CORS - 限制来源
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
 
   // API: trigger update
   if (req.method === 'POST' && req.url === '/api/update') {
+    // 认证检查
+    const isLocal = !req.headers.host || req.headers.host.includes('localhost') || req.headers.host.includes('127.0.0.1');
+    const token = req.headers['x-update-token'] || new URL(req.url, 'http://localhost').searchParams.get('token');
+    if (UPDATE_SECRET && token !== UPDATE_SECRET) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ ok: false, msg: '未授权' }));
+    }
+    if (!UPDATE_SECRET && !isLocal) {
+      res.writeHead(403, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ ok: false, msg: '远程更新需要配置 UPDATE_SECRET' }));
+    }
+
     const metaPath = path.join(ROOT, 'data', 'update-meta.json');
     // Check if already running
     if (global._updating) {
@@ -30,7 +57,8 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ ok: true, msg: '开始更新' }));
 
-    exec('node fetch-data.js', { cwd: ROOT, timeout: 1800000, shell: true }, (err) => {
+    // 使用 execFile 替代 exec，避免 shell 注入
+    execFile('node', ['fetch-data.js'], { cwd: ROOT, timeout: 1800000 }, (err) => {
       global._updating = false;
       const now = new Date().toISOString();
       const meta = { lastUpdate: now, success: !err };

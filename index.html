@@ -1777,17 +1777,18 @@ function showConfirm(msg, title) {
   return new Promise(resolve => {
     const overlay = document.createElement('div');
     overlay.className = 'confirm-overlay';
-    const isMob = window.innerWidth <= 768;
     overlay.innerHTML = `
       <div class="confirm-box">
         <div class="confirm-icon">❓</div>
-        <div class="confirm-title">${title || '确认操作'}</div>
-        <div class="confirm-msg">${msg}</div>
+        <div class="confirm-title"></div>
+        <div class="confirm-msg"></div>
         <div class="confirm-btns">
           <button class="confirm-cancel">取消</button>
           <button class="confirm-ok">确认</button>
         </div>
       </div>`;
+    overlay.querySelector('.confirm-title').textContent = title || '确认操作';
+    overlay.querySelector('.confirm-msg').textContent = msg;
     document.body.appendChild(overlay);
     requestAnimationFrame(() => overlay.classList.add('show'));
     overlay.querySelector('.confirm-cancel').onclick = () => { overlay.remove(); resolve(false); };
@@ -2638,6 +2639,7 @@ async function deleteOffer(id) {
   offers = offers.filter(x => x.id !== id);
   saveOffers();
   renderOffers();
+  deleteFromCloud('offers', [id]);
   showToast('已删除');
 }
 
@@ -2760,7 +2762,7 @@ function importOffers(event) {
       });
       saveOffers();
       renderOffers();
-      syncToCloud('offers', offers, o => ({ id: o.id, user_id: currentUser.id, data: o }));
+      syncToCloud('offers', offers, _offerToUpload);
       showToast(`导入成功，新增 ${added} 条`);
     } catch { showToast('文件解析失败'); }
   };
@@ -2771,11 +2773,12 @@ function importOffers(event) {
 async function batchDeleteOffers() {
   if (selectedOfferIds.size === 0) return;
   if (!await showConfirm(`确定删除选中的 ${selectedOfferIds.size} 个 Offer？`)) return;
+  const idsToDelete = [...selectedOfferIds];
   offers = offers.filter(o => !selectedOfferIds.has(o.id));
   selectedOfferIds.clear();
   saveOffers();
   renderOffers();
-  syncToCloud('offers', offers, o => ({ id: o.id, user_id: currentUser.id, data: o }));
+  deleteFromCloud('offers', idsToDelete);
   showToast('批量删除成功');
 }
 
@@ -3017,6 +3020,7 @@ async function deleteRecord(id) {
   progressRecords = progressRecords.filter(r => r.id !== id);
   saveProgress();
   renderProgressPage();
+  deleteFromCloud('progress_records', [id]);
   showToast('已删除');
 }
 
@@ -3044,6 +3048,7 @@ async function batchDeleteProgress() {
   const pCheckAll = document.getElementById('pCheckAll');
   if (pCheckAll) pCheckAll.checked = false;
   renderProgressPage();
+  deleteFromCloud('progress_records', ids);
   showToast(`已删除 ${ids.length} 条记录`);
 }
 
@@ -3627,7 +3632,7 @@ async function mergeLocalToCloud() {
     const cloudOfferIds = new Set((co || []).map(r => r.id));
     const offersToUpload = offers.filter(o => !cloudOfferIds.has(o.id)).map(_offerToUpload);
     if (offersToUpload.length > 0) await sb.from('offers').upsert(offersToUpload, { onConflict: 'id' });
-  } catch (e) { console.error('[sync] mergeLocalToCloud:', e); }
+  } catch (e) { console.error('[sync] mergeLocalToCloud:', e); showToast('数据同步失败，请检查网络'); }
 }
 
 async function syncFromCloud() {
@@ -3670,7 +3675,7 @@ async function syncFromCloud() {
       saveOffers();
       renderOffers();
     }
-  } catch (e) { console.error('[sync] syncFromCloud:', e); }
+  } catch (e) { console.error('[sync] syncFromCloud:', e); showToast('同步失败，请检查网络'); }
 }
 
 async function syncNow() {
@@ -3689,13 +3694,15 @@ async function syncToCloud(table, records, mapper) {
   try {
     const rows = records.map(mapper);
     if (rows.length > 0) await sb.from(table).upsert(rows, { onConflict: 'id' });
-    const localIds = new Set(rows.map(r => r.id));
-    const { data: cloudRows } = await sb.from(table).select('id').eq('user_id', currentUser.id);
-    if (cloudRows) {
-      const toDelete = cloudRows.filter(r => !localIds.has(r.id)).map(r => r.id);
-      if (toDelete.length > 0) await sb.from(table).delete().in('id', toDelete);
-    }
-  } catch (e) { console.error(`[sync] syncToCloud(${table}):`, e); }
+  } catch (e) { console.error(`[sync] syncToCloud(${table}):`, e); showToast('数据同步失败'); }
+}
+
+// 删除云端记录（仅在用户明确删除时调用）
+async function deleteFromCloud(table, ids) {
+  if (!currentUser || !ids || ids.length === 0) return;
+  try {
+    await sb.from(table).delete().in('id', ids);
+  } catch (e) { console.error(`[sync] deleteFromCloud(${table}):`, e); }
 }
 async function syncProgressToCloud() { await syncToCloud('progress_records', progressRecords, _progressToUpload); }
 async function syncOffersToCloud() { await syncToCloud('offers', offers, _offerToUpload); }

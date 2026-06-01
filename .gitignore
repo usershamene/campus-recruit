@@ -6,3 +6,5 @@ data/*
 backup-v*/
 campus-recruit-pack.zip
 .codegraph/
+.env
+.env.*
