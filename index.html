@@ -779,6 +779,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
     overflow-y: auto; animation: drawerUp .25s ease;
   }
   @keyframes drawerUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
   .offer-modal .modal h3 { font-size: 16px; margin-bottom: 16px; text-align: center; }
   .offer-modal .modal-row {
     flex-direction: row; align-items: center; gap: 12px; margin-bottom: 12px;
@@ -805,6 +806,13 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   }
   .login-modal .modal h3 { font-size: 16px; margin-bottom: 8px; }
   .login-modal .login-subtitle { font-size: 12px; margin-bottom: 16px; }
+
+  /* 登录提醒抽屉 */
+  .login-reminder-modal {
+    position: absolute !important; bottom: 0 !important; left: 0 !important; right: 0 !important;
+    max-height: 50vh !important; border-radius: 16px 16px 0 0 !important;
+    animation: slideUp .3s ease !important; overflow-y: auto !important;
+  }
 
   /* Offer 对比单列 */
   .offer-cards { grid-template-columns: 1fr; }
@@ -2864,9 +2872,7 @@ function updateProgressFilterLabel() {
 }
 
 function onProgressCardCheck() {
-  const checks = document.querySelectorAll('.progress-card-check:checked');
-  const btn = document.getElementById('batchDeleteBtn');
-  if (btn) btn.style.display = checks.length > 0 ? '' : 'none';
+  updateBatchDeleteBtn();
 }
 
 // ── Progress CRUD ──
@@ -2927,18 +2933,24 @@ function toggleProgressCheckAll(cb) {
   updateBatchDeleteBtn();
 }
 function updateBatchDeleteBtn() {
-  const checked = document.querySelectorAll('#progressTbody .col-check input:checked');
+  const tableChecked = document.querySelectorAll('#progressTbody .col-check input:checked');
+  const cardChecked = document.querySelectorAll('.progress-card-check:checked');
+  const total = tableChecked.length + cardChecked.length;
   const btn = document.getElementById('batchDeleteBtn');
-  btn.textContent = checked.length > 0 ? `批量删除 (${checked.length})` : '批量删除';
+  btn.textContent = total > 0 ? `批量删除 (${total})` : '批量删除';
 }
 function batchDeleteProgress() {
-  const checked = document.querySelectorAll('#progressTbody .col-check input:checked');
+  // 同时检查桌面表格和移动端卡片的复选框
+  const tableChecked = document.querySelectorAll('#progressTbody .col-check input:checked');
+  const cardChecked = document.querySelectorAll('.progress-card-check:checked');
+  const checked = [...tableChecked, ...cardChecked];
   if (checked.length === 0) return;
   if (!confirm(`确认删除选中的 ${checked.length} 条投递记录？`)) return;
-  const ids = Array.from(checked).map(c => c.dataset.id);
+  const ids = checked.map(c => c.dataset.id);
   progressRecords = progressRecords.filter(r => !ids.includes(r.id));
   saveProgress();
-  document.getElementById('pCheckAll').checked = false;
+  const pCheckAll = document.getElementById('pCheckAll');
+  if (pCheckAll) pCheckAll.checked = false;
   renderProgressPage();
   showToast(`已删除 ${ids.length} 条记录`);
 }
@@ -2949,8 +2961,9 @@ function showLoginReminder(onProceed) {
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay show';
   overlay.style.cssText = 'z-index:1500';
+  const isMob = window.innerWidth <= 768;
   overlay.innerHTML = `
-    <div class="modal" style="text-align:center;padding:24px">
+    <div class="modal login-reminder-modal" style="text-align:center;padding:24px;${isMob ? 'position:absolute;bottom:0;left:0;right:0;max-height:50vh;border-radius:16px 16px 0 0;animation:slideUp .3s ease' : ''}">
       <div style="font-size:36px;margin-bottom:12px">💡</div>
       <h3 style="margin-bottom:8px">提示</h3>
       <p style="font-size:13px;color:var(--text2);margin-bottom:20px">登录后数据将自动云端同步，多设备共享<br>未登录时数据仅保存在当前设备</p>

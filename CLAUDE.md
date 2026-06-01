@@ -8,7 +8,8 @@
 
 - **前端**: 单文件 `index.html`（vanilla HTML/CSS/JS，无框架）
 - **后端**: `server.js`（Node.js http-server，本地开发用）
-- **数据存储**: JSON 文件 + localStorage
+- **数据存储**: JSON 文件 + localStorage + Supabase（云端同步）
+- **认证**: Supabase Auth（邮箱密码 + GitHub OAuth）
 - **部署**: GitHub Pages（push 到 main 自动部署）
 - **测试**: Playwright（headless browser）
 
@@ -23,7 +24,7 @@
 ├── fix-data.js             # 数据修复脚本
 ├── data/
 │   ├── jobs.json           # 岗位数据（主数据源）
-│   ├── company-profiles.json # 企业简介+标签（1971条）
+│   ├── company-profiles.json # 企业简介+标签（2357+条）
 │   ├── update-meta.json    # 更新时间元数据
 │   └── missing-companies.json # 缺失简介企业列表
 └── package.json
@@ -56,9 +57,21 @@ node save-profiles.js '{}'  # 写入企业简介（供 subagent 调用）
 ## 关键架构
 
 ### index.html 结构
-- **CSS**: 暖色调主题，CSS 变量控制
-- **HTML**: header + tab 切换（校招信息/投递进度/Offer 对比）+ modal
-- **JS**: 数据加载 → 筛选渲染 → 公司详情卡片 → 投递管理 → Offer 对比
+- **CSS**: 暖色调主题，CSS 变量控制，响应式设计（移动端/桌面端）
+- **HTML**: header + tab 切换（校招信息/投递进度/Offer 对比）+ modal + 抽屉
+- **JS**: 数据加载 → 筛选渲染 → 公司详情卡片 → 投递管理 → Offer 对比 → 用户认证 → 云端同步
+
+### 用户认证系统
+- **登录方式**: 邮箱密码 + GitHub OAuth
+- **认证服务**: Supabase Auth（异步加载 CDN）
+- **用户状态**: `currentUser` 全局变量，通过 `onAuthStateChange` 监听
+- **UI 更新**: 登录后显示用户名，支持账户管理、切换账号、退出登录
+
+### 数据同步机制
+- **本地存储**: 未登录时使用 `campus_recruit_progress/offers`
+- **用户存储**: 登录后使用 `cr_progress_{userId}/cr_offers_{userId}`
+- **数据合并**: 登录时自动合并本地数据到用户账户（`mergeLocalToUser`）
+- **云端同步**: `mergeLocalToCloud` + `syncFromCloud` 双向同步
 
 ### 数据更新流程
 1. `fetch-data.js` 读取 `update-meta.json` 获取上次更新时间
@@ -73,8 +86,18 @@ node save-profiles.js '{}'  # 写入企业简介（供 subagent 调用）
 3. 母公司品牌匹配（PROFILE_BRANDS 列表）
 
 ### localStorage keys
-- `campus_recruit_offers` — Offer 对比数据
-- `campus_recruit_progress` — 投递进度记录
+- `campus_recruit_offers` — Offer 对比数据（未登录）
+- `campus_recruit_progress` — 投递进度记录（未登录）
+- `cr_offers_{userId}` — Offer 对比数据（已登录用户）
+- `cr_progress_{userId}` — 投递进度记录（已登录用户）
+- `cr_login_dismissed` — 登录提醒已知晓（sessionStorage）
+- `cr_tutorial_done` — 使用教程已完成（sessionStorage）
+
+### UI 组件
+- **抽屉组件**: 移动端模态框使用底部抽屉形式（50vh/75vh/80vh）
+- **筛选抽屉**: 二级结构，公司/类型/岗位/城市分类筛选
+- **使用教程**: 首次访问显示 5 步引导教程
+- **登录提醒**: 未登录用户操作时弹出提醒（sessionStorage 控制同会话不重复）
 
 ## 编码规范
 
@@ -83,6 +106,7 @@ node save-profiles.js '{}'  # 写入企业简介（供 subagent 调用）
 - JS 使用 vanilla，无框架依赖
 - 用户输入用 `esc()` 函数转义防 XSS
 - 数据持久化用 localStorage（前端）/ JSON 文件（后端）
+- 移动端适配使用 `@media (max-width: 768px)` 断点
 
 ## 注意事项
 
@@ -90,3 +114,5 @@ node save-profiles.js '{}'  # 写入企业简介（供 subagent 调用）
 - GitHub Pages 部署有 1-2 分钟延迟
 - `let` 变量有 temporal dead zone，不要在声明前调用
 - deepoffer 证书过期，fetch-data.js 已加错误处理直接跳过
+- Supabase CDN 异步加载，初始化需检查 `window.supabase` 是否存在
+- 移动端和桌面端使用不同的 UI 组件（表格 vs 卡片）
