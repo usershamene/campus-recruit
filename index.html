@@ -1792,6 +1792,34 @@ function showConfirm(msg, title) {
     requestAnimationFrame(() => overlay.classList.add('show'));
     overlay.querySelector('.confirm-cancel').onclick = () => { overlay.remove(); resolve(false); };
     overlay.querySelector('.confirm-ok').onclick = () => { overlay.remove(); resolve(true); };
+  });
+}
+
+// ── Supabase 错误消息翻译 ──
+function translateAuthError(msg) {
+  const map = {
+    'Invalid login credentials': '邮箱或密码错误',
+    'Invalid login credentials.': '邮箱或密码错误',
+    'User already registered': '该邮箱已注册',
+    'Email not confirmed': '邮箱未验证，请先验证邮箱',
+    'Token has expired or is invalid': '验证码已过期或无效',
+    'Password should be at least 6 characters': '密码至少需要6个字符',
+    'Unable to validate email address: invalid format': '邮箱格式不正确',
+    'User not found': '用户不存在',
+    'Email rate limit exceeded': '邮件发送过于频繁，请稍后再试',
+    'For security purposes, you can only request this once every 60 seconds': '出于安全考虑，每60秒只能请求一次',
+    'Signup is disabled': '注册功能已关闭',
+    'Email link is invalid or has expired': '邮箱链接无效或已过期',
+    'The redirect URL is not allowed': '回调地址未授权',
+    'Database error saving new user': '保存用户信息失败',
+    'User with this email has already been registered': '该邮箱已注册',
+    'New password should be different from the old password': '新密码不能与旧密码相同',
+  };
+  for (const [en, zh] of Object.entries(map)) {
+    if (msg.includes(en)) return zh;
+  }
+  return msg;
+}
     overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); resolve(false); } });
   });
 }
@@ -3498,7 +3526,7 @@ async function updatePassword() {
   const { error: authError } = await sb.auth.signInWithPassword({ email: currentUser.email, password: currentPwd });
   if (authError) { showToast('当前密码错误'); return; }
   const { error } = await sb.auth.updateUser({ password: newPwd });
-  if (error) { showToast('修改失败: ' + error.message); return; }
+  if (error) { showToast('修改失败: ' + translateAuthError(error.message)); return; }
   showToast('密码已修改，请重新登录');
   closeProfileModal();
   await logoutUser();
@@ -3521,7 +3549,7 @@ async function loginWithEmail() {
   if (!email || !email.includes('@')) { showToast('请输入正确的邮箱'); return; }
   if (!password || password.length < 6) { showToast('密码至少6位'); return; }
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) { showToast('登录失败: ' + error.message); return; }
+  if (error) { showToast('登录失败: ' + translateAuthError(error.message)); return; }
   if (data.session) {
     currentUser = data.user;
     mergeLocalToUser();
@@ -3547,7 +3575,7 @@ async function doRegister() {
     email, password,
     options: { data: { username, full_name: username } }
   });
-  if (error) { showToast('注册失败: ' + error.message); return; }
+  if (error) { showToast('注册失败: ' + translateAuthError(error.message)); return; }
   if (data.session) {
     currentUser = data.user;
     mergeLocalToUser();
