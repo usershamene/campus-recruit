@@ -241,11 +241,52 @@ td.col-link .notice-link:hover, .notice-link:hover { background: var(--border); 
 
 /* Toast */
 .toast {
-  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); padding: 12px 28px;
-  background: #141413; color: #fff; border-radius: 10px; font-size: 13px; z-index: var(--z-toast);
-  opacity: 0; transition: all .3s; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); padding: 14px 28px;
+  background: var(--card); color: var(--text); border-radius: 12px; font-size: 13px; z-index: var(--z-toast);
+  opacity: 0; transition: all .3s; pointer-events: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,.1), 0 2px 8px rgba(0,0,0,.06);
+  border: 1px solid var(--border); backdrop-filter: blur(10px);
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+
+/* 自定义 Confirm 对话框 */
+.confirm-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: calc(var(--z-toast) + 100);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .2s;
+}
+.confirm-overlay.show { opacity: 1; }
+.confirm-box {
+  background: var(--card); border-radius: 16px; padding: 28px; max-width: 360px; width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,.15); border: 1px solid var(--border);
+  transform: scale(.95); transition: transform .2s;
+}
+.confirm-overlay.show .confirm-box { transform: scale(1); }
+.confirm-icon { font-size: 36px; margin-bottom: 16px; text-align: center; }
+.confirm-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; text-align: center; color: var(--text); }
+.confirm-msg { font-size: 13px; color: var(--text2); text-align: center; line-height: 1.6; margin-bottom: 24px; }
+.confirm-btns { display: flex; gap: 12px; }
+.confirm-btns button {
+  flex: 1; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer;
+  transition: all .2s;
+}
+.confirm-cancel {
+  background: var(--surface-card); color: var(--text2); border: 1px solid var(--border);
+}
+.confirm-cancel:hover { background: var(--bg); }
+.confirm-ok {
+  background: var(--accent); color: #fff; border: none;
+}
+.confirm-ok:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(204,120,92,.25); }
+
+/* 移动端 confirm 抽屉 */
+@media (max-width: 768px) {
+  .confirm-overlay { align-items: flex-end; }
+  .confirm-box {
+    max-width: 100%; width: 100%; border-radius: 16px 16px 0 0;
+    animation: slideUp .3s ease;
+  }
+}
 
 /* Tabs */
 .tabs { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
@@ -888,7 +929,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 /* ═══ 补充样式优化 ═══ */
 
 /* Toast 增强 */
-.toast { backdrop-filter: blur(8px); background: rgba(20,20,19,.92); letter-spacing: .3px; }
+.toast { backdrop-filter: blur(10px); background: var(--card); letter-spacing: .3px; border: 1px solid var(--border); }
 
 /* 筛选菜单统一圆角和阴影 */
 .col-filter-dd { border-radius: var(--radius); }
@@ -1731,6 +1772,30 @@ function showToast(msg, duration) {
   setTimeout(() => t.classList.remove('show'), duration || 2500);
 }
 
+// ── 自定义 Confirm（替代原生 confirm） ──
+function showConfirm(msg, title) {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+    const isMob = window.innerWidth <= 768;
+    overlay.innerHTML = `
+      <div class="confirm-box">
+        <div class="confirm-icon">❓</div>
+        <div class="confirm-title">${title || '确认操作'}</div>
+        <div class="confirm-msg">${msg}</div>
+        <div class="confirm-btns">
+          <button class="confirm-cancel">取消</button>
+          <button class="confirm-ok">确认</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('show'));
+    overlay.querySelector('.confirm-cancel').onclick = () => { overlay.remove(); resolve(false); };
+    overlay.querySelector('.confirm-ok').onclick = () => { overlay.remove(); resolve(true); };
+    overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); resolve(false); } });
+  });
+}
+
 // ── City normalization ──
 function normalizeCity(raw) {
   if (!raw) return [];
@@ -2541,8 +2606,8 @@ function confirmOffer() {
   showToast(editingOfferId ? '已更新' : '已添加');
 }
 
-function deleteOffer(id) {
-  if (!confirm('确定删除此 Offer？')) return;
+async function deleteOffer(id) {
+  if (!await showConfirm('确定删除此 Offer？')) return;
   offers = offers.filter(x => x.id !== id);
   saveOffers();
   renderOffers();
@@ -2676,9 +2741,9 @@ function importOffers(event) {
   event.target.value = '';
 }
 
-function batchDeleteOffers() {
+async function batchDeleteOffers() {
   if (selectedOfferIds.size === 0) return;
-  if (!confirm(`确定删除选中的 ${selectedOfferIds.size} 个 Offer？`)) return;
+  if (!await showConfirm(`确定删除选中的 ${selectedOfferIds.size} 个 Offer？`)) return;
   offers = offers.filter(o => !selectedOfferIds.has(o.id));
   selectedOfferIds.clear();
   saveOffers();
@@ -2918,10 +2983,10 @@ function updateNote(id, note) {
   saveProgress();
 }
 
-function deleteRecord(id) {
+async function deleteRecord(id) {
   const r = progressRecords.find(r => r.id === id);
   if (!r) return;
-  if (!confirm(`确认删除 "${r.company} - ${r.position}" 的投递记录？`)) return;
+  if (!await showConfirm(`确认删除 "${r.company} - ${r.position}" 的投递记录？`)) return;
   progressRecords = progressRecords.filter(r => r.id !== id);
   saveProgress();
   renderProgressPage();
@@ -2939,13 +3004,13 @@ function updateBatchDeleteBtn() {
   const btn = document.getElementById('batchDeleteBtn');
   btn.textContent = total > 0 ? `批量删除 (${total})` : '批量删除';
 }
-function batchDeleteProgress() {
+async function batchDeleteProgress() {
   // 同时检查桌面表格和移动端卡片的复选框
   const tableChecked = document.querySelectorAll('#progressTbody .col-check input:checked');
   const cardChecked = document.querySelectorAll('.progress-card-check:checked');
   const checked = [...tableChecked, ...cardChecked];
   if (checked.length === 0) return;
-  if (!confirm(`确认删除选中的 ${checked.length} 条投递记录？`)) return;
+  if (!await showConfirm(`确认删除选中的 ${checked.length} 条投递记录？`)) return;
   const ids = checked.map(c => c.dataset.id);
   progressRecords = progressRecords.filter(r => !ids.includes(r.id));
   saveProgress();
@@ -3134,11 +3199,11 @@ function saveTimelineNote(index, note) {
   saveProgress();
 }
 
-function deleteTimelineStage(index) {
+async function deleteTimelineStage(index) {
   const r = progressRecords.find(r => r.id === timelineRecordId);
   if (!r || !r.history || r.history.length <= 1) { showToast('至少保留一个阶段'); return; }
   const stage = r.history[index].stage;
-  if (!confirm(`确认删除「${stage}」阶段？`)) return;
+  if (!await showConfirm(`确认删除「${stage}」阶段？`)) return;
   r.history.splice(index, 1);
   // Update current progress to the last stage
   r.progress = r.history[r.history.length - 1].stage;
