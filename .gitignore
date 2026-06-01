@@ -8,3 +8,8 @@ campus-recruit-pack.zip
 .codegraph/
 .env
 .env.*
+
+# 开发文档（保留本地）
+COMPONENTS.md
+test-mobile.js
+*.bat
