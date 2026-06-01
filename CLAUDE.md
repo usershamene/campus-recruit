@@ -17,11 +17,13 @@
 
 ```
 ├── index.html              # 主页面（所有前端代码）
+├── admin.html              # 访问统计管理后台（不提交 git）
 ├── server.js               # 本地开发服务器（端口 8080）
 ├── fetch-data.js           # 数据抓取（增量更新）
 ├── process-data.js         # 数据清洗（已集成到 fetch-data.js）
 ├── generate-profiles.js    # AI 企业简介生成（SiliconFlow API）
 ├── fix-data.js             # 数据修复脚本
+├── .env                    # 环境变量（不提交 git）
 ├── data/
 │   ├── jobs.json           # 岗位数据（主数据源）
 │   ├── company-profiles.json # 企业简介+标签（2357+条）
@@ -36,6 +38,7 @@
 node server.js              # 启动本地服务器 http://localhost:8080
 node fetch-data.js          # 增量更新校招数据（抓取+合并+清洗+保存）
 node save-profiles.js '{}'  # 写入企业简介（供 subagent 调用）
+# 访问统计后台: http://localhost:8080/admin.html
 ```
 
 ## 增量简介生成流程
@@ -92,6 +95,14 @@ node save-profiles.js '{}'  # 写入企业简介（供 subagent 调用）
 - `cr_progress_{userId}` — 投递进度记录（已登录用户）
 - `cr_login_dismissed` — 登录提醒已知晓（sessionStorage）
 - `cr_tutorial_done` — 使用教程已完成（sessionStorage）
+- `cr_visitor_id` — 访客唯一标识（用于访问统计）
+
+### 访问统计系统
+- **数据表**: Supabase `analytics` 表，记录 pageview/login 等事件
+- **字段**: visitor_id, event, user_id, device, created_at
+- **RLS**: 任何人可 INSERT，只有 service_role 可 SELECT
+- **管理后台**: `admin.html`（本地访问，从 server.js 获取 service_role key）
+- **统计指标**: 今日 PV/UV、总 PV/UV、登录用户数、次日留存率、设备分布、功能使用
 
 ### UI 组件
 - **抽屉组件**: 移动端模态框使用底部抽屉形式（50vh/75vh/80vh）

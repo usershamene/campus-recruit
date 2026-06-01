@@ -1924,6 +1924,23 @@ function loadData() {
 }
 loadData();
 
+// ── 访问统计 ──
+(function initAnalytics() {
+  // 生成或读取 visitor_id
+  let vid = localStorage.getItem('cr_visitor_id');
+  if (!vid) { vid = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2); localStorage.setItem('cr_visitor_id', vid); }
+  const device = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : 'desktop';
+  // 记录 pageview
+  async function track(event) {
+    if (!sb) return;
+    try { await sb.from('analytics').insert({ visitor_id: vid, event, user_id: currentUser?.id || null, device }); } catch {}
+  }
+  track('pageview');
+  // 登录后记录
+  const _origOnAuth = window._onAuthChanged || [];
+  window._analyticsAuth = (user) => { if (user) track('login'); };
+})();
+
 function buildCompanyCount() {
   const m = {};
   allJobs.forEach(j => { if (j.company) m[j.company] = (m[j.company] || 0) + 1; });
@@ -3443,6 +3460,8 @@ async function initAuth() {
       renderProgressPage();
       renderOffers();
       showToast('登录成功，数据已同步');
+      // 记录登录事件
+      if (window._analyticsAuth) window._analyticsAuth(currentUser);
     } else if (event === 'SIGNED_OUT') {
       currentUser = null;
       updateUIForLoggedOut();

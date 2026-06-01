@@ -3,9 +3,20 @@ const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
 
+// 加载 .env 文件
+try {
+  const envPath = path.join(__dirname, '.env');
+  const envContent = fs.readFileSync(envPath, 'utf-8');
+  envContent.split('\n').forEach(line => {
+    const [key, ...vals] = line.split('=');
+    if (key && !process.env[key.trim()]) process.env[key.trim()] = vals.join('=').trim();
+  });
+} catch {}
+
 const PORT = process.env.PORT || 8080;
 const ROOT = __dirname;
 const UPDATE_SECRET = process.env.UPDATE_SECRET || ''; // 为空时允许本地访问
+const ADMIN_KEY = process.env.SUPABASE_SERVICE_ROLE || ''; // 管理后台用
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:8080'];
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -80,6 +91,15 @@ const server = http.createServer((req, res) => {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ lastUpdate: null }));
     }
+  }
+
+  // API: admin key (only localhost)
+  if (req.method === 'GET' && req.url === '/api/admin-key') {
+    const isLocal = !req.headers.host || req.headers.host.includes('localhost') || req.headers.host.includes('127.0.0.1');
+    if (!isLocal) { res.writeHead(403, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ ok: false })); }
+    if (!ADMIN_KEY) { res.writeHead(404, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ ok: false, msg: '未配置 SUPABASE_SERVICE_ROLE' })); }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ ok: true, key: ADMIN_KEY }));
   }
 
   // Static files

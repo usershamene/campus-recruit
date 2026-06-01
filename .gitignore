@@ -14,3 +14,6 @@ COMPONENTS.md
 test-mobile.js
 *.bat
 docs/
+
+# 管理后台（本地使用，不提交）
+admin.html
