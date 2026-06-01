@@ -810,8 +810,8 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   /* 登录提醒抽屉 */
   .login-reminder-modal {
     position: absolute !important; bottom: 0 !important; left: 0 !important; right: 0 !important;
-    max-height: 50vh !important; border-radius: 16px 16px 0 0 !important;
-    animation: slideUp .3s ease !important; overflow-y: auto !important;
+    max-height: fit-content !important; border-radius: 16px 16px 0 0 !important;
+    animation: slideUp .3s ease !important;
   }
 
   /* Offer 对比单列 */
@@ -2963,7 +2963,7 @@ function showLoginReminder(onProceed) {
   overlay.style.cssText = 'z-index:1500';
   const isMob = window.innerWidth <= 768;
   overlay.innerHTML = `
-    <div class="modal login-reminder-modal" style="text-align:center;padding:24px;${isMob ? 'position:absolute;bottom:0;left:0;right:0;max-height:50vh;border-radius:16px 16px 0 0;animation:slideUp .3s ease' : ''}">
+    <div class="modal login-reminder-modal" style="text-align:center;padding:24px;${isMob ? 'position:absolute;bottom:0;left:0;right:0;max-height:fit-content;border-radius:16px 16px 0 0;animation:slideUp .3s ease' : ''}">
       <div style="font-size:36px;margin-bottom:12px">💡</div>
       <h3 style="margin-bottom:8px">提示</h3>
       <p style="font-size:13px;color:var(--text2);margin-bottom:20px">登录后数据将自动云端同步，多设备共享<br>未登录时数据仅保存在当前设备</p>
