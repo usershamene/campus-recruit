@@ -560,6 +560,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 .cc-link:hover { border-color: var(--accent); color: var(--accent); }
 .col-company { cursor: pointer; }
 .col-company:hover { color: var(--accent); }
+.job-card-new { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 8px; background: #e8f5e9; color: #2e7d32; font-weight: 600; vertical-align: middle; line-height: 1.4; }
 
 /* Timeline */
 .timeline { padding: 16px 0; }
@@ -700,6 +701,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
   .job-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
   .job-card-company { font-size: 15px; font-weight: 600; color: var(--text); cursor: pointer; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .job-card-company:hover { color: var(--accent); }
+  .job-card-new { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 8px; background: #e8f5e9; color: #2e7d32; font-weight: 600; vertical-align: middle; line-height: 1.4; }
   .job-card-type { font-size: 11px; padding: 2px 8px; border-radius: 12px; white-space: nowrap; }
   .job-card-check { flex-shrink: 0; display: flex; align-items: center; }
   .job-card-check input { width: 18px; height: 18px; accent-color: var(--accent); vertical-align: middle; }
@@ -1424,6 +1426,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
             <li>搜索框输入关键词快速查找</li>
             <li>筛选按钮按公司、类型、城市筛选</li>
             <li>点击公司名查看企业详情</li>
+            <li>标记<span class="job-card-new" style="display:inline-block;vertical-align:middle;margin:0 4px">新</span>的为最近1天发布的岗位</li>
           </ul>
         </div>
       </div>
@@ -1821,9 +1824,6 @@ function translateAuthError(msg) {
   }
   return msg;
 }
-    overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); resolve(false); } });
-  });
-}
 
 // ── City normalization ──
 function normalizeCity(raw) {
@@ -2134,6 +2134,7 @@ function renderTable() {
     const deadlineClass = isUrgent(job.deadline) ? 'urgent' : '';
     const typeClass = getTypeStyle(job.recruitmentType);
     const jobKey = getJobKey(job);
+    const isNew = job.publishDate && (() => { const d = new Date(); d.setDate(d.getDate() - 1); return job.publishDate >= d.toISOString().split('T')[0]; })();
     const isChecked = selectedJobKeys.has(jobKey);
     const links = [];
     const applyUrl = job.applyUrl || job.announcementUrl || '';
@@ -2148,7 +2149,7 @@ function renderTable() {
       <td class="col-check"><input type="checkbox" data-idx="${i}" data-key="${esc(jobKey)}" ${isChecked ? 'checked' : ''} onchange="onCheckChange(this)"></td>
       <td class="col-no">${no}</td>
       <td class="col-date">${esc(job.publishDate)}</td>
-      <td class="col-company has-tip" data-idx="${i}" onclick="showCompanyDetailByIndex(${start}+${i})"><span class="tip">${esc(job.company)}</span>${esc(job.company)}</td>
+      <td class="col-company has-tip" data-idx="${i}" onclick="showCompanyDetailByIndex(${start}+${i})"><span class="tip">${esc(job.company)}</span>${esc(job.company)}${isNew ? '<span class="job-card-new" style="margin-left:6px">新</span>' : ''}</td>
       <td class="col-type"><span class="type-tag ${typeClass}">${esc(job.recruitmentType)}</span></td>
       <td class="col-position has-tip"><span class="tip">${esc(job.positions)}</span>${esc(job.positions)}</td>
       <td class="col-city has-tip"><span class="tip">${esc(job.location)}</span>${esc(job.location)}</td>
@@ -2226,9 +2227,10 @@ function renderJobCards() {
     const isChecked = selectedJobKeys.has(jobKey);
     const applyUrl = job.applyUrl || job.announcementUrl || '';
     const noticeUrl = job.announcementUrl || job.applyUrl || '';
+    const isNew = job.publishDate && (() => { const d = new Date(); d.setDate(d.getDate() - 1); return job.publishDate >= d.toISOString().split('T')[0]; })();
     return `<div class="job-card">
       <div class="job-card-top">
-        <span class="job-card-company" onclick="showCompanyDetailByIndex(${start}+${i})">${esc(job.company)}</span>
+        <span class="job-card-company" onclick="showCompanyDetailByIndex(${start}+${i})">${esc(job.company)}${isNew ? '<span class="job-card-new" style="margin-left:8px">新</span>' : ''}</span>
         <span class="job-card-type type-tag ${typeClass}">${esc(job.recruitmentType)}</span>
         <span class="job-card-check"><input type="checkbox" data-key="${esc(jobKey)}" ${isChecked ? 'checked' : ''} onchange="onCheckChange(this)"></span>
       </div>

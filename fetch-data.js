@@ -262,21 +262,32 @@ async function main() {
     fetchOfferstar(),
   ]);
 
+  console.log('\n=== 抓取结果 ===');
+  console.log(`求职方舟: ${qiuzhifangzhou.length} 条（${daysBack} 天）`);
+  console.log(`OfferStar: ${offerstar.length} 条`);
+  console.log(`DeepOffer: ${deepoffer.length} 条`);
+  console.log(`本次抓取合计: ${qiuzhifangzhou.length + offerstar.length + deepoffer.length} 条`);
+
   const newJobs = [...deepoffer, ...qiuzhifangzhou, ...offerstar];
-  console.log(`\nNew data: ${newJobs.length} records`);
 
   // Load existing data
   let existing = [];
   try { existing = JSON.parse(fs.readFileSync(JOBS_PATH, 'utf-8')); } catch {}
-  console.log(`Existing data: ${existing.length} records`);
+  const existingCount = existing.length;
 
   // Merge & dedup
   const merged = deduplicate(existing, newJobs);
-  console.log(`After dedup: ${merged.length} records`);
+  const addedCount = merged.length - existingCount;
 
   // Process: normalize, remove expired, clean
   const processed = processData(merged);
-  console.log(`After cleanup: ${processed.length} records (removed ${merged.length - processed.length} expired)`);
+  const expiredCount = merged.length - processed.length;
+
+  console.log('\n=== 增量更新结果 ===');
+  console.log(`原有数据: ${existingCount} 条`);
+  console.log(`本次新增: ${addedCount} 条`);
+  console.log(`过期移除: ${expiredCount} 条`);
+  console.log(`最终总量: ${processed.length} 条`);
 
   // Stats
   const typeStats = {};
@@ -290,17 +301,21 @@ async function main() {
   console.log(`\nSaved: ${JOBS_PATH}`);
   console.log(`Next update will fetch from: ${todayStr}`);
 
-  // Identify new companies without profiles
+  // Identify NEW companies without profiles (only from this update)
   const profilesPath = path.join(__dirname, 'data', 'company-profiles.json');
   let profiles = {};
   try { profiles = JSON.parse(fs.readFileSync(profilesPath, 'utf-8')); } catch {}
-  const allCompanies = [...new Set(processed.map(j => j.company))];
-  const missing = allCompanies.filter(c => !profiles[c]);
-  if (missing.length > 0) {
-    fs.writeFileSync(path.join(__dirname, 'data', 'pending-profiles.json'), JSON.stringify(missing, null, 2), 'utf-8');
-    console.log(`\n⚠ ${missing.length} companies without profiles → data/pending-profiles.json`);
+  const existingCompanySet = new Set(existing.map(j => j.company));
+  const newCompanies = [...new Set(processed.filter(j => !existingCompanySet.has(j.company)).map(j => j.company))];
+  const missingNew = newCompanies.filter(c => !profiles[c]);
+  const pendingPath = path.join(__dirname, 'data', 'pending-profiles.json');
+  if (missingNew.length > 0) {
+    fs.writeFileSync(pendingPath, JSON.stringify(missingNew, null, 2), 'utf-8');
+    console.log(`\n⚠ ${missingNew.length} new companies need profiles → data/pending-profiles.json`);
+    console.log(`\nACTION_REQUIRED: GENERATE_PROFILES`);
   } else {
-    console.log('\n✓ All companies have profiles');
+    fs.writeFileSync(pendingPath, JSON.stringify([], null, 2), 'utf-8');
+    console.log('\n✓ All new companies have profiles');
   }
 }
 
