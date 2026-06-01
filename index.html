@@ -2565,7 +2565,6 @@ function loadOffers() {
   try { offers = JSON.parse(localStorage.getItem(_okey())) || []; } catch { offers = []; }
 }
 function saveOffers() {
-  if (!currentUser) return;
   localStorage.setItem(_okey(), JSON.stringify(offers));
 }
 
@@ -3058,8 +3057,8 @@ function showLoginReminder(onProceed) {
   overlay.innerHTML = `
     <div class="modal login-reminder-modal" style="text-align:center;padding:24px;${isMob ? 'position:absolute;bottom:0;left:0;right:0;max-height:fit-content;border-radius:16px 16px 0 0;animation:slideUp .3s ease' : ''}">
       <div style="font-size:36px;margin-bottom:12px">💡</div>
-      <h3 style="margin-bottom:8px">提示</h3>
-      <p style="font-size:13px;color:var(--text2);margin-bottom:20px">登录后数据将自动云端同步，多设备共享<br>未登录时数据仅保存在当前设备</p>
+      <h3 style="margin-bottom:8px">数据仅保存在当前设备</h3>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.8">清除浏览器缓存会丢失数据<br>换设备、换浏览器无法同步<br><br><strong style="color:var(--text)">登录后可云端同步，多设备共享</strong></p>
       <div style="display:flex;gap:10px">
         <button id="lrDismiss" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text2);cursor:pointer;font-size:14px">我已知晓</button>
         <button id="lrLogin" style="flex:1;padding:10px;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;font-size:14px">立即登录</button>
