@@ -209,11 +209,34 @@ const TYPE_MAP = {
   '提前批': '提前批', '补录': '补录', '实习': '日常实习', '校招': '校招', '专岗': '专岗',
 };
 
+// ── 岗位名智能分隔 ──
+function splitPositions(text) {
+  if (!text) return text;
+  // 如果已经有顿号分隔，直接返回
+  if (/[、，,]/.test(text)) return text;
+
+  // 先将空格替换为顿号
+  let result = text.replace(/\s+/g, '、');
+
+  // 岗位后缀关键词（完整的岗位名称结尾）
+  const suffixes = '工程师|经理|专员|助理|岗位|方向|管培生|培训生|研究员|设计师|分析师|实习生|教师|教练|顾问|主管|总监|副总|总裁|会计|出纳|审计|法务|律师|编辑|记者|运营|销售|客服|前台|秘书|文员|司机|保安|保洁|厨师|护士|医生|药师|技工|技师|工人|师傅|岗|职类|业务|专场|开发|测试|承做|管理类|设计|类|教师|人员|序列|咨询';
+  // 在后缀后面添加顿号（如果后面紧跟中文或英文，排除括号）
+  const regex = new RegExp(`(${suffixes})(?=[一-龥a-zA-Z])`, 'g');
+  result = result.replace(regex, '$1、');
+  // 清理多余的顿号
+  result = result.replace(/、+/g, '、').replace(/、$/, '');
+  return result;
+}
+
 function processData(jobs) {
   const today = new Date().toISOString().split('T')[0];
 
   for (const job of jobs) {
     job.recruitmentType = TYPE_MAP[(job.recruitmentType || '').trim()] || job.recruitmentType || '其他';
+    // 修正标记错误的招聘类型（24春招/25春招但 deadline 在 2026 年 → 26春招）
+    if (/^2[45]春招$/.test(job.recruitmentType) && (job.deadline || '') >= '2026') {
+      job.recruitmentType = '26春招';
+    }
   }
 
   const filtered = jobs.filter(job => {
@@ -227,6 +250,8 @@ function processData(jobs) {
     p = p.replace(/[,，、;；\s]+$/, '');
     p = p.replace(/^本次共[计招聘]*\d+人[、，,]?\s*/, '');
     if (/^具体.*详见附件/.test(p)) p = '详见公告';
+    // 智能分隔岗位名
+    p = splitPositions(p);
     if (p.length > 80) p = p.substring(0, 80) + '...';
     job.positions = p;
   }
