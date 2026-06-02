@@ -2,6 +2,16 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
+// Load .env file
+try {
+  const envPath = path.join(__dirname, '.env');
+  const envContent = fs.readFileSync(envPath, 'utf-8');
+  envContent.split('\n').forEach(line => {
+    const [key, ...vals] = line.split('=');
+    if (key && !process.env[key.trim()]) process.env[key.trim()] = vals.join('=').trim();
+  });
+} catch {}
+
 // ── Config ──
 const API_KEY = process.env.SF_API_KEY || process.env.MIMO_API_KEY;
 if (!API_KEY) {

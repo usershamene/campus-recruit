@@ -312,7 +312,7 @@ async function main() {
   if (missingNew.length > 0) {
     fs.writeFileSync(pendingPath, JSON.stringify(missingNew, null, 2), 'utf-8');
     console.log(`\n⚠ ${missingNew.length} new companies need profiles → data/pending-profiles.json`);
-    console.log(`\nACTION_REQUIRED: GENERATE_PROFILES`);
+    console.log(`ACTION_REQUIRED: GENERATE_PROFILES`);
   } else {
     fs.writeFileSync(pendingPath, JSON.stringify([], null, 2), 'utf-8');
     console.log('\n✓ All new companies have profiles');
