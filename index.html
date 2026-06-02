@@ -3421,9 +3421,15 @@ function initSupabase() {
   }
   return false;
 }
+let _authInitialized = false;
 if (!initSupabase()) {
-  // Wait up to 5s for CDN to load
-  const _sbWait = setInterval(() => { if (initSupabase()) clearInterval(_sbWait); }, 500);
+  // Wait up to 5s for CDN to load, then init auth
+  const _sbWait = setInterval(() => {
+    if (initSupabase()) {
+      clearInterval(_sbWait);
+      if (!_authInitialized) { _authInitialized = true; initAuth().catch(e => console.warn('Auth init failed:', e)); }
+    }
+  }, 500);
   setTimeout(() => clearInterval(_sbWait), 5000);
 }
 let currentUser = null;
@@ -3752,7 +3758,7 @@ document.getElementById('progressStageFilter').addEventListener('change', () => 
 document.getElementById('progressSortSelect').addEventListener('change', () => { updateProgressFilterLabel(); renderProgressContent(); });
 
 // Initialize Supabase auth
-if (sb) { initAuth().catch(e => console.warn('Auth init failed:', e)); }
+if (sb && !_authInitialized) { _authInitialized = true; initAuth().catch(e => console.warn('Auth init failed:', e)); }
 
 // ── Tutorial ──
 let _tutStep = 0;
