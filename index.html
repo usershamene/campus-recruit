@@ -3094,6 +3094,7 @@ function showLoginReminder(onProceed) {
 }
 
 // ── 离开页面提醒（未登录用户有数据时） ──
+let _skipBeforeUnload = false;
 function _hasLocalData() {
   if (progressRecords.length > 0 || offers.length > 0) return true;
   const p = JSON.parse(localStorage.getItem('campus_recruit_progress') || '[]');
@@ -3101,6 +3102,7 @@ function _hasLocalData() {
   return p.length > 0 || o.length > 0;
 }
 window.addEventListener('beforeunload', function(e) {
+  if (_skipBeforeUnload) return;
   if (!currentUser && _hasLocalData()) {
     e.preventDefault();
     e.returnValue = '您有未保存的投递记录，确定离开吗？';
@@ -3560,11 +3562,12 @@ async function updatePassword() {
 
 async function loginWithGitHub() {
   if (!sb) { showToast('登录服务暂不可用'); return; }
+  _skipLeaveConfirm = true;
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'github',
     options: { redirectTo: window.location.origin + window.location.pathname }
   });
-  if (error) showToast('登录失败: ' + error.message);
+  if (error) { _skipLeaveConfirm = false; showToast('登录失败: ' + error.message); }
 }
 
 async function loginWithEmail() {
