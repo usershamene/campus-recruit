@@ -1828,7 +1828,13 @@ function translateAuthError(msg) {
 // ── City normalization ──
 function normalizeCity(raw) {
   if (!raw) return [];
-  return raw.split(/[,，、/|；;\s]+/).map(c => c.trim()).filter(Boolean);
+  return raw.split(/[,，、/|；;\s]+/).map(c => c.trim()).filter(c => {
+    if (!c || c === '-' || c === '&') return false;
+    if (c.includes('...') || c.includes('等地区') || c.includes('可根据') || c.includes('办公')) return false;
+    if (c.length > 6 || c.length < 2) return false;
+    if (/^市/.test(c)) return false;
+    return true;
+  });
 }
 
 // ── Position tag extraction ──
