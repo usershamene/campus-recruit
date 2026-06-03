@@ -1828,12 +1828,40 @@ function translateAuthError(msg) {
 // ── City normalization ──
 function normalizeCity(raw) {
   if (!raw) return [];
-  return raw.split(/[,，、/|；;\s]+/).map(c => c.trim()).filter(c => {
-    if (!c || c === '-' || c === '&') return false;
-    if (c.includes('...') || c.includes('等地区') || c.includes('可根据') || c.includes('办公')) return false;
-    if (c.length > 6 || c.length < 2) return false;
-    if (/^市/.test(c)) return false;
-    return true;
+  const KNOWN_LONG = ['乌鲁木齐','呼和浩特','齐齐哈尔','克拉玛依'];
+  const SUFFIX_RE = /[州县区市盟旗]/g;
+  return raw.split(/[,，、/|；;\s]+/).map(c => c.trim()).filter(Boolean).flatMap(c => {
+    if (c === '-' || c === '&') return [];
+    if (c.includes('...') || c.includes('等地区') || c.includes('可根据') || c.includes('办公')) return [];
+    if (c.length < 2) return [];
+    if (/^市|^及/.test(c)) return [];
+    if (c.length <= 3) return [c];
+    if (KNOWN_LONG.includes(c)) return [c];
+    // 统计后缀出现次数，多个后缀说明是多个城市拼接
+    const suffixPositions = [...c.matchAll(SUFFIX_RE)];
+    SUFFIX_RE.lastIndex = 0;
+    if (suffixPositions.length >= 2) {
+      // 多个城市拼接（如 "阳江肇庆潮州"、"池州滁州宿州宣城"）
+      const parts = [];
+      let last = 0;
+      for (const m of suffixPositions) {
+        parts.push(c.slice(last, m.index + 1));
+        last = m.index + 1;
+      }
+      if (last < c.length) parts.push(c.slice(last));
+      return parts.filter(p => p.length >= 2);
+    }
+    // 以州/县/区/市/盟/旗结尾的长名（如 "大理白族自治州"）保留
+    if (/[州县区市盟旗]/.test(c)) return [c];
+    // 无后缀的长名，按 2 字符拆分
+    const parts = [];
+    let tmp = c;
+    while (tmp.length > 0) {
+      if (tmp.length <= 3) { parts.push(tmp); break; }
+      parts.push(tmp.slice(0, 2));
+      tmp = tmp.slice(2);
+    }
+    return parts;
   });
 }
 
