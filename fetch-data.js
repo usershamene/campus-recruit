@@ -215,14 +215,26 @@ function splitPositions(text) {
   // 如果已经有顿号分隔，直接返回
   if (/[、，,]/.test(text)) return text;
 
-  // 先将空格替换为顿号
-  let result = text.replace(/\s+/g, '、');
+  // 先处理括号内的内容（避免误分隔）
+  let result = text;
+  const brackets = [];
+  result = result.replace(/[（(][^）)]*[）)]/g, (m) => {
+    brackets.push(m);
+    return `__BR${brackets.length - 1}__`;
+  });
 
-  // 岗位后缀关键词（完整的岗位名称结尾）
-  const suffixes = '工程师|经理|专员|助理|岗位|方向|管培生|培训生|研究员|设计师|分析师|实习生|教师|教练|顾问|主管|总监|副总|总裁|会计|出纳|审计|法务|律师|编辑|记者|运营|销售|客服|前台|秘书|文员|司机|保安|保洁|厨师|护士|医生|药师|技工|技师|工人|师傅|岗|职类|业务|专场|开发|测试|承做|管理类|设计|类|教师|人员|序列|咨询';
-  // 在后缀后面添加顿号（如果后面紧跟中文或英文，排除括号）
+  // 将空格替换为顿号
+  result = result.replace(/\s+/g, '、');
+
+  // 岗位后缀关键词（排除容易误匹配的：类、开发、测试、岗、管理）
+  const suffixes = '工程师|经理|专员|助理|岗位|方向|管培生|培训生|研究员|设计师|分析师|实习生|教师|教练|顾问|主管|总监|副总|总裁|会计|出纳|审计|法务|律师|编辑|记者|运营|销售|客服|前台|秘书|文员|司机|保安|保洁|厨师|护士|医生|药师|技工|技师|工人|师傅|职类|业务|承做|人员|序列|咨询';
+  // 在后缀后面添加顿号（如果后面紧跟中文或英文）
   const regex = new RegExp(`(${suffixes})(?=[一-龥a-zA-Z])`, 'g');
   result = result.replace(regex, '$1、');
+
+  // 恢复括号内容
+  result = result.replace(/__BR(\d+)__/g, (_, i) => brackets[parseInt(i)]);
+
   // 清理多余的顿号
   result = result.replace(/、+/g, '、').replace(/、$/, '');
   return result;
