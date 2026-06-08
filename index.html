@@ -367,47 +367,44 @@ td.col-check input, th.col-check input { width: 16px; height: 16px; accent-color
 .export-btn.danger-btn:hover { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
 
 /* Progress stage tags */
-.stage-pending { background: rgba(156,163,175,.3); color: #4b5563; }
-.stage-apply { background: rgba(59,130,246,.3); color: #1d4ed8; }
-.stage-test { background: rgba(245,158,11,.3); color: #b45309; }
-.stage-call { background: rgba(168,85,247,.3); color: #7c3aed; }
-.stage-group { background: rgba(236,72,153,.3); color: #be185d; }
-.stage-ai { background: rgba(99,102,241,.3); color: #4338ca; }
-.stage-first { background: rgba(14,165,233,.3); color: #0369a1; }
-.stage-second { background: rgba(20,184,166,.3); color: #0f766e; }
-.stage-third { background: rgba(234,88,12,.3); color: #c2410c; }
-.stage-hr { background: rgba(244,63,94,.3); color: #be123c; }
-.stage-offer { background: rgba(34,197,94,.3); color: #15803d; }
-.stage-join { background: rgba(132,204,22,.3); color: #4d7c0f; }
-.stage-reject { background: rgba(107,114,128,.3); color: #374151; }
+.stage-pending { background: rgba(156,163,175,.1); color: #4b5563; }
+.stage-apply { background: rgba(59,130,246,.1); color: #1d4ed8; }
+.stage-test { background: rgba(245,158,11,.1); color: #b45309; }
+.stage-ai { background: rgba(99,102,241,.1); color: #4338ca; }
+.stage-call { background: rgba(168,85,247,.1); color: #7c3aed; }
+.stage-group { background: rgba(236,72,153,.1); color: #be185d; }
+.stage-first { background: rgba(14,165,233,.1); color: #0369a1; }
+.stage-second { background: rgba(20,184,166,.1); color: #0f766e; }
+.stage-third { background: rgba(234,88,12,.1); color: #c2410c; }
+.stage-offer { background: rgba(34,197,94,.1); color: #15803d; }
+.stage-join { background: rgba(132,204,22,.1); color: #4d7c0f; }
+.stage-reject { background: rgba(107,114,128,.1); color: #374151; }
 
-/* Progress row backgrounds - 更柔和的色调 */
-tr.row-apply td { background: rgba(2,132,199,.04); }
-tr.row-test td { background: rgba(217,119,6,.04); }
-tr.row-call td { background: rgba(124,58,237,.04); }
-tr.row-group td { background: rgba(219,39,119,.04); }
-tr.row-first td { background: rgba(37,99,235,.04); }
-tr.row-second td { background: rgba(5,150,105,.04); }
-tr.row-third td { background: rgba(4,120,87,.04); }
-tr.row-hr td { background: rgba(180,83,9,.04); }
-tr.row-offer td { background: rgba(21,128,61,.06); }
-tr.row-join td { background: rgba(22,101,52,.06); }
-tr.row-reject td { background: rgba(220,38,38,.04); }
-tr.row-pending td { background: rgba(107,114,128,.04); }
-tr.row-ai td { background: rgba(67,56,202,.04); }
-.progress-card.row-apply { background: rgba(2,132,199,.04); }
-.progress-card.row-test { background: rgba(217,119,6,.04); }
-.progress-card.row-call { background: rgba(124,58,237,.04); }
-.progress-card.row-group { background: rgba(219,39,119,.04); }
-.progress-card.row-first { background: rgba(37,99,235,.04); }
-.progress-card.row-second { background: rgba(5,150,105,.04); }
-.progress-card.row-third { background: rgba(4,120,87,.04); }
-.progress-card.row-hr { background: rgba(180,83,9,.04); }
-.progress-card.row-offer { background: rgba(21,128,61,.06); }
-.progress-card.row-join { background: rgba(22,101,52,.06); }
-.progress-card.row-reject { background: rgba(220,38,38,.04); }
-.progress-card.row-pending { background: rgba(107,114,128,.04); }
-.progress-card.row-ai { background: rgba(67,56,202,.04); }
+/* Progress row backgrounds - 与按钮同色系，透明度更低 */
+tr.row-pending td { background: rgba(156,163,175,.03); }
+tr.row-apply td { background: rgba(59,130,246,.03); }
+tr.row-test td { background: rgba(245,158,11,.03); }
+tr.row-ai td { background: rgba(99,102,241,.03); }
+tr.row-call td { background: rgba(168,85,247,.03); }
+tr.row-group td { background: rgba(236,72,153,.03); }
+tr.row-first td { background: rgba(14,165,233,.03); }
+tr.row-second td { background: rgba(20,184,166,.03); }
+tr.row-third td { background: rgba(234,88,12,.03); }
+tr.row-offer td { background: rgba(34,197,94,.03); }
+tr.row-join td { background: rgba(132,204,22,.03); }
+tr.row-reject td { background: rgba(107,114,128,.03); }
+.progress-card.row-pending { background: rgba(156,163,175,.03); }
+.progress-card.row-apply { background: rgba(59,130,246,.03); }
+.progress-card.row-test { background: rgba(245,158,11,.03); }
+.progress-card.row-ai { background: rgba(99,102,241,.03); }
+.progress-card.row-call { background: rgba(168,85,247,.03); }
+.progress-card.row-group { background: rgba(236,72,153,.03); }
+.progress-card.row-first { background: rgba(14,165,233,.03); }
+.progress-card.row-second { background: rgba(20,184,166,.03); }
+.progress-card.row-third { background: rgba(234,88,12,.03); }
+.progress-card.row-offer { background: rgba(34,197,94,.03); }
+.progress-card.row-join { background: rgba(132,204,22,.03); }
+.progress-card.row-reject { background: rgba(107,114,128,.03); }
 #progressTbody tr:hover td { background: rgba(204,120,92,.06); }
 
 /* Progress actions */
@@ -752,7 +749,7 @@ tr.row-ai td { background: rgba(67,56,202,.04); }
   .progress-card-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text2); margin-bottom: 10px; }
   .progress-card-stage { display: none; }
   .progress-card { position: relative; padding-left: 12px; }
-  .progress-stage-badge { font-size: 14px; padding: 3px 10px; border-radius: 6px; color: #374151; border: none; cursor: pointer; font-weight: 600; -webkit-appearance: none; appearance: none; background-image: none; min-width: 52px; text-align: center; flex-shrink: 0; }
+  .progress-stage-badge { font-size: 14px; padding: 3px 10px; border-radius: 6px; color: #1f2937; border: none; cursor: pointer; font-weight: 400; -webkit-appearance: none; appearance: none; background-image: none; min-width: 52px; text-align: center; text-align-last: center; flex-shrink: 0; }
   .progress-stage-badge option { color: #333; background: #fff; }
   .progress-card-note { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--bg); margin-bottom: 10px; }
   .progress-card-actions { display: flex; gap: 8px; }
@@ -959,8 +956,8 @@ tr.row-ai td { background: rgba(67,56,202,.04); }
 .filter-drawer-confirm:hover { opacity: .9; }
 .filter-drawer-reset:hover { border-color: var(--accent); color: var(--accent); }
 
-/* 进度阶段标签统一圆角 */
-.progress-stage-badge { border-radius: 16px; font-weight: 500; letter-spacing: .3px; }
+/* 进度阶段标签 */
+.progress-stage-badge { border-radius: 8px; font-weight: 400; letter-spacing: .3px; color: #1f2937; text-align: center; text-align-last: center; -webkit-appearance: none; appearance: none; background-image: none; border: none; }
 
 /* Offer 卡片统一风格 */
 .offer-card { transition: box-shadow .2s, transform .2s; }
@@ -2380,11 +2377,11 @@ function renderProgressCards(records) {
   }
   if (empty) empty.style.display = 'none';
   container.innerHTML = records.map(r => {
-    const color = STAGE_COLORS[r.progress] || 'rgba(59,130,246,.3)';
+    const color = STAGE_COLORS[r.progress] || 'rgba(59,130,246,.1)';
     return `<div class="progress-card">
       <div class="progress-card-top">
         <span class="progress-card-company">${esc(r.company)}</span>
-        <select class="progress-stage-badge" style="background:${color};color:#fff" onchange="updateStage('${r.id}', this.value);renderProgressCards()">
+        <select class="progress-stage-badge" style="background:${color}" onchange="updateStage('${r.id}', this.value);renderProgressCards()">
           ${buildStageOptions(r.progress)}
         </select>
         <input type="checkbox" class="progress-card-check" data-id="${r.id}" onchange="onProgressCardCheck()">
@@ -2593,21 +2590,21 @@ loadUpdateMeta();
 // ── 投递进度跟踪 ──
 // ══════════════════════════════════════════
 
-const STAGES = ['未投递', '已投递', '测评', '电邀', '群面', 'AI面', '一面', '二面', '三面', 'HR面', 'Offer', '入职', '拒绝'];
+const STAGES = ['未投递', '已投递', '测评', 'AI面', '电邀', '群面', '一面', '二面', '三面', 'Offer', '入职', '拒绝'];
 const STAGE_COLORS = {
-  '未投递': '#9ca3af', '已投递': '#3b82f6', '测评': '#f59e0b', '电邀': '#a855f7', '群面': '#ec4899',
-  'AI面': '#6366f1', '一面': '#0ea5e9', '二面': '#14b8a6', '三面': '#ea580c',
-  'HR面': '#f43f5e', 'Offer': '#22c55e', '入职': '#84cc16', '拒绝': '#6b7280',
+  '未投递': 'rgba(156,163,175,.1)', '已投递': 'rgba(59,130,246,.1)', '测评': 'rgba(245,158,11,.1)', 'AI面': 'rgba(99,102,241,.1)', '电邀': 'rgba(168,85,247,.1)',
+  '群面': 'rgba(236,72,153,.1)', '一面': 'rgba(14,165,233,.1)', '二面': 'rgba(20,184,166,.1)', '三面': 'rgba(234,88,12,.1)',
+  'Offer': 'rgba(34,197,94,.1)', '入职': 'rgba(132,204,22,.1)', '拒绝': 'rgba(107,114,128,.1)',
 };
 const STAGE_CLASS = {
-  '未投递': 'stage-pending', '已投递': 'stage-apply', '测评': 'stage-test', '电邀': 'stage-call', '群面': 'stage-group',
-  'AI面': 'stage-ai', '一面': 'stage-first', '二面': 'stage-second', '三面': 'stage-third',
-  'HR面': 'stage-hr', 'Offer': 'stage-offer', '入职': 'stage-join', '拒绝': 'stage-reject',
+  '未投递': 'stage-pending', '已投递': 'stage-apply', '测评': 'stage-test', 'AI面': 'stage-ai', '电邀': 'stage-call',
+  '群面': 'stage-group', '一面': 'stage-first', '二面': 'stage-second', '三面': 'stage-third',
+  'Offer': 'stage-offer', '入职': 'stage-join', '拒绝': 'stage-reject',
 };
 const ROW_CLASS_MAP = {
-  '未投递': 'row-pending', '已投递': 'row-apply', '测评': 'row-test', '电邀': 'row-call', '群面': 'row-group',
-  'AI面': 'row-ai', '一面': 'row-first', '二面': 'row-second', '三面': 'row-third',
-  'HR面': 'row-hr', 'Offer': 'row-offer', '入职': 'row-join', '拒绝': 'row-reject',
+  '未投递': 'row-pending', '已投递': 'row-apply', '测评': 'row-test', 'AI面': 'row-ai', '电邀': 'row-call',
+  '群面': 'row-group', '一面': 'row-first', '二面': 'row-second', '三面': 'row-third',
+  'Offer': 'row-offer', '入职': 'row-join', '拒绝': 'row-reject',
 };
 
 // ── Shared helpers ──
@@ -3033,7 +3030,7 @@ function renderProgressTable(records) {
       <td class="col-company has-tip"><span class="tip">${esc(r.company)}</span>${esc(r.company)}</td>
       <td class="col-position has-tip"><span class="tip">${esc(r.position)}</span>${esc(r.position)}</td>
       <td class="col-city has-tip"><span class="tip">${esc(r.city)}</span>${esc(r.city)}</td>
-      <td><select class="progress-stage-badge" style="background:${STAGE_COLORS[r.progress] || '#3b82f6'};color:#fff;height:30px;font-size:11px;padding:0 28px 0 8px;background-position:right 8px center" onchange="updateStage('${r.id}', this.value)">${stageOptions}</select></td>
+      <td><select class="progress-stage-badge" style="background:${STAGE_COLORS[r.progress] || 'rgba(59,130,246,.1)'};height:30px;font-size:11px;padding:0 8px" onchange="updateStage('${r.id}', this.value)">${stageOptions}</select></td>
       <td><input class="note-input" value="${esc(r.note || '')}" placeholder="添加备注..." onchange="updateNote('${r.id}', this.value)"></td>
       <td>
         <div class="progress-actions">
@@ -3092,7 +3089,7 @@ function updateStage(id, newStage) {
   saveProgress();
   // 更新下拉框背景色
   const sel = document.querySelector(`select[onchange*="${id}"]`);
-  if (sel) sel.style.background = STAGE_COLORS[newStage] || '#3b82f6';
+  if (sel) sel.style.background = STAGE_COLORS[newStage] || 'rgba(59,130,246,.1)';
   // 标记为 Offer 时自动添加到 Offer 对比
   if (newStage === 'Offer' && oldStage !== 'Offer') {
     const exists = offers.some(o => o.company === r.company && o.position === r.position);
