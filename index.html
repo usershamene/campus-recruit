@@ -181,6 +181,7 @@ td {
   vertical-align: middle;
 }
 tr:hover td { background: rgba(204,120,92,.02); }
+tr.job-row-active td { background: rgba(204,120,92,.12) !important; }
 .empty-row td { height: 44px; border-bottom: 1px solid var(--hairline); }
 td.col-no { width: 50px; text-align: center; color: var(--text2); font-size: 12px; font-weight: 500; }
 td.col-date { width: 100px; white-space: nowrap; font-size: 12px; color: var(--text2); }
@@ -289,7 +290,8 @@ td.col-link .notice-link:hover, .notice-link:hover { background: var(--border); 
 }
 
 /* Tabs */
-.tabs { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.tabs { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; position: sticky; top: 0; z-index: 90; background: var(--bg); padding: 12px 0; border-bottom: 1px solid transparent; transition: border-color .2s; }
+.tabs.stuck { border-bottom-color: var(--border); box-shadow: 0 2px 8px rgba(0,0,0,.04); }
 .tabs-left { display: flex; gap: 0; }
 .tabs-right { display: flex; align-items: center; gap: 12px; }
 .tab-btn {
@@ -371,6 +373,8 @@ td.col-check input, th.col-check input { width: 16px; height: 16px; accent-color
 .stage-offer { background: #dcfce7; color: #15803d; }
 .stage-join { background: #bbf7d0; color: #166534; }
 .stage-reject { background: #fef2f2; color: #dc2626; }
+.stage-pending { background: #f3f4f6; color: #6b7280; }
+.stage-ai { background: #e0e7ff; color: #4338ca; }
 
 /* Progress row backgrounds - 更柔和的色调 */
 tr.row-apply td { background: rgba(2,132,199,.04); }
@@ -384,6 +388,8 @@ tr.row-hr td { background: rgba(180,83,9,.04); }
 tr.row-offer td { background: rgba(21,128,61,.06); }
 tr.row-join td { background: rgba(22,101,52,.06); }
 tr.row-reject td { background: rgba(220,38,38,.04); }
+tr.row-pending td { background: rgba(107,114,128,.04); }
+tr.row-ai td { background: rgba(67,56,202,.04); }
 .progress-card.row-apply { background: rgba(2,132,199,.04); }
 .progress-card.row-test { background: rgba(217,119,6,.04); }
 .progress-card.row-call { background: rgba(124,58,237,.04); }
@@ -395,6 +401,8 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 .progress-card.row-offer { background: rgba(21,128,61,.06); }
 .progress-card.row-join { background: rgba(22,101,52,.06); }
 .progress-card.row-reject { background: rgba(220,38,38,.04); }
+.progress-card.row-pending { background: rgba(107,114,128,.04); }
+.progress-card.row-ai { background: rgba(67,56,202,.04); }
 #progressTbody tr:hover td { background: rgba(204,120,92,.06); }
 
 /* Progress actions */
@@ -448,6 +456,7 @@ tr.row-reject td { background: rgba(220,38,38,.04); }
 .offer-wrap { display: none; max-width: 1360px; margin: 20px auto; padding: 0 24px; }
 .offer-wrap.active { display: block; }
 .offer-toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; }
+.offer-actions-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; }
 .offer-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
 .offer-card {
   background: var(--card); border-radius: 12px; padding: 20px;
@@ -1243,6 +1252,10 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
     </div>
   </div>
   <div class="offer-actions-bar">
+    <label class="offer-select-all" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer;user-select:none">
+      <input type="checkbox" id="offerCheckAll" onchange="toggleAllOffers()" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+      全选
+    </label>
     <button class="add-manual-btn" onclick="showOfferModal()">+ 手动添加</button>
     <button class="export-btn" onclick="exportOffers()">导出备份</button>
     <button class="export-btn danger-btn" id="batchDeleteOfferBtn" onclick="batchDeleteOffers()">批量删除</button>
@@ -1532,10 +1545,10 @@ const QUOTES_PC = [
   '世事千帆过，路的尽头会是温柔和月光，所有的苦难都会过去',
   '任何值得去的地方，都没有捷径，脚踏实地才能走得更远',
   '温柔半两，从容一生，用平和的心态面对生活的起起落落',
-  '你不能把这个世界让给你所鄙视的人，要成为自己想成为的人',
+  '做自己人生的掌舵者，勇敢驶向理想的彼岸',
   '种自己的花，爱自己的宇宙，经营好自己的小世界',
-  '没有人能替你承受，也没有人能拿走你的坚强，你是自己最坚强的后盾',
-  '人生海海，山山而川，不过尔尔，看淡一切才能活得自在',
+  '你拥有无限的潜力，每一步都在创造更好的自己',
+  '人生海海，山山而川，每一段风景都值得欣赏',
   '你才二十几岁，你可以成为任何你想成为的人，年轻就是最大的资本',
   '所有的努力都不会被辜负，时间会证明一切，相信自己',
   '生活从来不会亏待努力的人，你所做的每一点努力都会在未来回报你',
@@ -1545,14 +1558,14 @@ const QUOTES_PC = [
   '你今天的努力，是幸运的伏笔，当下的付出，是明日的花开',
   '愿你所有的努力都不被辜负，愿你所有的梦想都能实现',
   '生活就像海洋，只有意志坚强的人才能到达彼岸',
-  '世上没有绝望的处境，只有对处境绝望的人',
+  '每个困境都藏着转机，保持信心就能看到希望',
   '每一个不曾起舞的日子，都是对生命的辜负',
   '无论你遇见谁，他都是你生命该出现的人，绝非偶然',
-  '人生就像一杯茶，不会苦一辈子，但总会苦一阵子',
+  '人生就像一杯茶，越品越有味道，珍惜每一段经历',
   '你所做的事情，也许暂时看不到成果，但不要灰心或焦虑',
   '不是因为看到了希望才坚持，而是坚持了才看到希望',
   '生命中最好的事情，往往发生在你快要放弃的时候',
-  '勇敢地做自己，不要为任何人而改变，如果他们不能接受最差的你',
+  '勇敢地做最好的自己，你的光芒会吸引同频的人',
   '每个人都有属于自己的时区，不必羡慕别人走得快',
   '你的人生不会因为别人的看法而改变，只会因为你的行动而改变',
   '所有的光鲜亮丽，背后都有不为人知的付出',
@@ -1562,41 +1575,41 @@ const QUOTES_PC = [
   '你的坚持终将美好，所有的付出都会有所回报',
   '没有人能让你放弃梦想，你自己试试就会放弃了',
   '既然人生的幕布已经拉开，就一定要积极演出',
-  '没有一种不通过蔑视忍受和奋斗就可以征服的命运',
+  '每一次挑战都是成长的契机，勇敢迎接它',
   '只有经历过地狱般的磨练，才能炼出创造天堂的力量',
-  '生活给了你一个比别人低的起点，是想告诉你用一生去奋斗出一个绝地反击的故事',
+  '每一天都是新的起点，过去不等于未来',
   '不为模糊不清的未来担忧，只为清清楚楚的现在努力',
   '人生最大的失败不是跌倒，而是从来不敢向前奔跑',
   '你必须暗自努力，才能在人前显得轻松如意',
   '梦想不会逃跑，会逃跑的永远都是自己',
   '当你的才华还撑不起你的野心时，你就应该静下心来学习',
-  '这个世界上没有所谓的天才，只有不努力的笨蛋',
+  '这个世界属于那些愿意持续学习和进步的人',
   '你现在的努力，是为了以后有更多的选择',
   '所有的成功都来自于不懈的努力和奔跑',
   '不管前方的路有多苦，只要走的方向正确，不管多么崎岖不平',
   '人生没有如果，只有后果和结果，少问别人为什么，多问自己凭什么',
   '你要做的就是让自己的选择变得正确',
-  '每一个优秀的人，都有一段沉默的时光',
+  '持续精进的人，终将遇见更好的自己',
   '不要让未来的你，讨厌现在的自己',
   '成功的秘诀在于每天都比别人多努力一点',
-  '生活不会因为你是女生就善待你',
-  '你必须非常努力，才能看起来毫不费力',
-  '不管多远的路，都能走到尽头，不管多深的痛苦，也会有结束的一天',
+  '生活会善待每一个认真努力的人',
+  '你的每一份付出都在为未来铺路',
+  '不管多远的路，都能走到尽头，坚持到底就是胜利',
   '把努力当成一种习惯，而不是一时的热血',
   '你若不坚强，谁替你勇敢',
   '如果你看到前面的阴影，别怕，那是因为你背后有阳光',
-  '没有谁能击垮你，除非你自甘堕落',
+  '你的内心比想象中更强大，没有什么能阻挡你前进',
   '你受的苦，吃的亏，担的责，扛的罪，忍的痛，到最后都会变成光',
   '不要因为没有掌声而放弃梦想，你需要的是坚持而不是观众',
   '每一个你羡慕的收获，都是别人用心拼来的',
   '命运给你一个比别人低的起点，是想告诉你用你的一生去奋斗出一个绝地反击的故事',
   '努力的意义就是以后的日子，放眼望去全部都是自己喜欢的人和事',
-  '现在不玩命，将来命玩你',
+  '现在的每一分努力，都是未来幸运的铺垫',
   '你有多努力，就有多特殊',
   '所有你逆流而上的时光，都会成为你日后横刀立马的底气',
   '哪有什么一夜成名，其实都是百炼成钢',
-  '不要假装努力，结果不会陪你演戏',
-  '你想要的，岁月凭什么给你',
+  '真诚对待每一天，结果自然不会辜负你',
+  '你想要的，岁月都会慢慢给你，只要你不放弃',
   '所有的逆袭，都是有备而来',
   '你要悄悄努力，然后惊艳所有人',
   '生活原本沉闷，但跑起来就有风',
@@ -1605,7 +1618,7 @@ const QUOTES_PC = [
   '努力不一定成功，但放弃一定失败',
   '有理想在的地方，地狱就是天堂',
   '人生就像一场马拉松，不在于瞬间的爆发，而在于途中的坚持',
-  '你今天的日积月早，终将成为别人的望尘莫及',
+  '你今天的日积月累，终将成为别人的望尘莫及',
   '当你觉得撑不下去的时候，再坚持一下',
   '你的潜力远比你表现出来的强大得多',
   '没有白费的努力，也没有碰巧的成功',
@@ -1614,6 +1627,16 @@ const QUOTES_PC = [
   '只有不断找寻机会的人才会及时把握机会',
   '再长的路，一步步也能走完，再短的路，不迈开双脚也无法到达',
   '成功不是属于跑得最快的人，而是属于一直在跑的人',
+  '你比自己想象的更有能力，去尝试才知道结果',
+  '今天的你比昨天更优秀，这就是最好的进步',
+  '机会总是留给有准备的人，现在就开始准备吧',
+  '保持好奇心和学习的热情，你会走得很远',
+  '与其羡慕别人的成绩，不如专注自己的成长',
+  '每一次尝试都是宝贵的经验，勇敢去闯',
+  '你正在成为更好的自己，这本身就是一种成功',
+  '相信过程，结果不会辜负每一份付出',
+  '用积极的心态面对挑战，你会发现困难没那么可怕',
+  '今天的坚持是明天的底气，继续加油',
 ];
 const QUOTES_MOBILE = [
   '时间最公平，珍惜每一天',
@@ -1640,7 +1663,7 @@ const QUOTES_MOBILE = [
   '坚持就是胜利',
   '努力的人被命运善待',
   '看世界，找自己',
-  '苦难终将过去',
+  '美好终将到来',
   '没有捷径，只有脚踏实地',
   '温柔从容过一生',
   '成为想成为的人',
@@ -1670,7 +1693,7 @@ const QUOTES_MOBILE = [
   '慢慢来，比较快',
   '逆风翻盘，向阳而生',
   '所有美好都会如期而至',
-  '熬过低谷，就是晴天',
+  '跨越低谷，拥抱晴天',
   '你的人生你做主',
   '努力是奇迹的另一个名字',
   '向前走，别回头',
@@ -1681,11 +1704,11 @@ const QUOTES_MOBILE = [
   '把每一天都活成值得纪念',
   '心有所向，路就不会远',
   '今日努力，明日可期',
-  '最坏的结果不过是大器晚成',
+  '厚积薄发，大器晚成',
   '披荆斩棘，一路前行',
   '每一步都是成长',
   '加油，你可以的',
-  '别放弃，黎明前最黑暗',
+  '坚持住，曙光就在前方',
   '你的坚持终将美好',
   '心若向阳，无谓悲伤',
   '做最好的自己',
@@ -1718,6 +1741,12 @@ const QUOTES_MOBILE = [
   '保持初心，方得始终',
   '微笑面对每一天',
   '阳光总在风雨后',
+  '你比想象中更优秀',
+  '保持热爱奔赴山海',
+  '今天也要加油鸭',
+  '相信自己的选择',
+  '每天进步一点点',
+  '未来属于你',
 ];
 const _isMobile = window.innerWidth <= 768;
 const QUOTES = _isMobile ? QUOTES_MOBILE : QUOTES_PC;
@@ -1732,6 +1761,7 @@ showQuote(quoteIdx);
 let allJobs = [];
 let filteredJobs = [];
 let currentPage = 1;
+let activeJobKey = null; // 当前高亮的岗位 key
 // pageSize 通过 getPageSize() 动态返回：移动端 10 / 桌面端 50
 let sortField = 'publishDate';
 let sortDir = 'desc';
@@ -2196,7 +2226,7 @@ function renderTable() {
     } else {
       links.push('<span class="no-link">-</span>');
     }
-    return `<tr>
+    return `<tr data-jobkey="${esc(jobKey)}" onclick="setActiveJobKey('${esc(jobKey)}')" style="cursor:pointer">
       <td class="col-check"><input type="checkbox" data-idx="${i}" data-key="${esc(jobKey)}" ${isChecked ? 'checked' : ''} onchange="onCheckChange(this)"></td>
       <td class="col-no">${no}</td>
       <td class="col-date">${esc(job.publishDate)}</td>
@@ -2214,6 +2244,22 @@ function renderTable() {
     rows.push('<tr class="empty-row"><td colspan="9">&nbsp;</td></tr>');
   }
   tbody.innerHTML = rows.join('');
+  // 高亮当前选中的岗位行
+  if (activeJobKey) {
+    const activeRow = tbody.querySelector(`tr[data-jobkey="${CSS.escape(activeJobKey)}"]`);
+    if (activeRow) {
+      activeRow.classList.add('job-row-active');
+      activeRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
+}
+
+function setActiveJobKey(key) {
+  activeJobKey = key;
+  // 移除旧高亮，添加新高亮
+  document.querySelectorAll('#tbody tr.job-row-active').forEach(r => r.classList.remove('job-row-active'));
+  const row = document.querySelector(`#tbody tr[data-jobkey="${CSS.escape(key)}"]`);
+  if (row) row.classList.add('job-row-active');
 }
 
 function isUrgent(deadline) {
@@ -2542,21 +2588,21 @@ loadUpdateMeta();
 // ── 投递进度跟踪 ──
 // ══════════════════════════════════════════
 
-const STAGES = ['投递', '测评', '电邀', '群面', '一面', '二面', '三面', 'HR面', 'Offer', '入职', '拒绝'];
+const STAGES = ['未投递', '投递', '测评', '电邀', '群面', '一面', '二面', '三面', 'AI面', 'HR面', 'Offer', '入职', '拒绝'];
 const STAGE_COLORS = {
-  '投递': 'rgba(147,197,253,.3)', '测评': 'rgba(103,232,249,.3)', '电邀': 'rgba(196,181,253,.3)', '群面': 'rgba(252,211,77,.3)',
+  '未投递': 'rgba(229,231,235,.3)', '投递': 'rgba(147,197,253,.3)', '测评': 'rgba(103,232,249,.3)', '电邀': 'rgba(196,181,253,.3)', '群面': 'rgba(252,211,77,.3)',
   '一面': 'rgba(253,186,116,.3)', '二面': 'rgba(252,165,165,.3)', '三面': 'rgba(248,113,113,.3)',
-  'HR面': 'rgba(253,164,175,.3)', 'Offer': 'rgba(134,239,172,.3)', '入职': 'rgba(110,231,183,.3)', '拒绝': 'rgba(209,213,219,.3)',
+  'AI面': 'rgba(165,180,252,.3)', 'HR面': 'rgba(253,164,175,.3)', 'Offer': 'rgba(134,239,172,.3)', '入职': 'rgba(110,231,183,.3)', '拒绝': 'rgba(209,213,219,.3)',
 };
 const STAGE_CLASS = {
-  '投递': 'stage-apply', '测评': 'stage-test', '电邀': 'stage-call', '群面': 'stage-group',
+  '未投递': 'stage-pending', '投递': 'stage-apply', '测评': 'stage-test', '电邀': 'stage-call', '群面': 'stage-group',
   '一面': 'stage-first', '二面': 'stage-second', '三面': 'stage-third',
-  'HR面': 'stage-hr', 'Offer': 'stage-offer', '入职': 'stage-join', '拒绝': 'stage-reject',
+  'AI面': 'stage-ai', 'HR面': 'stage-hr', 'Offer': 'stage-offer', '入职': 'stage-join', '拒绝': 'stage-reject',
 };
 const ROW_CLASS_MAP = {
-  '投递': 'row-apply', '测评': 'row-test', '电邀': 'row-call', '群面': 'row-group',
+  '未投递': 'row-pending', '投递': 'row-apply', '测评': 'row-test', '电邀': 'row-call', '群面': 'row-group',
   '一面': 'row-first', '二面': 'row-second', '三面': 'row-third',
-  'HR面': 'row-hr', 'Offer': 'row-offer', '入职': 'row-join', '拒绝': 'row-reject',
+  'AI面': 'row-ai', 'HR面': 'row-hr', 'Offer': 'row-offer', '入职': 'row-join', '拒绝': 'row-reject',
 };
 
 // ── Shared helpers ──
@@ -2754,6 +2800,9 @@ function renderOffers() {
     </div>
   `).join('')}</div>`;
   updateOfferBatchBtn();
+  // 同步全选 checkbox 状态
+  const checkAll = document.getElementById('offerCheckAll');
+  if (checkAll) checkAll.checked = offers.length > 0 && selectedOfferIds.size === offers.length;
 }
 
 // ── Offer 批量操作 ──
@@ -2762,6 +2811,8 @@ let selectedOfferIds = new Set();
 function toggleOfferCheck(id, el) {
   if (selectedOfferIds.has(id)) { selectedOfferIds.delete(id); el.classList.remove('checked'); }
   else { selectedOfferIds.add(id); el.classList.add('checked'); }
+  const checkAll = document.getElementById('offerCheckAll');
+  if (checkAll) checkAll.checked = offers.length > 0 && selectedOfferIds.size === offers.length;
   updateOfferBatchBtn();
 }
 
@@ -2772,6 +2823,8 @@ function toggleAllOffers() {
   document.querySelectorAll('.offer-select-check').forEach(el => {
     el.classList.toggle('checked', !allChecked);
   });
+  const checkAll = document.getElementById('offerCheckAll');
+  if (checkAll) checkAll.checked = !allChecked;
   updateOfferBatchBtn();
 }
 
@@ -2886,10 +2939,10 @@ function _doRecordSelected() {
       position: job.positions || '',
       city: job.location || '',
       applyDate: new Date().toISOString().split('T')[0],
-      progress: '投递',
+      progress: '未投递',
       sourceUrl: job.applyUrl || '',
       note: '',
-      history: [{ stage: '投递', time: new Date().toISOString() }],
+      history: [{ stage: '未投递', time: new Date().toISOString() }],
     });
     added++;
   });
@@ -3101,6 +3154,7 @@ async function batchDeleteProgress() {
   const pCheckAll = document.getElementById('pCheckAll');
   if (pCheckAll) pCheckAll.checked = false;
   renderProgressPage();
+  updateBatchDeleteBtn();
   deleteFromCloud('progress_records', ids);
   showToast(`已删除 ${ids.length} 条记录`);
 }
@@ -3819,6 +3873,34 @@ function _updateTutSlide() {
 }
 // Show on first visit
 if (!sessionStorage.getItem('cr_tutorial_done')) { setTimeout(showTutorial, 500); }
+
+// ── Sticky tabs: 动态计算 header 高度，锁定 tab 栏 ──
+(function initStickyTabs() {
+  const header = document.querySelector('.header');
+  if (!header) return;
+  const tabsList = () => document.querySelectorAll('.tabs');
+  function updateTabsTop() {
+    const h = header.offsetHeight;
+    tabsList().forEach(t => { t.style.top = h + 'px'; });
+  }
+  updateTabsTop();
+  new ResizeObserver(updateTabsTop).observe(header);
+  window.addEventListener('resize', updateTabsTop);
+  // 滚动时添加 stuck 类，显示底部分割线
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const h = header.offsetHeight;
+      tabsList().forEach(t => {
+        const rect = t.getBoundingClientRect();
+        t.classList.toggle('stuck', Math.abs(rect.top - h) < 2);
+      });
+      ticking = false;
+    });
+  });
+})();
 </script>
 </body>
 </html>
