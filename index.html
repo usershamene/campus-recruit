@@ -367,19 +367,19 @@ td.col-check input, th.col-check input { width: 16px; height: 16px; accent-color
 .export-btn.danger-btn:hover { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
 
 /* Progress stage tags */
+.stage-pending { background: rgba(156,163,175,.3); color: #4b5563; }
 .stage-apply { background: rgba(59,130,246,.3); color: #1d4ed8; }
 .stage-test { background: rgba(245,158,11,.3); color: #b45309; }
-.stage-call { background: rgba(139,92,246,.3); color: #6d28d9; }
+.stage-call { background: rgba(168,85,247,.3); color: #7c3aed; }
 .stage-group { background: rgba(236,72,153,.3); color: #be185d; }
-.stage-first { background: rgba(37,99,235,.3); color: #1e40af; }
-.stage-second { background: rgba(16,185,129,.3); color: #047857; }
-.stage-third { background: rgba(5,150,105,.3); color: #065f46; }
-.stage-hr { background: rgba(217,119,6,.3); color: #92400e; }
-.stage-offer { background: rgba(34,197,94,.3); color: #15803d; }
-.stage-join { background: rgba(16,185,129,.3); color: #065f46; }
-.stage-reject { background: rgba(239,68,68,.3); color: #b91c1c; }
-.stage-pending { background: rgba(156,163,175,.3); color: #4b5563; }
 .stage-ai { background: rgba(99,102,241,.3); color: #4338ca; }
+.stage-first { background: rgba(14,165,233,.3); color: #0369a1; }
+.stage-second { background: rgba(20,184,166,.3); color: #0f766e; }
+.stage-third { background: rgba(234,88,12,.3); color: #c2410c; }
+.stage-hr { background: rgba(244,63,94,.3); color: #be123c; }
+.stage-offer { background: rgba(34,197,94,.3); color: #15803d; }
+.stage-join { background: rgba(132,204,22,.3); color: #4d7c0f; }
+.stage-reject { background: rgba(107,114,128,.3); color: #374151; }
 
 /* Progress row backgrounds - 更柔和的色调 */
 tr.row-apply td { background: rgba(2,132,199,.04); }
@@ -2595,9 +2595,9 @@ loadUpdateMeta();
 
 const STAGES = ['未投递', '已投递', '测评', '电邀', '群面', 'AI面', '一面', '二面', '三面', 'HR面', 'Offer', '入职', '拒绝'];
 const STAGE_COLORS = {
-  '未投递': 'rgba(229,231,235,.3)', '已投递': 'rgba(147,197,253,.3)', '测评': 'rgba(103,232,249,.3)', '电邀': 'rgba(196,181,253,.3)', '群面': 'rgba(252,211,77,.3)',
-  'AI面': 'rgba(165,180,252,.3)', '一面': 'rgba(253,186,116,.3)', '二面': 'rgba(252,165,165,.3)', '三面': 'rgba(248,113,113,.3)',
-  'HR面': 'rgba(253,164,175,.3)', 'Offer': 'rgba(134,239,172,.3)', '入职': 'rgba(110,231,183,.3)', '拒绝': 'rgba(209,213,219,.3)',
+  '未投递': 'rgba(156,163,175,.3)', '已投递': 'rgba(59,130,246,.3)', '测评': 'rgba(245,158,11,.3)', '电邀': 'rgba(168,85,247,.3)', '群面': 'rgba(236,72,153,.3)',
+  'AI面': 'rgba(99,102,241,.3)', '一面': 'rgba(14,165,233,.3)', '二面': 'rgba(20,184,166,.3)', '三面': 'rgba(234,88,12,.3)',
+  'HR面': 'rgba(244,63,94,.3)', 'Offer': 'rgba(34,197,94,.3)', '入职': 'rgba(132,204,22,.3)', '拒绝': 'rgba(107,114,128,.3)',
 };
 const STAGE_CLASS = {
   '未投递': 'stage-pending', '已投递': 'stage-apply', '测评': 'stage-test', '电邀': 'stage-call', '群面': 'stage-group',
