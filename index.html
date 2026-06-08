@@ -291,6 +291,12 @@ td.col-link .notice-link:hover, .notice-link:hover { background: var(--border); 
 
 /* Tabs */
 .tabs { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+
+/* 桌面端 Tab 栏 sticky 锁定 */
+@media (min-width: 769px) {
+  .tabs { position: sticky; top: 0; z-index: 90; background: var(--bg); padding: 12px 0; border-bottom: 1px solid transparent; transition: border-color .2s; }
+  .tabs.stuck { border-bottom-color: var(--border); box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+}
 .tabs-left { display: flex; gap: 0; }
 .tabs-right { display: flex; align-items: center; gap: 12px; }
 .tab-btn {
@@ -3873,8 +3879,9 @@ function _updateTutSlide() {
 // Show on first visit
 if (!sessionStorage.getItem('cr_tutorial_done')) { setTimeout(showTutorial, 500); }
 
-// ── Sticky tabs: 动态计算 header 高度，锁定 tab 栏 ──
+// ── Sticky tabs: 动态计算 header 高度，锁定 tab 栏（仅桌面端） ──
 (function initStickyTabs() {
+  if (window.innerWidth <= 768) return;
   const header = document.querySelector('.header');
   if (!header) return;
   const tabsList = () => document.querySelectorAll('.tabs');
@@ -3885,7 +3892,6 @@ if (!sessionStorage.getItem('cr_tutorial_done')) { setTimeout(showTutorial, 500)
   updateTabsTop();
   new ResizeObserver(updateTabsTop).observe(header);
   window.addEventListener('resize', updateTabsTop);
-  // 滚动时添加 stuck 类，显示底部分割线
   let ticking = false;
   window.addEventListener('scroll', () => {
     if (ticking) return;
