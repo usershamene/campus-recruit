@@ -13,16 +13,16 @@ try {
 } catch {}
 
 // ── Config ──
-const API_KEY = process.env.SF_API_KEY || process.env.MIMO_API_KEY;
+const API_KEY = process.env.MIMO_API_KEY;
 if (!API_KEY) {
-  console.error('请设置环境变量 SF_API_KEY，例如：');
-  console.error('  set SF_API_KEY=你的key');
+  console.error('请设置环境变量 MIMO_API_KEY，例如：');
+  console.error('  set MIMO_API_KEY=你的key');
   console.error('  node generate-profiles.js');
   process.exit(1);
 }
 
-const API_URL = 'https://api.siliconflow.cn/v1/chat/completions';
-const MODEL = 'Qwen/Qwen2.5-14B-Instruct';
+const API_URL = 'https://token-plan-cn.xiaomimimo.com/v1/chat/completions';
+const MODEL = 'mimo-v2.5-pro';
 const PROFILES_PATH = path.join(__dirname, 'data', 'company-profiles.json');
 const JOBS_PATH = path.join(__dirname, 'data', 'jobs.json');
 
@@ -37,7 +37,7 @@ function callMiMo(prompt) {
         { role: 'system', content: '你是一个企业信息分析助手，专门为求职者提供简洁准确的企业概况。回答必须严格遵循JSON格式。' },
         { role: 'user', content: prompt }
       ],
-      max_completion_tokens: 500,
+      max_completion_tokens: 2000,
       temperature: 0.5,
       top_p: 0.9,
       stream: false,
