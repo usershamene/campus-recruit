@@ -28,45 +28,56 @@ const JOBS_PATH = path.join(__dirname, 'data', 'jobs.json');
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-// ── API Call ──
-function callMiMo(prompt) {
-  return new Promise((resolve, reject) => {
-    const body = JSON.stringify({
-      model: MODEL,
-      messages: [
-        { role: 'system', content: '你是一个企业信息分析助手，专门为求职者提供简洁准确的企业概况。回答必须严格遵循JSON格式。' },
-        { role: 'user', content: prompt }
-      ],
-      max_completion_tokens: 2000,
-      temperature: 0.5,
-      top_p: 0.9,
-      stream: false,
-    });
+// ── API Call (with retry) ──
+async function callMiMo(prompt, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await new Promise((resolve, reject) => {
+        const body = JSON.stringify({
+          model: MODEL,
+          messages: [
+            { role: 'system', content: '你是一个企业信息分析助手，专门为求职者提供简洁准确的企业概况。回答必须严格遵循JSON格式。' },
+            { role: 'user', content: prompt }
+          ],
+          max_completion_tokens: 2000,
+          temperature: 0.5,
+          top_p: 0.9,
+          stream: false,
+        });
 
-    const req = https.request(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Authorization': `Bearer ${API_KEY}`,
-      },
-      timeout: 30000,
-    }, res => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const json = JSON.parse(data);
-          if (json.error) return reject(new Error(json.error.message));
-          const content = json.choices?.[0]?.message?.content || '';
-          resolve(content);
-        } catch (e) { reject(e); }
+        const req = https.request(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': `Bearer ${API_KEY}`,
+          },
+          timeout: 120000,  // 120 秒超时
+        }, res => {
+          let data = '';
+          res.on('data', chunk => data += chunk);
+          res.on('end', () => {
+            try {
+              const json = JSON.parse(data);
+              if (json.error) return reject(new Error(json.error.message));
+              const content = json.choices?.[0]?.message?.content || '';
+              resolve(content);
+            } catch (e) { reject(e); }
+          });
+        });
+        req.on('error', reject);
+        req.on('timeout', () => { req.destroy(); reject(new Error('timeout')); });
+        req.write(Buffer.from(body, 'utf-8'));
+        req.end();
       });
-    });
-    req.on('error', reject);
-    req.on('timeout', () => { req.destroy(); reject(new Error('timeout')); });
-    req.write(Buffer.from(body, 'utf-8'));
-    req.end();
-  });
+    } catch (e) {
+      if (i < retries - 1) {
+        console.log(`  重试 ${i + 1}/${retries}...`);
+        await sleep(2000);
+      } else {
+        throw e;
+      }
+    }
+  }
 }
 
 // ── Main ──
