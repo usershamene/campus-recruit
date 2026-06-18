@@ -2,8 +2,8 @@ name: Daily Data Update
 
 on:
   schedule:
-    # 每天 09:00 UTC (北京时间 17:00)
-    - cron: '0 9 * * *'
+    # 每天 05:00 UTC (北京时间 13:00，考虑 GitHub 延迟约 4 小时，实际约 17:00 运行)
+    - cron: '0 5 * * *'
   workflow_dispatch:  # 允许手动触发
 
 permissions:
