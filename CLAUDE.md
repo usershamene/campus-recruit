@@ -21,14 +21,17 @@
 ├── server.js               # 本地开发服务器（端口 8080）
 ├── fetch-data.js           # 数据抓取（增量更新）
 ├── process-data.js         # 数据清洗（已集成到 fetch-data.js）
-├── generate-profiles.js    # AI 企业简介生成（SiliconFlow API）
+├── generate-profiles.js    # AI 企业简介生成（mimo API）
 ├── fix-data.js             # 数据修复脚本
 ├── .env                    # 环境变量（不提交 git）
+├── .github/
+│   └── workflows/
+│       └── daily-update.yml # GitHub Actions 自动更新（每天 17:00）
 ├── data/
-│   ├── jobs.json           # 岗位数据（主数据源）
-│   ├── company-profiles.json # 企业简介+标签（2357+条）
+│   ├── jobs.json           # 岗位数据（主数据源，1400+条）
+│   ├── company-profiles.json # 企业简介+标签（2800+条）
 │   ├── update-meta.json    # 更新时间元数据
-│   └── missing-companies.json # 缺失简介企业列表
+│   └── pending-profiles.json # 待生成简介企业列表（gitignore）
 └── package.json
 ```
 
@@ -37,17 +40,38 @@
 ```bash
 node server.js              # 启动本地服务器 http://localhost:8080
 node fetch-data.js          # 增量更新校招数据（抓取+合并+清洗+保存）
-node save-profiles.js '{}'  # 写入企业简介（供 subagent 调用）
+node generate-profiles.js   # 批量生成企业简介（需要 MIMO_API_KEY）
 # 访问统计后台: http://localhost:8080/admin.html
 ```
 
-## 增量简介生成流程
+## API 配置
 
+### mimo API（企业简介生成）
+- **URL**: `https://token-plan-cn.xiaomimimo.com/v1/chat/completions`
+- **Model**: `mimo-v2.5-pro`
+- **环境变量**: `MIMO_API_KEY`
+- **超时**: 120 秒，最多重试 3 次
+
+### Supabase（数据同步+访问统计）
+- **环境变量**: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE`
+
+## 自动化更新流程
+
+### GitHub Actions 自动更新
+- **配置文件**: `.github/workflows/daily-update.yml`
+- **运行时间**: 每天 17:00（北京时间，UTC 05:00 + GitHub 延迟）
+- **更新流程**:
+  1. 运行 `fetch-data.js` 抓取增量数据
+  2. 检查 `data/pending-profiles.json` 是否有待生成简介
+  3. 运行 `generate-profiles.js` 生成简介
+  4. 自动提交并推送更新
+
+### 手动简介生成流程
 每次 `fetch-data.js` 运行后：
-1. 自动检测新公司 → 写入 `data/pending-profiles.json`（gitignore）
-2. Claude subagent 读取 pending 列表，用 web search + AI 生成简介
-3. 调用 `node save-profiles.js '{...}'` 写入结果并清理 pending
-4. 提交推送 `company-profiles.json`
+1. 自动检测新公司 → 写入 `data/pending-profiles.json`
+2. 使用 mimo API 生成简介（调用 subagent 或脚本）
+3. 保存到 `company-profiles.json` 并清理 pending
+4. 提交推送更新
 
 ## 数据源
 
@@ -55,7 +79,7 @@ node save-profiles.js '{}'  # 写入企业简介（供 subagent 调用）
 |------|------|------|
 | 求职方舟 | 正常 | API 按天查询，增量抓取 |
 | offerstar | 正常 | HTML 抓取，每次全量 |
-| deepoffer | 证书过期 | HTTPS 证书问题，暂不可用 |
+| deepoffer | 已恢复 | HTTPS API，增量抓取 |
 
 ## 关键架构
 
@@ -124,6 +148,7 @@ node save-profiles.js '{}'  # 写入企业简介（供 subagent 调用）
 - `index.html` 超过 1700 行，编辑时注意行号偏移
 - GitHub Pages 部署有 1-2 分钟延迟
 - `let` 变量有 temporal dead zone，不要在声明前调用
-- deepoffer 证书过期，fetch-data.js 已加错误处理直接跳过
 - Supabase CDN 异步加载，初始化需检查 `window.supabase` 是否存在
 - 移动端和桌面端使用不同的 UI 组件（表格 vs 卡片）
+- GitHub Actions 定时任务有延迟（约 4 小时），cron 时间已调整补偿
+- mimo API 有时响应较慢，已设置 120 秒超时和重试机制

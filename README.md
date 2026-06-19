@@ -17,7 +17,7 @@
 |------|------|------|
 | 求职方舟 | ✅ 正常 | API 按天查询，增量抓取 |
 | offerstar | ✅ 正常 | HTML 抓取，每次全量 |
-| deepoffer | ⚠️ 证书问题 | HTTPS 证书过期，暂不可用 |
+| deepoffer | ✅ 正常 | HTTPS API，增量抓取 |
 
 ## 技术栈
 
@@ -46,9 +46,19 @@ http://localhost:8080
 
 ## 数据更新
 
+### 自动更新（推荐）
+项目已配置 GitHub Actions 自动更新，每天 17:00（北京时间）自动：
+- 抓取最新校招数据
+- 生成新企业简介
+- 提交并推送更新
+
+### 手动更新
 ```bash
 # 增量更新校招数据
 node fetch-data.js
+
+# 生成企业简介（需要 MIMO_API_KEY）
+node generate-profiles.js
 ```
 
 ## 项目结构
@@ -57,12 +67,16 @@ node fetch-data.js
 ├── index.html              # 主页面（所有前端代码）
 ├── server.js               # 本地开发服务器（端口 8080）
 ├── fetch-data.js           # 数据抓取（增量更新）
-├── generate-profiles.js    # AI 企业简介生成
+├── generate-profiles.js    # AI 企业简介生成（mimo API）
 ├── .env                    # 环境变量（不提交）
+├── .github/
+│   └── workflows/
+│       └── daily-update.yml # GitHub Actions 自动更新
 ├── data/
-│   ├── jobs.json           # 岗位数据
-│   ├── company-profiles.json # 企业简介+标签
-│   └── update-meta.json    # 更新时间元数据
+│   ├── jobs.json           # 岗位数据（1400+条）
+│   ├── company-profiles.json # 企业简介+标签（2800+条）
+│   ├── update-meta.json    # 更新时间元数据
+│   └── pending-profiles.json # 待生成简介列表
 └── package.json
 ```
 
