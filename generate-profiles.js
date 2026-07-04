@@ -21,8 +21,8 @@ if (!API_KEY) {
   process.exit(1);
 }
 
-const API_URL = 'https://token-plan-cn.xiaomimimo.com/v1/chat/completions';
-const MODEL = 'mimo-v2.5-pro';
+const API_URL = 'https://apihub.agnes-ai.com/v1/chat/completions';
+const MODEL = 'agnes-2.0-flash';
 const PROFILES_PATH = path.join(__dirname, 'data', 'company-profiles.json');
 const JOBS_PATH = path.join(__dirname, 'data', 'jobs.json');
 
