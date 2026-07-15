@@ -243,7 +243,18 @@ function splitPositions(text) {
 function processData(jobs) {
   const today = new Date().toISOString().split('T')[0];
 
-  for (const job of jobs) {
+  // 过滤掉需要登录查看的脏数据
+  const cleaned = jobs.filter(job => {
+    const fields = [job.company, job.positions, job.location, job.applyUrl, job.announcementUrl];
+    const hasLoginWall = fields.some(f => f && /登录后可见/.test(f));
+    if (hasLoginWall) {
+      console.log(`  [filtered] ${job.company} / ${job.source}`);
+      return false;
+    }
+    return true;
+  });
+
+  for (const job of cleaned) {
     job.recruitmentType = TYPE_MAP[(job.recruitmentType || '').trim()] || job.recruitmentType || '其他';
     // 修正标记错误的招聘类型（24春招/25春招但 deadline 在 2026 年 → 26春招）
     if (/^2[45]春招$/.test(job.recruitmentType) && (job.deadline || '') >= '2026') {
@@ -251,7 +262,7 @@ function processData(jobs) {
     }
   }
 
-  const filtered = jobs.filter(job => {
+  const filtered = cleaned.filter(job => {
     const dl = (job.deadline || '').trim();
     if (!dl || dl === '尽快投递' || dl === '-') return true;
     return dl.replace(/\//g, '-') >= today;
@@ -318,11 +329,12 @@ async function main() {
 
   // Process: normalize, remove expired, clean
   const processed = processData(merged);
-  const expiredCount = merged.length - processed.length;
+  const expiredCount = cleaned.length - filtered.length;
 
   console.log('\n=== 增量更新结果 ===');
   console.log(`原有数据: ${existingCount} 条`);
   console.log(`本次新增: ${addedCount} 条`);
+  console.log(`登录墙过滤: ${merged.length - cleaned.length} 条`);
   console.log(`过期移除: ${expiredCount} 条`);
   console.log(`最终总量: ${processed.length} 条`);
 
