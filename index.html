@@ -1968,8 +1968,12 @@ function loadData() {
       // Stats
       const uniqueCompanies = new Set(allJobs.map(j => j.company)).size;
       const uniqueCities = Object.keys(cityCount).length;
-      const today = new Date().toISOString().split('T')[0];
-      const todayCount = allJobs.filter(j => j.publishDate === today).length;
+      const today = new Date();
+      const todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.getFullYear() + '-' + String(yesterday.getMonth()+1).padStart(2,'0') + '-' + String(yesterday.getDate()).padStart(2,'0');
+      const todayCount = allJobs.filter(j => j.publishDate === todayStr || j.publishDate === yesterdayStr).length;
       document.getElementById('statTotal').textContent = allJobs.length.toLocaleString();
       document.getElementById('statToday').textContent = todayCount.toLocaleString();
       document.getElementById('statCompany').textContent = uniqueCompanies.toLocaleString();
