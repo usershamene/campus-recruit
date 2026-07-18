@@ -1,12 +1,17 @@
 {
   "name": "campus-recruit",
   "version": "1.0.0",
-  "description": "",
+  "description": "校园招聘信息聚合网站",
   "main": "fetch-data.js",
   "scripts": {
-    "test": "echo \"No tests yet\" && exit 0"
+    "test": "echo \"No tests yet\" && exit 0",
+    "start": "node server.js",
+    "fetch-data": "node fetch-data.js",
+    "generate-profiles": "node generate-profiles.js",
+    "xhs-publish": "node scripts/xhs-auto-publish.js",
+    "xhs-install-task": "scripts/install-xhs-task.bat"
   },
-  "keywords": [],
+  "keywords": ["campus-recruit", "xiaohongshu", "automation"],
   "author": "",
   "license": "ISC",
   "dependencies": {
