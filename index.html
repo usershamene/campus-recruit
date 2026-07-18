@@ -1943,10 +1943,12 @@ function loadData() {
   const _loadTimeout = setTimeout(() => {
     const el = document.getElementById('loading');
     if (el && el.style.display !== 'none') {
-      el.innerHTML = '<p style="color:#e74c3c">数据加载超时，请刷新页面重试</p>';
+      el.innerHTML = '<p style="color:#e74c3c">数据加载超时，请检查网络后刷新页面</p>';
     }
   }, 10000);
-  fetch('data/jobs.json')
+  const controller = new AbortController();
+  const _abortTimer = setTimeout(() => controller.abort(), 8000);
+  fetch('data/jobs.json', { signal: controller.signal })
     .then(r => r.json())
     .then(data => {
       allJobs = data;
@@ -1979,13 +1981,20 @@ function loadData() {
       buildColFilterList('cityFilterList', cityCount, selectedCities, 'city');
       applyFilter();
       clearTimeout(_loadTimeout);
+      clearTimeout(_abortTimer);
       document.getElementById('loading').style.display = 'none';
       document.getElementById('mainTable').style.display = '';
       document.getElementById('paginationWrap').style.display = '';
       updateMobileFilterBtn();
     })
     .catch(e => {
-      document.getElementById('loading').innerHTML = '<p style="color:#e74c3c">数据加载失败</p>';
+      clearTimeout(_abortTimer);
+      clearTimeout(_loadTimeout);
+      if (e.name === 'AbortError') {
+        document.getElementById('loading').innerHTML = '<p style="color:#e74c3c">数据加载超时，请检查网络后刷新页面</p>';
+      } else {
+        document.getElementById('loading').innerHTML = '<p style="color:#e74c3c">数据加载失败</p>';
+      }
     });
 }
 loadData();
@@ -2576,7 +2585,10 @@ function getFilterOptions(type) {
 
 // ── Update data ──
 function loadUpdateMeta() {
-  fetch('data/update-meta.json').then(r => r.json()).then(meta => {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 5000);
+  fetch('data/update-meta.json', { signal: ctrl.signal }).then(r => r.json()).then(meta => {
+    clearTimeout(t);
     if (meta.lastUpdate) {
       const d = new Date(meta.lastUpdate);
       document.getElementById('updateTime').textContent = '上次更新: ' + d.toLocaleString('zh-CN');
@@ -3380,7 +3392,14 @@ function showCompanyDetailByIndex(idx) {
 let companyProfiles = {};
 const PROFILE_BRANDS = ['新东方','中国移动','拼多多','蔚来','安踏','OPPO','vivo','腾讯','百度','京东','美团','字节跳动','华为','荣耀','小红书','快手','哔哩哔哩','蚂蚁集团','科大讯飞','好未来','华图教育','理想汽车','海尔','小鹏','招商银行','交通银行','宁波银行','中信银行','华泰证券','中信证券','国信证券','长江证券','开源证券','东方财富','申万宏源','中国化学','中国电科','中国能建','中国电信','中国联通','昂纳科技','虹科','博西家电','施耐德','戴尔','多益网络','华勤技术','无忧传媒','歌尔','李宁','森马','传音控股','宇通集团','春秋航空','吉利','三一集团','安利','沃尔沃','特斯拉','上汽通用','博世','万豪','汇丰银行','诺华','达能','荷美尔','美泰','芬欧汇川','杜邦','英科','溢达','豪迈','中天科技','三生制药','景旺电子','深南电路','士兰半导体','源氏木语','当虹科技','浩鲸科技','杰士德集团','天士力','安富利','百多力','森玛仕','锐捷网络','德力西','宝宝巴士','恒瑞','帆软','大参林','奥马冰箱','物产中大','青山实业','养生堂','复星医药','恒越基金','海信','启明创投','轻舟智航','臻驱科技','嘉立创','紫金山实验室','中国商飞','华工科技','中创新航','华润','格力','顺丰','大华股份','致欧家居','用友','诗悦网络','龙蟠科技','朴朴','北方华创','鼎桥技术','海兴电力','英科医疗','金科服务','正浩EcoFlow','韶音科技','图拉斯','卡游动漫','积加科技','峰岹科技','安谋科技','广药集团','中国建研院','联通华盛','数字浙江','神龙汽车','毕马威','万得','中汇信息','中华商务','中核龙安','奥乐齐','搜狐','中车永济','史丹利','新忆科技','湖北农业发展','湖南盐业','中粮信托','中国有研','中国三峡能源','中国重型机械','中信兴业','艾宾信息','天津海河设计','ZENO芝诺','众成清泰','广州市交通规划','惠州交投','甘肃科技','岚图汽车','百图生科','美敦力','凯瑞斯德','视客眼镜','舜宇','工业富联','重庆鸽牌','山东九羊','国家电投','诚通证券','Ratingdog','高途','邦泰集团','微派','苇航教育','启胜','瑞诺技术','杰拉电竞','华耀智合','百多力','安富利','贵州中烟','中国电信','中国联通','中国邮政储蓄银行','中信银行','申万宏源','华泰证券','国信证券','长江证券','开源证券','东方财富','招商银行','交通银行','宁波银行','长沙银行','中国光大银行','恒越基金','中粮信托','诚通证券','汇丰银行','中信证券'];
 
-fetch('data/company-profiles.json').then(r => r.json()).then(d => { companyProfiles = d; }).catch(() => {});
+(function loadCompanyProfiles() {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 5000);
+  fetch('data/company-profiles.json', { signal: ctrl.signal }).then(r => r.json()).then(d => {
+    clearTimeout(t);
+    companyProfiles = d;
+  }).catch(() => {});
+})();
 
 function getCompanyProfile(companyName) {
   if (companyProfiles[companyName]) return companyProfiles[companyName];
@@ -3543,31 +3562,37 @@ async function syncAndRender() {
   renderOffers();
 }
 async function initAuth() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) {
-    currentUser = session.user;
-    updateUIForLoggedIn();
-    await syncAndRender();
-  }
-  sb.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session) {
+  if (!sb) return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
       currentUser = session.user;
-      mergeLocalToUser();
       updateUIForLoggedIn();
-      loadProgress();
-      loadOffers();
-      await mergeLocalToCloud();
-      await syncFromCloud();
-      renderProgressPage();
-      renderOffers();
-      showToast('登录成功，数据已同步');
-      // 记录登录事件
-      if (window._analyticsAuth) window._analyticsAuth(currentUser);
-    } else if (event === 'SIGNED_OUT') {
-      currentUser = null;
-      updateUIForLoggedOut();
+      await syncAndRender();
     }
-  });
+    sb.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        currentUser = session.user;
+        mergeLocalToUser();
+        updateUIForLoggedIn();
+        loadProgress();
+        loadOffers();
+        await mergeLocalToCloud();
+        await syncFromCloud();
+        renderProgressPage();
+        renderOffers();
+        showToast('登录成功，数据已同步');
+        // 记录登录事件
+        if (window._analyticsAuth) window._analyticsAuth(currentUser);
+      } else if (event === 'SIGNED_OUT') {
+        currentUser = null;
+        updateUIForLoggedOut();
+      }
+    });
+  } catch (e) {
+    console.warn('Auth init failed:', e);
+    // Don't show toast on page load — auth is optional for browsing
+  }
 }
 
 function updateUIForLoggedIn() {
