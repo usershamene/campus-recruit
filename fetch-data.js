@@ -201,12 +201,16 @@ function deduplicate(existing, newJobs) {
 
 // ── Process: normalize, remove expired, clean ──
 const TYPE_MAP = {
-  '26春招': '26春招', '26届春招': '26春招', '27春招': '27春招',
-  '25春招': '25春招', '24春招': '24春招', '23春招': '23春招', '29春招': '29春招',
-  '26秋招': '26秋招', '27秋招': '27秋招', '27届实习': '27实习',
-  '27提前批': '27提前批', '26提前批': '26提前批',
+  // 春招系列 → 统一归入春招/补录
+  '26春招': '春招', '26届春招': '春招', '27春招': '春招',
+  '25春招': '春招', '24春招': '春招', '23春招': '春招', '29春招': '春招',
+  // 秋招系列 → 统一归入秋招/提前批
+  '26秋招': '秋招', '27秋招': '秋招', '27届实习': '日常实习',
+  '27提前批': '提前批', '26提前批': '提前批',
+  // 实习
   '日常实习': '日常实习', '暑期实习': '暑期实习',
-  '提前批': '提前批', '补录': '补录', '实习': '日常实习', '校招': '校招', '专岗': '专岗',
+  // 基础类型
+  '提前批': '提前批', '补录': '补录', '实习': '日常实习', '校招': '校招', '专岗': '其他',
   '春招': '春招', '春招补录': '补录',
 };
 
@@ -250,13 +254,12 @@ function inferType(job) {
     job.announcementUrl || '',
   ].join(' ');
 
-  // 优先级从高到低
-  // 1. 明确标注的年份+类型
-  if (/27秋招|27届秋招|27秋/.test(text)) return '27秋招';
-  if (/26秋招|26届秋招|26秋/.test(text)) return '26秋招';
-  if (/27提前批|27届提前批/.test(text)) return '27提前批';
-  if (/26提前批|26届提前批/.test(text)) return '26提前批';
-  if (/27实习|27届实习/.test(text)) return '27实习';
+  // 1. 明确标注的年份+类型 → 统一去掉届数
+  if (/27秋招|27届秋招|27秋/.test(text)) return '秋招';
+  if (/26秋招|26届秋招|26秋/.test(text)) return '秋招';
+  if (/27提前批|27届提前批/.test(text)) return '提前批';
+  if (/26提前批|26届提前批/.test(text)) return '提前批';
+  if (/27实习|27届实习/.test(text)) return '日常实习';
 
   // 2. 秋招/提前批
   if (/秋招|秋季招聘|秋招提前批/.test(text)) return '秋招';
@@ -269,8 +272,8 @@ function inferType(job) {
 
   // 4. 春招相关
   if (/春招补录|春季补录/.test(text)) return '补录';
-  if (/26春招|26届春招/.test(text)) return '26春招';
-  if (/27春招|27届春招/.test(text)) return '27春招';
+  if (/26春招|26届春招/.test(text)) return '春招';
+  if (/27春招|27届春招/.test(text)) return '春招';
   if (/春招|春季招聘/.test(text)) return '春招';
 
   // 5. 补录
@@ -278,7 +281,7 @@ function inferType(job) {
 
   // 6. 校招兜底
   if (/校招|校园招聘|社会招聘|社招/.test(text)) {
-    return /社会招聘|社招/.test(text) ? '社招' : '校招';
+    return /社会招聘|社招/.test(text) ? '其他' : '校招';
   }
 
   return '校招';
@@ -302,9 +305,9 @@ function processData(jobs) {
     const rawType = (job.recruitmentType || '').trim();
     // 先用 TYPE_MAP 规范化数据源提供的类型
     job.recruitmentType = TYPE_MAP[rawType] || rawType;
-    // 修正年份标记错误的春招（24春招/25春招但 deadline 在 2026 年 → 26春招）
-    if (/^2[45]春招$/.test(job.recruitmentType) && (job.deadline || '') >= '2026') {
-      job.recruitmentType = '26春招';
+    // 修正年份标记错误的春招（24春招/25春招/26春招等 → 春招）
+    if (/^2\d春招$/.test(job.recruitmentType)) {
+      job.recruitmentType = '春招';
     }
     // 如果数据源类型不明确或为空，从标题/岗位名推断
     if (!rawType || !TYPE_MAP[rawType]) {
