@@ -241,6 +241,49 @@ function splitPositions(text) {
   return result;
 }
 
+function inferType(job) {
+  // 组合所有文本用于推断
+  const text = [
+    job.recruitmentType || '',
+    job.company || '',
+    job.positions || '',
+    job.announcementUrl || '',
+  ].join(' ');
+
+  // 优先级从高到低
+  // 1. 明确标注的年份+类型
+  if (/27秋招|27届秋招|27秋/.test(text)) return '27秋招';
+  if (/26秋招|26届秋招|26秋/.test(text)) return '26秋招';
+  if (/27提前批|27届提前批/.test(text)) return '27提前批';
+  if (/26提前批|26届提前批/.test(text)) return '26提前批';
+  if (/27实习|27届实习/.test(text)) return '27实习';
+
+  // 2. 秋招/提前批
+  if (/秋招|秋季招聘|秋招提前批/.test(text)) return '秋招';
+  if (/提前批|早鸟|SP\.SP|SSP/.test(text)) return '提前批';
+
+  // 3. 实习
+  if (/日常实习|日常实习/.test(text)) return '日常实习';
+  if (/暑期实习|暑实习|Summer Intern/.test(text)) return '暑期实习';
+  if (/实习|internship|实习生/.test(text)) return '日常实习';
+
+  // 4. 春招相关
+  if (/春招补录|春季补录/.test(text)) return '补录';
+  if (/26春招|26届春招/.test(text)) return '26春招';
+  if (/27春招|27届春招/.test(text)) return '27春招';
+  if (/春招|春季招聘/.test(text)) return '春招';
+
+  // 5. 补录
+  if (/补录|扩招|追加招聘|第二批|第三批|第四批|第五批/.test(text)) return '补录';
+
+  // 6. 校招兜底
+  if (/校招|校园招聘|社会招聘|社招/.test(text)) {
+    return /社会招聘|社招/.test(text) ? '社招' : '校招';
+  }
+
+  return '校招';
+}
+
 function processData(jobs) {
   const today = new Date().toISOString().split('T')[0];
 
@@ -256,14 +299,25 @@ function processData(jobs) {
   const loginWallCount = jobs.length - cleaned.length;
 
   for (const job of cleaned) {
-    job.recruitmentType = TYPE_MAP[(job.recruitmentType || '').trim()] || job.recruitmentType || '其他';
-    // 修正标记错误的招聘类型（24春招/25春招但 deadline 在 2026 年 → 26春招）
+    const rawType = (job.recruitmentType || '').trim();
+    // 先用 TYPE_MAP 规范化数据源提供的类型
+    job.recruitmentType = TYPE_MAP[rawType] || rawType;
+    // 修正年份标记错误的春招（24春招/25春招但 deadline 在 2026 年 → 26春招）
     if (/^2[45]春招$/.test(job.recruitmentType) && (job.deadline || '') >= '2026') {
       job.recruitmentType = '26春招';
     }
-    // 7月及之后发布的"春招"岗位 → 补录（真正的春招应在3-5月完成）
-    if (job.recruitmentType === '春招' && (job.publishDate || '') >= '2026-07-01') {
-      job.recruitmentType = '补录';
+    // 如果数据源类型不明确或为空，从标题/岗位名推断
+    if (!rawType || !TYPE_MAP[rawType]) {
+      job.recruitmentType = inferType(job);
+    }
+    // 如果数据源类型是"春招"但文本中也能推断出更具体的类型，用推断的
+    // （例如标题写了"秋招提前批"但 recruitmentType 只写了"春招"）
+    if (rawType && TYPE_MAP[rawType]) {
+      const inferred = inferType(job);
+      // 如果推断结果比数据源类型更具体（不是"校招"兜底），优先使用
+      if (inferred !== '校招' && inferred !== rawType) {
+        job.recruitmentType = inferred;
+      }
     }
   }
 
