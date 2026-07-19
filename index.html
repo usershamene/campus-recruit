@@ -8,11 +8,19 @@
 <!-- GitHub Pages CDN 不稳定时自动重试 -->
 <script>
   (function(){
-    var t=setTimeout(function(){
+    var tries = parseInt(localStorage.getItem('_cr_retries')||'0', 10);
+    var maxTries = 5;
+    var t = setTimeout(function(){
       if(document.readyState!=='complete'){
-        window.location.reload();
+        tries++;
+        localStorage.setItem('_cr_retries', tries);
+        if(tries <= maxTries){
+          window.location.reload();
+        }
+      }else{
+        localStorage.removeItem('_cr_retries');
       }
-    },1000);
+    },500);
     window.addEventListener('DOMContentLoaded',function(){clearTimeout(t)});
   })();
 </script>
