@@ -5,6 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>校招信息汇总</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" async onload="window._sbLoaded=true" onerror="console.warn('Supabase CDN failed')"></script>
+<!-- GitHub Pages CDN 不稳定时自动重试 -->
+<script>
+  (function(){
+    var t=setTimeout(function(){
+      if(document.readyState!=='complete'){
+        window.location.reload();
+      }
+    },5000);
+    window.addEventListener('DOMContentLoaded',function(){clearTimeout(t)});
+  })();
+</script>
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
