@@ -284,7 +284,7 @@ function isSOE(companyName, applyUrl, announceUrl) {
   if (/\.(gov\.cn|gov\.hk|gov\.mo|gov\.tw)/.test(link)) return true;
   if (/\/seac\//.test(link)) return true;
 
-  // 规则4：强信号（城投/交投/地铁/水务/中铁/中建等）
+  // 规则4：强信号（城投/交投/地铁/水务/中铁/中建等）— 增加设计/水利相关国企信号
   const strongSignals = [
     '城投','水投','铁投','交控','交投','产投','农投','能投','投控','金控','科创投',
     '电网','铁路','机场','港口','航道','高速',
@@ -295,12 +295,18 @@ function isSOE(companyName, applyUrl, announceUrl) {
     '中轻','中纺','中盐','中金','中煤','中船',
     '事业单位','行政机关','管委会',
     '局','委','办','厅','处',
+    '南水北调','勘测设计','规划设计院','建筑设计','工程咨询','建筑设计集团','建工','城建','交通投资','水利','勘设',
   ];
   if (strongSignals.some(s => companyName.includes(s))) return true;
 
+  // 规则4b：独立公司名称中包含"设计"+"工"等字（中工武大设计、上海市政设计等）
+  if (/设计.*集团|集团.*设计/.test(companyName)) return true;
+  if (/^中工.*设计/.test(companyName)) return true;
+  if (/^(华东|中南|西南|西北|华中).*设计院/.test(companyName)) return true;
+
   // 规则5：央企前缀（中国/中华/国家/中央）+ 机构词
   const hasChinaPrefix = ['中国','中华','国家','中央'].some(p => companyName.includes(p));
-  const institutionWords = ['院','所','中心','银行','保险','证券','信托','电信','移动','联通','邮政','民航','气象','铁路','公路','航道','港口','码头','航运','海运','航天','航空','电科','发电','核电','水电','火电','风电','光伏','燃气','水务','地铁','公交','西电','电工','电气','电力'];
+  const institutionWords = ['院','所','中心','银行','保险','证券','信托','电信','移动','联通','邮政','民航','气象','铁路','公路','航道','港口','码头','航运','海运','航天','航空','电科','发电','核电','水电','火电','风电','光伏','燃气','水务','地铁','公交','西电','电工','电气','电力','城市建设','城市投','城建'];
   const hasInstitution = institutionWords.some(s => companyName.includes(s));
   if (hasChinaPrefix && hasInstitution) return true;
 
@@ -314,6 +320,14 @@ function isSOE(companyName, applyUrl, announceUrl) {
   ];
   const weakMatched = weakSignals.filter(s => companyName.includes(s));
   if (weakMatched.length >= 2) return true;
+
+  // 规则7：行政区划开头 + 城建/城投/投资/交通/水利 等国企特征词
+  const govAreaWords = ['省','市','区','县'];
+  const hasGovArea = govAreaWords.some(w => companyName.startsWith(w)) ||
+    PROVINCES.some(p => companyName.startsWith(p)) ||
+    CITIES.some(c => companyName.startsWith(c));
+  const soeCityWords = ['城建','城投','投资控股','投资集团','交通','水利','水务集团','公用事业','国资','资产经营'];
+  if (hasGovArea && soeCityWords.some(w => companyName.includes(w))) return true;
 
   return false;
 }
@@ -407,7 +421,14 @@ function processData(jobs) {
 
   for (const job of cleaned) {
     const rawType = (job.recruitmentType || '').trim();
-    // 1. 国企判定优先
+    // 0. 直接利用数据源提供的 companyType 字段（求职方舟/DeepOffer 都有）
+    //    这是最可靠的国企判定方式
+    const companyTypeVal = (job.companyType || '').trim();
+    if (rawType === '国企' || companyTypeVal === '国企' || companyTypeVal === '央国企' || companyTypeVal === '央企' || companyTypeVal === '事业单位') {
+      job.recruitmentType = '国企招聘';
+      continue;
+    }
+    // 1. 非数据源明确标注的才走 isSOE() 兜底判定
     if (isSOE(job.company, job.applyUrl, job.announcementUrl)) {
       job.recruitmentType = '国企招聘';
       continue;
@@ -427,6 +448,16 @@ function processData(jobs) {
       const inferred = inferType(job);
       if (inferred !== '校招' && inferred !== rawType) {
         job.recruitmentType = inferred;
+      }
+    }
+    // 6. 清理过时的春招标签（7月后基本不存在春招了）
+    if (job.recruitmentType === '春招') {
+      const inferFallback = inferType(job);
+      if (inferFallback === '补录' || inferFallback === '秋招') {
+        job.recruitmentType = inferFallback;
+      } else if (inferFallback === '校招') {
+        // 纯春招无其他信号 → 降级为校招（最保守的处理）
+        job.recruitmentType = '校招';
       }
     }
   }

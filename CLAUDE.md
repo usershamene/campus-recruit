@@ -21,15 +21,20 @@
 ├── server.js               # 本地开发服务器（端口 8080）
 ├── fetch-data.js           # 数据抓取（增量更新）
 ├── process-data.js         # 数据清洗（已集成到 fetch-data.js）
-├── generate-profiles.js    # AI 企业简介生成（mimo API）
+├── generate-profiles.js    # AI 企业简介生成（本地脚本，逐个调用 API）
 ├── fix-data.js             # 数据修复脚本
+├── scripts/                # 并行简介生成工具集
+│   ├── generate-group.js   # 单组公司简介批量生成（支持命令行传参）
+│   ├── retry-failed.js     # 重试失败的企业简介
+│   ├── groups.jsonl        # 企业分组文件（每行一个 JSON 数组）
+│   └── group-*.json        # 输入：待生成员工组文件
 ├── .env                    # 环境变量（不提交 git）
 ├── .github/
 │   └── workflows/
 │       └── daily-update.yml # GitHub Actions 自动更新（每天 17:00）
 ├── data/
-│   ├── jobs.json           # 岗位数据（主数据源，1400+条）
-│   ├── company-profiles.json # 企业简介+标签（2800+条）
+│   ├── jobs.json           # 岗位数据（主数据源，1460+条）
+│   ├── company-profiles.json # 企业简介+标签（3600+家）
 │   ├── update-meta.json    # 更新时间元数据
 │   └── pending-profiles.json # 待生成简介企业列表（gitignore）
 └── package.json
@@ -40,17 +45,20 @@
 ```bash
 node server.js              # 启动本地服务器 http://localhost:8080
 node fetch-data.js          # 增量更新校招数据（抓取+合并+清洗+保存）
-node generate-profiles.js   # 批量生成企业简介（需要 MIMO_API_KEY）
+node generate-profiles.js   # 批量生成企业简介（需要 MIMO_API_KEY，逐个串行）
+node scripts/generate-group.js scripts/group-1.json  # 并行生成（传入分组文件）
+node scripts/retry-failed.js  # 重试失败的企业简介
 # 访问统计后台: http://localhost:8080/admin.html
 ```
 
 ## API 配置
 
-### mimo API（企业简介生成）
-- **URL**: `https://token-plan-cn.xiaomimimo.com/v1/chat/completions`
-- **Model**: `mimo-v2.5-pro`
+### Agnes AI API（企业简介生成）
+- **URL**: `https://apihub.agnes-ai.com/v1/chat/completions`
+- **Model**: `agnes-2.0-flash`
 - **环境变量**: `MIMO_API_KEY`
-- **超时**: 120 秒，最多重试 3 次
+- **超时**: 120 秒，最多重试 5 次
+- **备注**: 实际为 Agnes AI 兼容 API，密钥名沿用 `MIMO_API_KEY`
 
 ### Supabase（数据同步+访问统计）
 - **环境变量**: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE`
@@ -59,12 +67,20 @@ node generate-profiles.js   # 批量生成企业简介（需要 MIMO_API_KEY）
 
 ### GitHub Actions 自动更新
 - **配置文件**: `.github/workflows/daily-update.yml`
+- **超时**: 120 分钟（之前 30 分钟会导致简介生成超时）
 - **运行时间**: 每天 17:00（北京时间，UTC 05:00 + GitHub 延迟）
 - **更新流程**:
   1. 运行 `fetch-data.js` 抓取增量数据
   2. 检查 `data/pending-profiles.json` 是否有待生成简介
-  3. 运行 `generate-profiles.js` 生成简介
+  3. 运行 `generate-profiles.js` 生成简介（串行调用 API，全量处理）
   4. 自动提交并推送更新
+
+### 并行简介生成（推荐）
+全量生成时串行 API 调用太慢（~60 秒/家），推荐用 `scripts/generate-group.js` 分多组并行：
+1. 将企业列表分到 `scripts/group-{1..N}.json`（每组 ~29 家）
+2. 各启动一个 subagent 分别执行 `node scripts/generate-group.js group-{N}.json`
+3. 合并所有 `group-results-*.json` 到 `company-profiles.json`
+4. 或用 `scripts/retry-failed.js` 重试失败的企业
 
 ### 手动简介生成流程
 每次 `fetch-data.js` 运行后：
@@ -151,4 +167,6 @@ node generate-profiles.js   # 批量生成企业简介（需要 MIMO_API_KEY）
 - Supabase CDN 异步加载，初始化需检查 `window.supabase` 是否存在
 - 移动端和桌面端使用不同的 UI 组件（表格 vs 卡片）
 - GitHub Actions 定时任务有延迟（约 4 小时），cron 时间已调整补偿
-- mimo API 有时响应较慢，已设置 120 秒超时和重试机制
+- Agnes AI API 有时响应较慢，已设置 120 秒超时和重试机制
+- `scripts/retry-failed.js` 会遗漏部分公司（无类型/行业信息），建议优先用分组文件方式生成
+- GitHub Actions 串行生成简介很慢（全量 ~3500 家 × 60s ≈ 50 分钟以上），需确保 workflow timeout ≥ 120 分钟
