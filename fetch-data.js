@@ -439,7 +439,20 @@ function processData(jobs) {
     if (/^2\d春招$/.test(job.recruitmentType)) {
       job.recruitmentType = '春招';
     }
-    // 4. 数据源类型不明确或为空，从标题/岗位名推断
+    // 4. 时间过滤：对求职方舟数据源的春招根据发布时间判断
+    //    4月及以前→春招；5-6月→补录；7月及以后→秋招
+    if (job.recruitmentType === '春招' && job.publishDate) {
+      const pubDate = new Date(job.publishDate);
+      const year = pubDate.getFullYear();
+      const month = pubDate.getMonth() + 1;
+      if (year === 2026 && month >= 5 && month <= 6) {
+        job.recruitmentType = '补录';
+      } else if (year === 2026 && month >= 7) {
+        job.recruitmentType = '秋招';
+      }
+      // 其他月份或年份保持原样（春招）
+    }
+    // 5. 数据源类型不明确或为空，从标题/岗位名推断
     if (!rawType || !TYPE_MAP[rawType]) {
       job.recruitmentType = inferType(job);
     }
@@ -448,16 +461,6 @@ function processData(jobs) {
       const inferred = inferType(job);
       if (inferred !== '校招' && inferred !== rawType) {
         job.recruitmentType = inferred;
-      }
-    }
-    // 6. 清理过时的春招标签（7月后基本不存在春招了）
-    if (job.recruitmentType === '春招') {
-      const inferFallback = inferType(job);
-      if (inferFallback === '补录' || inferFallback === '秋招') {
-        job.recruitmentType = inferFallback;
-      } else if (inferFallback === '校招') {
-        // 纯春招无其他信号 → 降级为校招（最保守的处理）
-        job.recruitmentType = '校招';
       }
     }
   }
