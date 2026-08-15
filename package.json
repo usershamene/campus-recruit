@@ -4,10 +4,12 @@
   "description": "校园招聘信息聚合网站",
   "main": "fetch-data.js",
   "scripts": {
-    "test": "echo \"No tests yet\" && exit 0",
+    "test": "node --test tests/*.test.js",
+    "check": "node --check fetch-data.js && node --check server.js && node --check generate-profiles.js && node --check save-profiles.js && node --check check-data.js && node --check scripts/generate-group.js && node --check scripts/retry-failed.js && node --check scripts/xhs-auto-publish.js && node --check lib/data-processing.js && node --check lib/profile-api.js",
     "start": "node server.js",
     "fetch-data": "node fetch-data.js",
     "generate-profiles": "node generate-profiles.js",
+    "retry-failed": "node scripts/retry-failed.js",
     "xhs-publish": "node scripts/xhs-auto-publish.js",
     "xhs-install-task": "scripts/install-xhs-task.bat"
   },

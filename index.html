@@ -1533,6 +1533,9 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 <div class="toast" id="toast"></div>
 
 <script>
+// ── Supabase 客户端实例（提前声明：initAnalytics 等早期代码会引用，避免 TDZ 错误）──
+let sb = null;
+
 // ── Inspirational quotes ──
 const QUOTES_PC = [
   '世界上什么都不公平，唯独时间最公平，它给每个人都是一天二十四小时',
@@ -1953,6 +1956,7 @@ function getTypeStyle(type) {
 }
 
 // ── Load data ──
+// 优先加载压缩版 jobs.min.json（省 ~40% 流量），失败回退 jobs.json
 function loadData() {
   // Timeout: show error if data doesn't load in 10s
   const _loadTimeout = setTimeout(() => {
@@ -1961,10 +1965,15 @@ function loadData() {
       el.innerHTML = '<p style="color:#e74c3c">数据加载超时，请检查网络后刷新页面</p>';
     }
   }, 10000);
-  const controller = new AbortController();
-  const _abortTimer = setTimeout(() => controller.abort(), 8000);
-  fetch('data/jobs.json', { signal: controller.signal })
-    .then(r => r.json())
+
+  const fetchJobs = (url) => fetch(url).then(r => {
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  });
+
+  // jobs.min.json（压缩）→ jobs.json（兜底）
+  fetchJobs('data/jobs.min.json')
+    .catch(() => fetchJobs('data/jobs.json'))
     .then(data => {
       allJobs = data;
       const cityCount = {};
@@ -2000,20 +2009,15 @@ function loadData() {
       buildColFilterList('cityFilterList', cityCount, selectedCities, 'city');
       applyFilter();
       clearTimeout(_loadTimeout);
-      clearTimeout(_abortTimer);
       document.getElementById('loading').style.display = 'none';
       document.getElementById('mainTable').style.display = '';
       document.getElementById('paginationWrap').style.display = '';
       updateMobileFilterBtn();
     })
     .catch(e => {
-      clearTimeout(_abortTimer);
       clearTimeout(_loadTimeout);
-      if (e.name === 'AbortError') {
-        document.getElementById('loading').innerHTML = '<p style="color:#e74c3c">数据加载超时，请检查网络后刷新页面</p>';
-      } else {
-        document.getElementById('loading').innerHTML = '<p style="color:#e74c3c">数据加载失败</p>';
-      }
+      document.getElementById('loading').innerHTML = '<p style="color:#e74c3c">数据加载失败，请检查网络后刷新页面</p>';
+      console.error('[loadData] 数据加载失败:', e);
     });
 }
 loadData();
@@ -3407,33 +3411,6 @@ function showCompanyDetailByIndex(idx) {
   if (job) showCompanyDetail(job.company);
 }
 
-// ── Company Profiles (pre-generated) ──
-let companyProfiles = {};
-const PROFILE_BRANDS = ['新东方','中国移动','拼多多','蔚来','安踏','OPPO','vivo','腾讯','百度','京东','美团','字节跳动','华为','荣耀','小红书','快手','哔哩哔哩','蚂蚁集团','科大讯飞','好未来','华图教育','理想汽车','海尔','小鹏','招商银行','交通银行','宁波银行','中信银行','华泰证券','中信证券','国信证券','长江证券','开源证券','东方财富','申万宏源','中国化学','中国电科','中国能建','中国电信','中国联通','昂纳科技','虹科','博西家电','施耐德','戴尔','多益网络','华勤技术','无忧传媒','歌尔','李宁','森马','传音控股','宇通集团','春秋航空','吉利','三一集团','安利','沃尔沃','特斯拉','上汽通用','博世','万豪','汇丰银行','诺华','达能','荷美尔','美泰','芬欧汇川','杜邦','英科','溢达','豪迈','中天科技','三生制药','景旺电子','深南电路','士兰半导体','源氏木语','当虹科技','浩鲸科技','杰士德集团','天士力','安富利','百多力','森玛仕','锐捷网络','德力西','宝宝巴士','恒瑞','帆软','大参林','奥马冰箱','物产中大','青山实业','养生堂','复星医药','恒越基金','海信','启明创投','轻舟智航','臻驱科技','嘉立创','紫金山实验室','中国商飞','华工科技','中创新航','华润','格力','顺丰','大华股份','致欧家居','用友','诗悦网络','龙蟠科技','朴朴','北方华创','鼎桥技术','海兴电力','英科医疗','金科服务','正浩EcoFlow','韶音科技','图拉斯','卡游动漫','积加科技','峰岹科技','安谋科技','广药集团','中国建研院','联通华盛','数字浙江','神龙汽车','毕马威','万得','中汇信息','中华商务','中核龙安','奥乐齐','搜狐','中车永济','史丹利','新忆科技','湖北农业发展','湖南盐业','中粮信托','中国有研','中国三峡能源','中国重型机械','中信兴业','艾宾信息','天津海河设计','ZENO芝诺','众成清泰','广州市交通规划','惠州交投','甘肃科技','岚图汽车','百图生科','美敦力','凯瑞斯德','视客眼镜','舜宇','工业富联','重庆鸽牌','山东九羊','国家电投','诚通证券','Ratingdog','高途','邦泰集团','微派','苇航教育','启胜','瑞诺技术','杰拉电竞','华耀智合','百多力','安富利','贵州中烟','中国电信','中国联通','中国邮政储蓄银行','中信银行','申万宏源','华泰证券','国信证券','长江证券','开源证券','东方财富','招商银行','交通银行','宁波银行','长沙银行','中国光大银行','恒越基金','中粮信托','诚通证券','汇丰银行','中信证券'];
-
-(function loadCompanyProfiles() {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 5000);
-  fetch('data/company-profiles.json', { signal: ctrl.signal }).then(r => r.json()).then(d => {
-    clearTimeout(t);
-    companyProfiles = d;
-  }).catch(() => {});
-})();
-
-function getCompanyProfile(companyName) {
-  if (companyProfiles[companyName]) return companyProfiles[companyName];
-  // Fallback 1: strip common suffixes
-  const cleaned = companyName
-    .replace(/[-–—]\s*(补录|急招|新增岗位|岗位扩招|岗位扩容|剩余岗位|末班车|倒计时|精选岗位|线上实习|春招|秋招|校招|开放日|专场|第二批|第三批|第四批|公告[三四五六七八九]|扩招|实习|招募|管培|专科|新增研发岗位|紧急招人|线上专场|海外留学生招聘|海外技术类|基础研究部|AI实习生专项|顶尖人才\s*项目|顶尖人才专项|破界计划|英才计划|千帆计划|云弧计划|星辰计划|寻梦实习|逐梦计划|马当路练习生|BML|营销专项|法律助理岗|智能驾驶|物流与制造领域专场|小语种专场|理工科专场|战略实习生项目|菁兵维保实习生|数字金融训练营|转正实习|企业服务团队|急招岗位|岗位补录|战略与投资平台|AI原生工程师)[\s]*/g, '')
-    .replace(/[\(（]\s*(第[一二三四五六七八九十]+[次阶段批]|补录|社招\+?|实习|春招|秋招|校招|专科|博士岗位|剩余岗位|末班车|IT岗位专场|化工专场|急招|营销体系|新增岗位|第二波|核心岗位|国际发行部|旗下)\s*[\)）]/g, '')
-    .replace(/[\(（]\s*[一二三四五六七八九十]+\s*[\)）]/g, '');
-  if (cleaned !== companyName && companyProfiles[cleaned]) return companyProfiles[cleaned];
-  // Fallback 2: match parent brand
-  for (const brand of PROFILE_BRANDS) {
-    if (companyName.includes(brand) && companyProfiles[brand]) return companyProfiles[brand];
-  }
-  return null;
-}
 
 function showCompanyDetail(companyName) {
   const jobs = allJobs.filter(j => j.company === companyName);
@@ -3484,18 +3461,25 @@ function showCompanyDetail(companyName) {
   `;
   document.getElementById('companyOverlay').classList.add('show');
 
-  // Load company profile
-  const profile = getCompanyProfile(companyName);
+  // 懒加载企业简介：首次打开详情时拉取 company-profiles.json（2.3MB）
   const el = document.getElementById('ccSummary');
   const tagsEl = document.getElementById('ccTags');
-  if (profile) {
-    el.innerHTML = `<div class="cc-summary">${esc(profile.summary)}</div>`;
-    if (profile.tags && tagsEl) {
-      tagsEl.innerHTML += profile.tags.map(t => `<span class="cc-tag">${esc(t)}</span>`).join('');
+  const renderProfile = () => {
+    const profile = getCompanyProfile(companyName);
+    if (profile) {
+      el.innerHTML = `<div class="cc-summary">${esc(profile.summary)}</div>`;
+      if (profile.tags && tagsEl) {
+        tagsEl.innerHTML += profile.tags.map(t => `<span class="cc-tag">${esc(t)}</span>`).join('');
+      }
+    } else {
+      el.innerHTML = '<div class="cc-summary" style="color:var(--text2)">暂无简介信息</div>';
     }
-  } else {
-    el.innerHTML = '<div class="cc-summary" style="color:var(--text2)">暂无简介信息</div>';
-  }
+  };
+  ensureCompanyProfiles()
+    .then(renderProfile)
+    .catch(() => {
+      el.innerHTML = '<div class="cc-summary" style="color:var(--text2)">简介加载失败（网络异常）</div>';
+    });
 }
 
 function closeCompanyCard() {
@@ -3544,7 +3528,6 @@ function importProgress(event) {
 
 const SUPABASE_URL = 'https://sxlowhgltzlautbfmvgh.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4bG93aGdsdHpsYXV0YmZtdmdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4ODM3NjIsImV4cCI6MjA5NTQ1OTc2Mn0.uHQdb3AavDsXF-1M_yQU6VaHhee42IAZFIVZWz-9nuU';
-let sb = null;
 function initSupabase() {
   if (window.supabase && window.supabase.createClient) {
     try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON); } catch(e) { console.warn('Supabase init failed:', e); }
@@ -3771,120 +3754,6 @@ async function logoutUser() {
   showToast('已退出登录');
 }
 
-// ── Cloud Sync ──
-const _progressToUpload = (r) => ({
-  id: r.id, user_id: currentUser.id, company: r.company, position: r.position,
-  city: r.city || '', apply_date: r.applyDate || null, progress: r.progress || '已投递',
-  source_url: r.sourceUrl || '', note: r.note || '', history: r.history || [],
-  updated_at: new Date().toISOString()
-});
-
-const _offerToUpload = (o) => ({
-  id: o.id, user_id: currentUser.id, company: o.company, position: o.position,
-  city: o.city || '', monthly_salary: o.monthlySalary || null, annual_package: o.annualPackage || null,
-  signing_bonus: o.signingBonus || null, year_end_bonus: o.yearEndBonus || '',
-  work_hours: o.workHours || '', insurance: o.insurance || '', housing_subsidy: o.housingSubsidy || null,
-  notes: o.notes || '', updated_at: new Date().toISOString()
-});
-
-async function mergeLocalToCloud() {
-  if (!currentUser) return;
-  try {
-    const { data: cp } = await sb.from('progress_records').select('id').eq('user_id', currentUser.id);
-    const cloudIds = new Set((cp || []).map(r => r.id));
-    const toUpload = progressRecords.filter(r => !cloudIds.has(r.id)).map(_progressToUpload);
-    if (toUpload.length > 0) await sb.from('progress_records').upsert(toUpload, { onConflict: 'id' });
-
-    const { data: co } = await sb.from('offers').select('id').eq('user_id', currentUser.id);
-    const cloudOfferIds = new Set((co || []).map(r => r.id));
-    const offersToUpload = offers.filter(o => !cloudOfferIds.has(o.id)).map(_offerToUpload);
-    if (offersToUpload.length > 0) await sb.from('offers').upsert(offersToUpload, { onConflict: 'id' });
-  } catch (e) { console.error('[sync] mergeLocalToCloud:', e); showToast('数据同步失败，请检查网络'); }
-}
-
-async function syncFromCloud() {
-  if (!currentUser) return;
-  try {
-    const { data: cp } = await sb.from('progress_records').select('*').eq('user_id', currentUser.id);
-    if (cp) {
-      const localMap = new Map(progressRecords.map(r => [r.id, r]));
-      for (const cr of cp) {
-        const local = localMap.get(cr.id);
-        const cloudRec = {
-          id: cr.id, company: cr.company, position: cr.position, city: cr.city || '',
-          applyDate: cr.apply_date || '', progress: cr.progress || '已投递',
-          sourceUrl: cr.source_url || '', note: cr.note || '', history: cr.history || []
-        };
-        if (!local) {
-          progressRecords.push(cloudRec);
-        } else if ((cloudRec.history || []).length > (local.history || []).length) {
-          Object.assign(local, cloudRec);
-        }
-      }
-      saveProgress();
-      renderProgressPage();
-    }
-
-    const { data: co } = await sb.from('offers').select('*').eq('user_id', currentUser.id);
-    if (co) {
-      const offerMap = new Map(offers.map(o => [o.id, o]));
-      for (const c of co) {
-        if (!offerMap.has(c.id)) {
-          offers.push({
-            id: c.id, company: c.company, position: c.position, city: c.city || '',
-            monthlySalary: c.monthly_salary, annualPackage: c.annual_package,
-            signingBonus: c.signing_bonus, yearEndBonus: c.year_end_bonus || '',
-            workHours: c.work_hours || '', insurance: c.insurance || '',
-            housingSubsidy: c.housing_subsidy, notes: c.notes || '', createdAt: c.created_at
-          });
-        }
-      }
-      saveOffers();
-      renderOffers();
-    }
-  } catch (e) { console.error('[sync] syncFromCloud:', e); showToast('同步失败，请检查网络'); }
-}
-
-async function syncNow() {
-  if (!currentUser) { showToast('请先登录'); return; }
-  showToast('同步中...');
-  await mergeLocalToCloud();
-  await syncFromCloud();
-  showToast('同步完成');
-}
-
-// Debounced cloud writes
-let _syncPTimer = null, _syncOTimer = null;
-
-async function syncToCloud(table, records, mapper) {
-  if (!currentUser) return;
-  try {
-    const rows = records.map(mapper);
-    if (rows.length > 0) await sb.from(table).upsert(rows, { onConflict: 'id' });
-  } catch (e) { console.error(`[sync] syncToCloud(${table}):`, e); showToast('数据同步失败'); }
-}
-
-// 删除云端记录（仅在用户明确删除时调用）
-async function deleteFromCloud(table, ids) {
-  if (!currentUser || !ids || ids.length === 0) return;
-  try {
-    await sb.from(table).delete().in('id', ids);
-  } catch (e) { console.error(`[sync] deleteFromCloud(${table}):`, e); }
-}
-async function syncProgressToCloud() { await syncToCloud('progress_records', progressRecords, _progressToUpload); }
-async function syncOffersToCloud() { await syncToCloud('offers', offers, _offerToUpload); }
-
-// Patch save functions to auto-sync
-const _origSaveProgress = saveProgress;
-saveProgress = function() {
-  _origSaveProgress();
-  if (currentUser) { clearTimeout(_syncPTimer); _syncPTimer = setTimeout(syncProgressToCloud, 2000); }
-};
-const _origSaveOffers = saveOffers;
-saveOffers = function() {
-  _origSaveOffers();
-  if (currentUser) { clearTimeout(_syncOTimer); _syncOTimer = setTimeout(syncOffersToCloud, 2000); }
-};
 
 // ── Progress page event listeners ──
 document.getElementById('progressSearchInput').addEventListener('input', () => {
@@ -3951,5 +3820,8 @@ if (!sessionStorage.getItem('cr_tutorial_done')) { setTimeout(showTutorial, 500)
   });
 })();
 </script>
+<!-- 拆分的模块脚本（P2-2 架构优化）：必须在主脚本之后加载 -->
+<script src="js/profiles.js"></script>
+<script src="js/cloud-sync.js"></script>
 </body>
 </html>

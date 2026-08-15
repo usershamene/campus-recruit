@@ -1,19 +1,30 @@
 node_modules/
 data/*
 !data/jobs.json
+!data/jobs.min.json
 !data/update-meta.json
 !data/company-profiles.json
+!data/pending-profiles.json
+!data/profile-failures.json
 backup-v*/
 campus-recruit-pack.zip
 .codegraph/
 .env
 .env.*
 
-# 开发文档（保留本地）
+# 小红书自动化（含本机路径/登录态，保留本地）
+scripts/output/
+scripts/group-*.json
+scripts/group-results-*.json
+scripts/*.bat
+*.bat
+logs/
+
+# 一次性脚本/含硬编码密钥的中间产物（严禁提交）
+scripts/generate-profiles-api.py
+scripts/groups.jsonl
+
+# 管理后台（含 SUPABASE_SERVICE_ROLE，仅本地使用，绝不提交）
+admin.html
 COMPONENTS.md
 test-mobile.js
-*.bat
-docs/
-
-# 管理后台（本地使用，不提交）
-admin.html

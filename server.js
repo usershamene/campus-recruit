@@ -35,6 +35,12 @@ function setSecurityHeaders(res) {
   res.setHeader('X-XSS-Protection', '1; mode=block');
 }
 
+// 判断请求是否来自本机回环地址（基于 TCP 层 remoteAddress，而非可伪造的 Host 头）
+function isLocalRequest(req) {
+  const addr = req.socket.remoteAddress || '';
+  return addr === '127.0.0.1' || addr === '::1' || addr === '::ffff:127.0.0.1';
+}
+
 const server = http.createServer((req, res) => {
   setSecurityHeaders(res);
 
@@ -46,8 +52,8 @@ const server = http.createServer((req, res) => {
 
   // API: trigger update
   if (req.method === 'POST' && req.url === '/api/update') {
-    // 认证检查
-    const isLocal = !req.headers.host || req.headers.host.includes('localhost') || req.headers.host.includes('127.0.0.1');
+    // 认证检查：优先 Token；无 Token 时仅允许本机回环地址（防止 Host 头伪造越权）
+    const isLocal = isLocalRequest(req);
     const token = req.headers['x-update-token'] || new URL(req.url, 'http://localhost').searchParams.get('token');
     if (UPDATE_SECRET && token !== UPDATE_SECRET) {
       res.writeHead(401, { 'Content-Type': 'application/json' });
@@ -93,10 +99,9 @@ const server = http.createServer((req, res) => {
     }
   }
 
-  // API: admin key (only localhost)
+  // API: admin key (only loopback)
   if (req.method === 'GET' && req.url === '/api/admin-key') {
-    const isLocal = !req.headers.host || req.headers.host.includes('localhost') || req.headers.host.includes('127.0.0.1');
-    if (!isLocal) { res.writeHead(403, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ ok: false })); }
+    if (!isLocalRequest(req)) { res.writeHead(403, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ ok: false })); }
     if (!ADMIN_KEY) { res.writeHead(404, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ ok: false, msg: '未配置 SUPABASE_SERVICE_ROLE' })); }
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ ok: true, key: ADMIN_KEY }));
@@ -122,4 +127,5 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}/`));
+// 仅监听回环地址：管理接口（admin-key）与数据更新接口只允许本机访问
+server.listen(PORT, '127.0.0.1', () => console.log(`Server running at http://localhost:${PORT}/`));

@@ -2,53 +2,68 @@
 
 ## 项目概述
 
-校园招聘信息聚合网站，部署在 GitHub Pages。从多个数据源抓取校招岗位信息，提供筛选、搜索、企业详情、投递进度管理、Offer 对比等功能。
+校园招聘信息聚合网站，部署在 GitHub Pages。从多个数据源抓取校招岗位信息，提供筛选、搜索、企业详情、投递进度管理、Offer 对比等功能。附小红书自动发布引流链路。
 
 ## 技术栈
 
-- **前端**: 单文件 `index.html`（vanilla HTML/CSS/JS，无框架）
-- **后端**: `server.js`（Node.js http-server，本地开发用）
+- **前端**: `index.html`（vanilla HTML/CSS/JS）+ `js/profiles.js` + `js/cloud-sync.js`（拆分模块）
+- **后端**: `server.js`（Node.js http-server，**仅监听 127.0.0.1**，本地开发用）
 - **数据存储**: JSON 文件 + localStorage + Supabase（云端同步）
 - **认证**: Supabase Auth（邮箱密码 + GitHub OAuth）
 - **部署**: GitHub Pages（push 到 main 自动部署）
-- **测试**: Playwright（headless browser）
+- **测试**: Node 内置 `node:test`（49 用例，零依赖）
 
 ## 目录结构
 
 ```
-├── index.html              # 主页面（所有前端代码）
-├── admin.html              # 访问统计管理后台（不提交 git）
-├── server.js               # 本地开发服务器（端口 8080）
+├── index.html              # 主页面（前端 UI + 业务逻辑，约 3800 行）
+├── js/
+│   ├── profiles.js         # 企业简介懒加载 + 公司匹配（从 index.html 拆出）
+│   └── cloud-sync.js       # Supabase 云同步（从 index.html 拆出）
+├── server.js               # 本地开发服务器（端口 8080，仅 127.0.0.1）
 ├── fetch-data.js           # 数据抓取（增量更新）
-├── process-data.js         # 数据清洗（已集成到 fetch-data.js）
-├── generate-profiles.js    # AI 企业简介生成（本地脚本，逐个调用 API）
-├── fix-data.js             # 数据修复脚本
-├── scripts/                # 并行简介生成工具集
-│   ├── generate-group.js   # 单组公司简介批量生成（支持命令行传参）
-│   ├── retry-failed.js     # 重试失败的企业简介
-│   ├── groups.jsonl        # 企业分组文件（每行一个 JSON 数组）
-│   └── group-*.json        # 输入：待生成员工组文件
+├── generate-profiles.js    # AI 企业简介生成（串行，Actions 用）
+├── save-profiles.js        # 简介合并工具
+├── check-data.js           # 数据质量检查
+├── lib/                    # 可复用核心逻辑（纯函数，可单测）
+│   ├── data-processing.js  # 去重/国企判定/类型推断/岗位分隔/清洗
+│   └── profile-api.js      # Agnes AI 调用 + 3 策略 JSON 解析 + 重试
+├── scripts/                # 运营辅助脚本
+│   ├── generate-group.js   # 简介批量生成（并行版，subagent 用）
+│   ├── retry-failed.js     # 重试失败简介（--all 全量扫描）
+│   ├── xhs-auto-publish.js # 小红书自动发布
+│   └── README.md           # 小红书发布说明
+├── tests/                  # 单测（node:test）
+│   ├── data-processing.test.js
+│   └── profile-api.test.js
+├── docs/                   # 技术文档
+│   ├── architecture.md     # 架构与模块说明
+│   ├── api.md              # 接口文档
+│   ├── configuration.md    # 配置说明
+│   └── KNOWN_ISSUES.md     # 已知问题记录
 ├── .env                    # 环境变量（不提交 git）
-├── .github/
-│   └── workflows/
-│       └── daily-update.yml # GitHub Actions 自动更新（每天 17:00）
-├── data/
-│   ├── jobs.json           # 岗位数据（主数据源，1460+条）
-│   ├── company-profiles.json # 企业简介+标签（3600+家）
-│   ├── update-meta.json    # 更新时间元数据
-│   └── pending-profiles.json # 待生成简介企业列表（gitignore）
-└── package.json
+├── .github/workflows/daily-update.yml
+└── data/
+    ├── jobs.json           # 岗位数据（1900+条）
+    ├── jobs.min.json       # 压缩版（省 40% 流量）
+    ├── company-profiles.json # 企业简介+标签（3900+家）
+    ├── update-meta.json    # 更新时间元数据
+    ├── pending-profiles.json   # 待生成简介（全量扫描产出，git 跟踪）
+    └── profile-failures.json   # 生成失败记录（git 跟踪）
 ```
 
 ## 常用命令
 
 ```bash
-node server.js              # 启动本地服务器 http://localhost:8080
-node fetch-data.js          # 增量更新校招数据（抓取+合并+清洗+保存）
-node generate-profiles.js   # 批量生成企业简介（需要 MIMO_API_KEY，逐个串行）
+npm test                     # 运行全部单测（49 用例）
+npm run check                # 全部脚本语法检查
+node server.js               # 启动本地服务器 http://localhost:8080（仅本机）
+node fetch-data.js           # 增量更新校招数据（抓取+合并+清洗+保存）
+node generate-profiles.js    # 批量生成企业简介（需要 MIMO_API_KEY，串行）
 node scripts/generate-group.js scripts/group-1.json  # 并行生成（传入分组文件）
-node scripts/retry-failed.js  # 重试失败的企业简介
-# 访问统计后台: http://localhost:8080/admin.html
+node scripts/retry-failed.js # 重试失败的企业简介（--all 全量重试）
+node check-data.js           # 数据质量检查
+# 访问统计后台: http://localhost:8080/admin.html（仅本机，需 SUPABASE_SERVICE_ROLE）
 ```
 
 ## API 配置
@@ -57,116 +72,88 @@ node scripts/retry-failed.js  # 重试失败的企业简介
 - **URL**: `https://apihub.agnes-ai.com/v1/chat/completions`
 - **Model**: `agnes-2.0-flash`
 - **环境变量**: `MIMO_API_KEY`
-- **超时**: 120 秒，最多重试 5 次
-- **备注**: 实际为 Agnes AI 兼容 API，密钥名沿用 `MIMO_API_KEY`
+- **超时**: 120 秒，重试 3-5 次
+- **解析**: `lib/profile-api.js` 的 `extractJson` 三策略（非贪婪→末尾截取→代码块）
+- **注意**: 所有生成脚本统一走 `lib/profile-api.js`，**不要**在脚本中重复实现 API 调用
 
 ### Supabase（数据同步+访问统计）
 - **环境变量**: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE`
+- anon key 前端公开属正常；service_role **仅限 .env + 本机 admin.html**，绝不入库
 
 ## 自动化更新流程
 
-### GitHub Actions 自动更新
-- **配置文件**: `.github/workflows/daily-update.yml`
-- **超时**: 120 分钟（之前 30 分钟会导致简介生成超时）
-- **运行时间**: 每天 17:00（北京时间，UTC 05:00 + GitHub 延迟）
-- **更新流程**:
-  1. 运行 `fetch-data.js` 抓取增量数据
-  2. 检查 `data/pending-profiles.json` 是否有待生成简介
-  3. 运行 `generate-profiles.js` 生成简介（串行调用 API，全量处理）
-  4. 自动提交并推送更新
+### GitHub Actions 自动更新（daily-update.yml）
+- **运行时间**: 每天 05:00 UTC（约北京 17:00 运行，GitHub 有延迟）
+- **超时**: 120 分钟
+- **流程**: fetch-data.js（抓取+全量扫描）→ 检查 pending → generate-profiles.js → commit & push
+- **关键**: pending 由 fetch-data.js **全量扫描**（非仅新增）→ 生成失败的公司可被下次重试
 
-### 并行简介生成（推荐）
-全量生成时串行 API 调用太慢（~60 秒/家），推荐用 `scripts/generate-group.js` 分多组并行：
-1. 将企业列表分到 `scripts/group-{1..N}.json`（每组 ~29 家）
-2. 各启动一个 subagent 分别执行 `node scripts/generate-group.js group-{N}.json`
-3. 合并所有 `group-results-*.json` 到 `company-profiles.json`
-4. 或用 `scripts/retry-failed.js` 重试失败的企业
-
-### 手动简介生成流程
-每次 `fetch-data.js` 运行后：
-1. 自动检测新公司 → 写入 `data/pending-profiles.json`
-2. 使用 mimo API 生成简介（调用 subagent 或脚本）
-3. 保存到 `company-profiles.json` 并清理 pending
-4. 提交推送更新
+### 并行简介生成（推荐用于大批量）
+1. 将公司分到 `scripts/group-{1..N}.json`（每组 ~29 家）
+2. 各 subagent 跑 `node scripts/generate-group.js group-{N}.json`
+3. 合并 `group-results-*.json` 到 company-profiles.json（用 save-profiles.js）
+4. 或用 `scripts/retry-failed.js` 重试失败记录
 
 ## 数据源
 
 | 来源 | 状态 | 说明 |
 |------|------|------|
 | 求职方舟 | 正常 | API 按天查询，增量抓取 |
-| offerstar | 正常 | HTML 抓取，每次全量 |
-| deepoffer | 已恢复 | HTTPS API，增量抓取 |
+| offerstar | 正常 | HTML 抓取，每次全量（正则解析，脆弱） |
+| deepoffer | 正常 | HTTPS API，增量抓取 |
 
 ## 关键架构
 
+### 数据流
+```
+fetch(3源并行) → deduplicate(去重) → processData(清洗:登录墙/类型/过期/岗位名)
+→ jobs.json + jobs.min.json → 全量扫描缺简介 → pending-profiles.json
+→ generate-profiles.js → company-profiles.json + profile-failures.json
+```
+
 ### index.html 结构
-- **CSS**: 暖色调主题，CSS 变量控制，响应式设计（移动端/桌面端）
-- **HTML**: header + tab 切换（校招信息/投递进度/Offer 对比）+ modal + 抽屉
-- **JS**: 数据加载 → 筛选渲染 → 公司详情卡片 → 投递管理 → Offer 对比 → 用户认证 → 云端同步
+- **CSS**: 暖色调主题，CSS 变量控制，响应式设计
+- **JS 分区**: 数据加载（优先 jobs.min.json）→ 筛选渲染 → 公司详情 → 投递管理 → Offer 对比 → 认证 → 云同步
+- **模块拆分**: `js/profiles.js`（懒加载简介）、`js/cloud-sync.js`（云同步）已拆出，**必须在主脚本之后加载**
 
 ### 用户认证系统
-- **登录方式**: 邮箱密码 + GitHub OAuth
-- **认证服务**: Supabase Auth（异步加载 CDN）
-- **用户状态**: `currentUser` 全局变量，通过 `onAuthStateChange` 监听
-- **UI 更新**: 登录后显示用户名，支持账户管理、切换账号、退出登录
+- Supabase Auth（CDN 异步加载），`currentUser` 全局，`onAuthStateChange` 监听
+- `sb` 变量在**主脚本开头声明**（不要移回原位，避免 initAnalytics TDZ 错误）
 
 ### 数据同步机制
-- **本地存储**: 未登录时使用 `campus_recruit_progress/offers`
-- **用户存储**: 登录后使用 `cr_progress_{userId}/cr_offers_{userId}`
-- **数据合并**: 登录时自动合并本地数据到用户账户（`mergeLocalToUser`）
-- **云端同步**: `mergeLocalToCloud` + `syncFromCloud` 双向同步
+- 未登录: `campus_recruit_progress/offers`
+- 登录后: `cr_progress_{userId}/cr_offers_{userId}`
+- 自动同步: saveProgress/saveOffers 被 cloud-sync.js patch，保存后 2s 防抖同步
 
-### 数据更新流程
-1. `fetch-data.js` 读取 `update-meta.json` 获取上次更新时间
-2. 计算天数差，只抓取增量数据
-3. 与已有 `jobs.json` 合并去重
-4. 清洗：normalize 类型、删除过期、截断过长岗位名、重排 ID
-5. 保存并更新 `update-meta.json`
-
-### 企业简介匹配逻辑（getCompanyProfile）
-1. 精确匹配 `companyProfiles[companyName]`
-2. 清洗后缀匹配（-补录/-急招/（三）等）
-3. 母公司品牌匹配（PROFILE_BRANDS 列表）
+### 企业简介懒加载
+- `companyProfiles` 初始为 null，`ensureCompanyProfiles()` 首次需要时 fetch（带 promise 缓存）
+- `getCompanyProfile(name)`: 精确 → 后缀清洗 → PROFILE_BRANDS 母公司匹配
 
 ### localStorage keys
-- `campus_recruit_offers` — Offer 对比数据（未登录）
-- `campus_recruit_progress` — 投递进度记录（未登录）
-- `cr_offers_{userId}` — Offer 对比数据（已登录用户）
-- `cr_progress_{userId}` — 投递进度记录（已登录用户）
-- `cr_login_dismissed` — 登录提醒已知晓（sessionStorage）
-- `cr_tutorial_done` — 使用教程已完成（sessionStorage）
-- `cr_visitor_id` — 访客唯一标识（用于访问统计）
+- `campus_recruit_offers` / `campus_recruit_progress`（未登录）
+- `cr_offers_{userId}` / `cr_progress_{userId}`（已登录）
+- `cr_visitor_id`（访问统计）、`cr_login_dismissed`、`cr_tutorial_done`（sessionStorage）
 
-### 访问统计系统
-- **数据表**: Supabase `analytics` 表，记录 pageview/login 等事件
-- **字段**: visitor_id, event, user_id, device, created_at
-- **RLS**: 任何人可 INSERT，只有 service_role 可 SELECT
-- **管理后台**: `admin.html`（本地访问，从 server.js 获取 service_role key）
-- **统计指标**: 今日 PV/UV、总 PV/UV、登录用户数、次日留存率、设备分布、功能使用
-
-### UI 组件
-- **抽屉组件**: 移动端模态框使用底部抽屉形式（50vh/75vh/80vh）
-- **筛选抽屉**: 二级结构，公司/类型/岗位/城市分类筛选
-- **使用教程**: 首次访问显示 5 步引导教程
-- **登录提醒**: 未登录用户操作时弹出提醒（sessionStorage 控制同会话不重复）
+### 访问统计
+- Supabase `analytics` 表，RLS：任何人可 INSERT，service_role 可 SELECT
+- 已知风险: 可刷量（见 docs/KNOWN_ISSUES.md K1）
 
 ## 编码规范
 
-- 所有前端代码在 `index.html` 单文件内
-- CSS 使用变量（`var(--accent)` 等），保持暖色调风格
-- JS 使用 vanilla，无框架依赖
-- 用户输入用 `esc()` 函数转义防 XSS
-- 数据持久化用 localStorage（前端）/ JSON 文件（后端）
-- 移动端适配使用 `@media (max-width: 768px)` 断点
+- 前端主代码在 `index.html`，**拆分模块放 `js/`**，纯逻辑放 `lib/`（可单测）
+- CSS 使用变量（`var(--accent)`），暖色调风格
+- 用户输入用 `esc()` 转义防 XSS
+- 数据持久化: localStorage（前端）/ JSON 文件（后端）
+- 移动端适配: `@media (max-width: 768px)`
+- **修改核心逻辑（deduplicate/isSOE/inferType/splitPositions/processData）必须保证 `npm test` 全绿**
 
 ## 注意事项
 
-- `index.html` 超过 1700 行，编辑时注意行号偏移
+- `index.html` 约 3800 行，编辑时注意行号偏移（改动后跑 `npm run check`）
 - GitHub Pages 部署有 1-2 分钟延迟
-- `let` 变量有 temporal dead zone，不要在声明前调用
-- Supabase CDN 异步加载，初始化需检查 `window.supabase` 是否存在
-- 移动端和桌面端使用不同的 UI 组件（表格 vs 卡片）
-- GitHub Actions 定时任务有延迟（约 4 小时），cron 时间已调整补偿
-- Agnes AI API 有时响应较慢，已设置 120 秒超时和重试机制
-- `scripts/retry-failed.js` 会遗漏部分公司（无类型/行业信息），建议优先用分组文件方式生成
-- GitHub Actions 串行生成简介很慢（全量 ~3500 家 × 60s ≈ 50 分钟以上），需确保 workflow timeout ≥ 120 分钟
+- `let sb = null` 必须在主脚本开头（TDZ 修复，勿移回）
+- Supabase CDN 异步加载，初始化需检查 `window.supabase`
+- `scripts/generate-profiles-api.py` 含历史硬编码密钥，**已被 .gitignore 排除，严禁恢复提交**
+- Agnes AI 有时响应慢，已设 120s 超时 + 重试；失败记录在 profile-failures.json
+- 新增数据文件到 data/ 时，记得在 `.gitignore` 加白名单（`!data/文件名`）
+- 完整文档见 `docs/`（architecture/api/configuration/KNOWN_ISSUES）
