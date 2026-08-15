@@ -5,21 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>校招信息汇总</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" async onload="window._sbLoaded=true" onerror="console.warn('Supabase CDN failed')"></script>
-<!-- GitHub Pages CDN 不稳定时自动重试 -->
-<script>
-  (function(){
-    var t = setTimeout(function(){
-      if(window.appReady){
-        return;
-      }
-      window.location.reload();
-    },300);
-    window.addEventListener('load',function(){
-      window.appReady = true;
-      clearTimeout(t);
-    });
-  })();
-</script>
+<!-- 注：原"CDN 不稳定自动重试"逻辑已移除——其 300ms 强制 location.reload() 在 CDN 慢时会导致无限刷新循环；
+     CDN 兜底由主脚本 _sbWait 轮询（每 500ms，最长 5s）承担，CDN 失败时页面数据功能不受影响 -->
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
