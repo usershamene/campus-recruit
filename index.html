@@ -61,9 +61,10 @@ button, input, select, a { transition-duration: .2s; }
 .stat { text-align: center; }
 .stat-num { font-size: 20px; font-weight: 600; color: var(--accent); }
 .stat-label { font-size: 11px; color: var(--text2); letter-spacing: .5px; text-transform: uppercase; }
-.stat-today .stat-num { color: var(--accent); }
+.stat-today .stat-num { color: var(--success-light); }  /* 今日更新专属区分色：绿=新增语义（初始库设计） */
 
 /* Controls */
+.page-toolbar { padding-bottom: 8px; }
 .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 .mobile-filter-btn { display: none; }
 .mobile-clear-btn { display: none; }
@@ -75,18 +76,10 @@ button, input, select, a { transition-duration: .2s; }
 .progress-cards { display: none; }
 .search-box { flex: 1; min-width: 240px; position: relative; }
 .search-box input {
-  width: 100%; height: 40px; padding: 0 16px 0 40px; border: 1px solid var(--border);
+  width: 100%; height: 40px; padding: 0 16px; border: 1px solid var(--border);
   border-radius: var(--radius); font-size: 14px; background: var(--bg); transition: all .2s;
 }
 .search-box input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(204,120,92,.1); }
-.search-box::before {
-  content: ""; position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-  width: 16px; height: 16px; border: 2px solid var(--text2); border-radius: 50%; opacity: .5;
-}
-.search-box::after {
-  content: ""; position: absolute; left: 27px; top: 55%; transform: rotate(45deg);
-  width: 6px; height: 2px; background: var(--text2); opacity: .5;
-}
 .clear-btn {
   height: 40px; padding: 0 16px; border: 1px solid var(--border); border-radius: var(--radius);
   background: var(--card); font-size: 13px; font-weight: 500; color: var(--text2); cursor: pointer; transition: all .2s;
@@ -191,7 +184,9 @@ td {
 }
 tr:hover td { background: rgba(204,120,92,.02); }
 tr.job-row-active td { background: rgba(204,120,92,.12) !important; }
-.empty-row td { height: 44px; border-bottom: 1px solid var(--hairline); }
+/* 补齐空白行：无框线、不响应 hover——筛选后少结果时空白区干净（行高保留防止表格塌陷） */
+.empty-row td { height: 44px; border-bottom: none; background: transparent; }
+.empty-row:hover td { background: transparent; }
 td.col-no { width: 50px; text-align: center; color: var(--text2); font-size: 12px; font-weight: 500; }
 td.col-date { width: 100px; white-space: nowrap; font-size: 12px; color: var(--text2); }
 td.col-company { font-weight: 500; max-width: 180px; text-align: center; }
@@ -405,12 +400,12 @@ td.col-check input, th.col-check input { width: 16px; height: 16px; accent-color
 }
 
 /* Progress toolbar */
-.progress-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.progress-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 .progress-actions-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .progress-search { flex: 1; min-width: 200px; }
 .progress-search input {
   width: 100%; height: 40px; padding: 0 12px; border: 1px solid var(--border);
-  border-radius: var(--radius); font-size: 13px; background: var(--card); transition: all .2s;
+  border-radius: var(--radius); font-size: 13px; background: var(--bg); transition: all .2s;
 }
 .progress-search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(204,120,92,.1); }
 /* 进度页筛选/排序下拉：统一为招聘岗位页胶囊规范（.th-inner 同款） */
@@ -532,7 +527,8 @@ tr.row-reject td { background: rgba(107,114,128,.03); }
 .offer-wrap { display: none; max-width: 1360px; margin: 20px auto; padding: 0 24px; }
 .offer-wrap.active { display: block; }
 .offer-toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; }
-.offer-actions-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; }
+.offer-actions-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.offer-search { flex: 1; min-width: 200px; }
 .offer-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
 .offer-card {
   background: var(--card); border-radius: 12px; padding: 20px;
@@ -1232,7 +1228,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
       <span class="quote-text" id="quoteText"></span>
       <span class="quote-author" id="quoteAuthor"></span>
     </div>
-    <div class="controls">
+    <div class="page-toolbar" id="pageToolbarMain">
+      <div class="controls">
       <div class="search-box">
         <input type="text" id="searchInput" placeholder="搜索公司、岗位、城市...">
       </div>
@@ -1245,6 +1242,59 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
     </div>
     <div class="active-filters" id="activeFilters"></div>
     <div class="mobile-filter-bar" id="mobileFilterBar"></div>
+      </div>
+      <!-- 进度页工具栏（迁自 progress-wrap，quote-bar 正下方） -->
+      <div class="page-toolbar" id="pageToolbarProgress" style="display:none">
+      <div class="progress-toolbar">
+    <div class="progress-search">
+      <input type="text" id="progressSearchInput" placeholder="搜索公司、岗位、城市...">
+    </div>
+    <div class="cus-select" id="cusStageFilter">
+      <button type="button" class="cus-select-trigger"><span class="cs-label">筛选</span><span class="cs-arrow">▼</span></button>
+      <div class="cus-select-panel" id="cusStagePanel"></div>
+      <select class="progress-filter-select" id="progressStageFilter" style="display:none" aria-hidden="true">
+        <option value="">筛选</option>
+      </select>
+    </div>
+    <div class="cus-select" id="cusSortSelect">
+      <button type="button" class="cus-select-trigger"><span class="cs-label">排序</span><span class="cs-arrow">▼</span></button>
+      <div class="cus-select-panel" id="cusSortPanel"></div>
+      <select class="progress-filter-select" id="progressSortSelect" style="display:none" aria-hidden="true">
+        <option value="applyDate-desc">排序</option>
+        <option value="applyDate-asc">投递时间 ↑</option>
+        <option value="company-asc">公司 A-Z</option>
+        <option value="progress-asc">进度阶段</option>
+      </select>
+    </div>
+    <div class="progress-actions-row">
+      <button class="add-manual-btn" onclick="showAddModal()">+ 手动添加</button>
+      <button class="export-btn" onclick="exportProgress()">导出备份</button>
+      <button class="export-btn danger-btn" id="batchDeleteBtn" onclick="batchDeleteProgress()">批量删除</button>
+      <label class="export-btn file-label">
+        <input type="file" accept=".json" class="hidden-input" onchange="importProgress(event)">
+        导入
+      </label>
+    </div>
+  </div>
+      </div>
+      <!-- Offer 工具栏（迁自 offer-wrap，新增搜索框） -->
+      <div class="page-toolbar" id="pageToolbarOffer" style="display:none">
+      <div class="offer-actions-bar">
+    <div class="progress-search offer-search">
+      <input type="text" id="offerSearchInput" placeholder="搜索 Offer（公司 / 岗位 / 城市）...">
+    </div>
+    <label class="offer-select-all" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer;user-select:none">
+      <input type="checkbox" id="offerCheckAll" onchange="toggleAllOffers()" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+      全选
+    </label>
+    <button class="add-manual-btn" onclick="showOfferModal()">+ 手动添加</button>
+    <button class="export-btn" onclick="exportOffers()">导出备份</button>
+    <button class="export-btn danger-btn" id="batchDeleteOfferBtn" onclick="batchDeleteOffers()">批量删除</button>
+    <label class="export-btn file-label">
+      <input type="file" accept=".json" class="hidden-input" onchange="importOffers(event)">导入
+    </label>
+  </div>
+      </div>
   </div>
 </div>
 
@@ -1334,38 +1384,6 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
   <!-- 统计行：独立于 Tabs 栏，移动端同样可见 -->
   <div class="progress-stats" id="progressStats"></div>
 
-  <div class="progress-toolbar">
-    <div class="progress-search">
-      <input type="text" id="progressSearchInput" placeholder="搜索公司、岗位、城市...">
-    </div>
-    <div class="cus-select" id="cusStageFilter">
-      <button type="button" class="cus-select-trigger"><span class="cs-label">筛选</span><span class="cs-arrow">▼</span></button>
-      <div class="cus-select-panel" id="cusStagePanel"></div>
-      <select class="progress-filter-select" id="progressStageFilter" style="display:none" aria-hidden="true">
-        <option value="">筛选</option>
-      </select>
-    </div>
-    <div class="cus-select" id="cusSortSelect">
-      <button type="button" class="cus-select-trigger"><span class="cs-label">排序</span><span class="cs-arrow">▼</span></button>
-      <div class="cus-select-panel" id="cusSortPanel"></div>
-      <select class="progress-filter-select" id="progressSortSelect" style="display:none" aria-hidden="true">
-        <option value="applyDate-desc">排序</option>
-        <option value="applyDate-asc">投递时间 ↑</option>
-        <option value="company-asc">公司 A-Z</option>
-        <option value="progress-asc">进度阶段</option>
-      </select>
-    </div>
-    <div class="progress-actions-row">
-      <button class="add-manual-btn" onclick="showAddModal()">+ 手动添加</button>
-      <button class="export-btn" onclick="exportProgress()">导出备份</button>
-      <button class="export-btn danger-btn" id="batchDeleteBtn" onclick="batchDeleteProgress()">批量删除</button>
-      <label class="export-btn file-label">
-        <input type="file" accept=".json" class="hidden-input" onchange="importProgress(event)">
-        导入
-      </label>
-    </div>
-  </div>
-
   <div class="table-card">
     <table id="progressTable">
       <thead>
@@ -1402,18 +1420,6 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
       <button class="tab-btn" role="tab" aria-selected="false" onclick="switchPage('progress')">投递进度</button>
       <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchPage('offer')">Offer 对比</button>
     </div>
-  </div>
-  <div class="offer-actions-bar">
-    <label class="offer-select-all" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer;user-select:none">
-      <input type="checkbox" id="offerCheckAll" onchange="toggleAllOffers()" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
-      全选
-    </label>
-    <button class="add-manual-btn" onclick="showOfferModal()">+ 手动添加</button>
-    <button class="export-btn" onclick="exportOffers()">导出备份</button>
-    <button class="export-btn danger-btn" id="batchDeleteOfferBtn" onclick="batchDeleteOffers()">批量删除</button>
-    <label class="export-btn file-label">
-      <input type="file" accept=".json" class="hidden-input" onchange="importOffers(event)">导入
-    </label>
   </div>
   <div id="offerContent"></div>
 </div>
@@ -2991,6 +2997,13 @@ function switchPage(page) {
   if (activeFilters) activeFilters.style.display = page === 'main' ? '' : 'none';
   const controls = document.querySelector('.controls');
   if (controls) controls.style.display = page === 'main' ? '' : 'none';
+  // 页面级工具栏：三页共用 header，按页显隐（统一改版：进度/Offer 工具栏迁入 header）
+  const ptMain = document.getElementById('pageToolbarMain');
+  const ptProgress = document.getElementById('pageToolbarProgress');
+  const ptOffer = document.getElementById('pageToolbarOffer');
+  if (ptMain) ptMain.style.display = page === 'main' ? '' : 'none';
+  if (ptProgress) ptProgress.style.display = page === 'progress' ? '' : 'none';
+  if (ptOffer) ptOffer.style.display = page === 'offer' ? '' : 'none';
   // 移动端：投递进度/Offer对比页面缩减header底部间距
   const header = document.querySelector('.header');
   if (header) header.classList.toggle('compact', page !== 'main');
@@ -3089,6 +3102,7 @@ async function deleteOffer(id) {
   if (!await showConfirm('确定删除此 Offer？')) return;
   const snapshot = offers.find(x => x.id === id);
   offers = offers.filter(x => x.id !== id);
+  selectedOfferIds.delete(id);   // 同步清理选中集，防死 id 干扰全选判定
   saveOffers();
   renderOffers();
   deleteFromCloud('offers', [id]);
@@ -3100,12 +3114,13 @@ async function deleteOffer(id) {
   });
 }
 
-function findBest() {
+function findBest(list) {
+  const src = list || offers;
   const best = {};
   const nums = ['monthlySalary', 'annualPackage', 'signingBonus', 'housingSubsidy'];
   nums.forEach(key => {
     let maxVal = 0, maxId = null;
-    offers.forEach(o => {
+    src.forEach(o => {
       if (o[key] > maxVal) { maxVal = o[key]; maxId = o.id; }
     });
     if (maxId && maxVal > 0) best[key] = maxId;
@@ -3113,13 +3128,34 @@ function findBest() {
   return best;
 }
 
+// ── Offer 搜索过滤（offer-actions-bar 迁入 header 时新增） ──
+let _offerSearchQ = '';
+function getFilteredOffers() {
+  if (!_offerSearchQ) return offers;
+  const q = _offerSearchQ;
+  return offers.filter(o =>
+    (o.company || '').toLowerCase().includes(q) ||
+    (o.position || '').toLowerCase().includes(q) ||
+    (o.city || '').toLowerCase().includes(q)
+  );
+}
+document.getElementById('offerSearchInput').addEventListener('input', e => {
+  _offerSearchQ = e.target.value.toLowerCase().trim();
+  renderOffers();
+});
+
 function renderOffers() {
   const container = document.getElementById('offerContent');
   if (offers.length === 0) {
     container.innerHTML = `<div class="offer-empty"><div class="offer-empty-icon">📋</div><p>还没有 Offer，拿到新 Offer 就来添加吧</p></div>`;
     return;
   }
-  const best = findBest();
+  const list = getFilteredOffers();
+  if (list.length === 0) {
+    container.innerHTML = `<div class="offer-empty"><div class="offer-empty-icon">🔍</div><p>没有匹配的 Offer，试试其他关键词</p></div>`;
+    return;
+  }
+  const best = findBest(list);
   const rows = [
     { key: 'monthlySalary', label: '月薪(税前)', fmt: v => v ? v.toLocaleString() + ' 元' : '-' },
     { key: 'annualPackage', label: '年薪(总包)', fmt: v => v ? v + ' 万' : '-' },
@@ -3129,7 +3165,7 @@ function renderOffers() {
     { key: 'insurance', label: '五险一金', fmt: v => v || '-' },
     { key: 'housingSubsidy', label: '住房补贴', fmt: v => v ? v + ' 元/月' : '-' },
   ];
-  container.innerHTML = `<div class="offer-cards">${offers.map(o => `
+  container.innerHTML = `<div class="offer-cards">${list.map(o => `
     <div class="offer-card">
       <div class="offer-card-header">
         <div style="display:flex;align-items:center;gap:8px">
@@ -3160,7 +3196,7 @@ function renderOffers() {
   updateOfferBatchBtn();
   // 同步全选 checkbox 状态
   const checkAll = document.getElementById('offerCheckAll');
-  if (checkAll) checkAll.checked = offers.length > 0 && selectedOfferIds.size === offers.length;
+  if (checkAll) checkAll.checked = list.length > 0 && list.every(o => selectedOfferIds.has(o.id));
 }
 
 // ── Offer 批量操作 ──
@@ -3169,15 +3205,16 @@ let selectedOfferIds = new Set();
 function toggleOfferCheck(id, el) {
   if (selectedOfferIds.has(id)) { selectedOfferIds.delete(id); el.classList.remove('checked'); }
   else { selectedOfferIds.add(id); el.classList.add('checked'); }
+  const list = getFilteredOffers();
   const checkAll = document.getElementById('offerCheckAll');
-  if (checkAll) checkAll.checked = offers.length > 0 && selectedOfferIds.size === offers.length;
+  if (checkAll) checkAll.checked = list.length > 0 && list.every(o => selectedOfferIds.has(o.id));
   updateOfferBatchBtn();
 }
 
 function toggleAllOffers() {
-  const allChecked = offers.length > 0 && selectedOfferIds.size === offers.length;
-  selectedOfferIds.clear();
-  if (!allChecked) offers.forEach(o => selectedOfferIds.add(o.id));
+  const list = getFilteredOffers();
+  const allChecked = list.length > 0 && list.every(o => selectedOfferIds.has(o.id));
+  list.forEach(o => { allChecked ? selectedOfferIds.delete(o.id) : selectedOfferIds.add(o.id); });
   document.querySelectorAll('.offer-select-check').forEach(el => {
     el.classList.toggle('checked', !allChecked);
   });
@@ -3187,11 +3224,14 @@ function toggleAllOffers() {
 }
 
 function updateOfferBatchBtn() {
-  // 移动端始终显示，桌面端根据选中状态显示/隐藏
+  // 常驻显示 + 未选中禁用（不隐藏按钮，避免工具栏跳动）
   const btn = document.getElementById('batchDeleteOfferBtn');
   if (!btn) return;
-  const isMobile = window.innerWidth <= 768;
-  btn.style.display = isMobile ? '' : (selectedOfferIds.size > 0 ? '' : 'none');
+  const has = selectedOfferIds.size > 0;
+  btn.style.display = '';
+  btn.disabled = !has;
+  btn.style.opacity = has ? '' : '.5';
+  btn.style.cursor = has ? '' : 'not-allowed';
 }
 
 function exportOffers() {
