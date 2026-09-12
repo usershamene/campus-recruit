@@ -13,10 +13,14 @@
     "xhs-publish": "node scripts/xhs-auto-publish.js",
     "xhs-install-task": "scripts/install-xhs-task.bat"
   },
-  "keywords": ["campus-recruit", "xiaohongshu", "automation"],
+  "keywords": [
+    "campus-recruit",
+    "xiaohongshu",
+    "automation"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "playwright": "^1.60.0"
+    "playwright": "^1.62.1"
   }
 }

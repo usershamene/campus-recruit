@@ -28,3 +28,4 @@ scripts/groups.jsonl
 admin.html
 COMPONENTS.md
 test-mobile.js
+server-dev.log
