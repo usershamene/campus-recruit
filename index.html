@@ -22,6 +22,8 @@
   --danger: #dc2626; --danger-bg: #fef2f2; --danger-border: #fecaca;
   --success: #059669; --success-light: #5db872; --success-bg: #ecfdf5;
 }
+/* 整体界面缩放 80%：同屏显示更多信息（Chrome/Edge 全支持，Firefox 126+ 支持 zoom） */
+html { zoom: 0.8; }
 body { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
 a { color: var(--accent); text-decoration: none; transition: color .2s; }
 a:hover { color: var(--accent-hover); text-decoration: underline; }
@@ -115,9 +117,14 @@ button, input, select, a { transition-duration: .2s; }
 }
 .active-tag .remove { cursor: pointer; opacity: .6; font-size: 14px; }
 .active-tag .remove:hover { opacity: 1; }
+.clear-all-btn {
+  height: 26px; padding: 0 12px; border: 1px solid var(--border); border-radius: 20px;
+  background: var(--card); color: var(--text2); font-size: 12px; cursor: pointer; transition: all .2s;
+}
+.clear-all-btn:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-bg); }
 
 /* Table */
-.table-wrap { max-width: 1360px; margin: 24px auto; padding: 0 32px; }
+.table-wrap { max-width: 1360px; margin: 0 auto 24px; padding: 0 32px; }  /* 顶部 0：tabs 常驻紧贴 header，与 stuck 态边距一致 */
 .table-card { background: var(--card); border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.04); overflow: visible; }
 table { width: 100%; border-collapse: collapse; }
 thead { background: var(--surface-card); }
@@ -195,8 +202,8 @@ td.col-type .type-tag {
 td.col-position { max-width: 260px; }
 td.col-city { max-width: 160px; text-align: center; }
 td.col-deadline { width: 110px; white-space: nowrap; font-size: 12px; }
-td.col-deadline.urgent { color: #dc2626; font-weight: 500; }
-.urgent { color: #dc2626; font-weight: 500; }
+td.col-deadline.urgent { color: var(--danger); font-weight: 500; }
+.urgent { color: var(--danger); font-weight: 500; }
 td.col-link { width: 100px; white-space: nowrap; text-align: center; }
 td.col-link a {
   display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 12px;
@@ -206,13 +213,13 @@ td.col-link .apply-link, .apply-link { display: inline-block; background: var(--
 td.col-link .apply-link:hover, .apply-link:hover { background: var(--accent-hover); text-decoration: none; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(204,120,92,.25); }
 td.col-link .notice-link, .notice-link { display: inline-block; background: var(--tag-bg); color: var(--text2); margin-left: 4px; padding: 4px 12px; border-radius: 6px; font-size: 12px; }
 td.col-link .notice-link:hover, .notice-link:hover { background: var(--border); text-decoration: none; }
-.no-link { color: #ccc; font-size: 12px; }
+.no-link { color: var(--border); font-size: 12px; }
 
 /* Type tag colors */
 .type-spring { background: #ecfdf5; color: #059669; }
 .type-intern { background: #fef3c7; color: #d97706; }
 .type-early { background: #f5f3ff; color: #7c3aed; }
-.type-fall { background: #fef2f2; color: #dc2626; }
+.type-fall { background: var(--danger-bg); color: var(--danger); }
 .type-supplement { background: #f0f9ff; color: #0284c7; }
 .type-campus { background: #fdf4ff; color: #c026d3; }
 .type-other { background: var(--tag-bg); color: var(--text2); }
@@ -241,6 +248,16 @@ td.col-link .notice-link:hover, .notice-link:hover { background: var(--border); 
 .loading { text-align: center; padding: 80px; color: var(--text2); }
 .spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+/* 加载失败重试按钮 */
+.load-error { color: var(--danger); font-size: 14px; margin-bottom: 12px; }
+.retry-btn {
+  height: 36px; padding: 0 20px; border: 1px solid var(--accent); border-radius: 8px;
+  background: var(--accent-light); color: var(--accent); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .2s;
+}
+.retry-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+/* 空状态操作入口 */
+.empty-actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
 
 /* Toast */
 .toast {
@@ -251,6 +268,24 @@ td.col-link .notice-link:hover, .notice-link:hover { background: var(--border); 
   border: 1px solid var(--border); backdrop-filter: blur(10px);
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+
+/* 删除撤销条（P2-4）：保留最近一次删除 10 秒，可一键恢复 */
+.undo-bar {
+  position: fixed; left: 50%; bottom: 92px; transform: translateX(-50%) translateY(8px);
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 16px; background: var(--text); color: #fff;
+  border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  font-size: 13px; z-index: calc(var(--z-toast) - 1);
+  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+  max-width: min(420px, 90vw);
+}
+.undo-bar.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+.undo-bar .undo-msg { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.undo-btn {
+  flex-shrink: 0; border: 1px solid rgba(255,255,255,.45); background: transparent; color: #fff;
+  padding: 3px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all .2s;
+}
+.undo-btn:hover { background: rgba(255,255,255,.16); border-color: #fff; }
 
 /* 自定义 Confirm 对话框 */
 .confirm-overlay {
@@ -292,12 +327,24 @@ td.col-link .notice-link:hover, .notice-link:hover { background: var(--border); 
 }
 
 /* Tabs */
-.tabs { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.tabs { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0; }
 
-/* 桌面端 Tab 栏 sticky 锁定 */
+/* 桌面端 Tab 栏 sticky 锁定：仅 tabs / tabs-hidden 两态（stuck 仅作 JS 内部判定标记，无视觉差异） */
 @media (min-width: 769px) {
-  .tabs { position: sticky; top: 0; z-index: 90; background: var(--bg); padding: 12px 0; border-bottom: 1px solid transparent; transition: border-color .2s; }
-  .tabs.stuck { border-bottom-color: var(--border); box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+  .tabs { position: sticky; top: 0; z-index: 90; background: var(--bg); padding: 6px 0; border-bottom: 1px solid var(--border); }
+  /* 吸顶后向下滚动自动收起；仅回到顶部附近展开（JS 切换，6px 阈值防抖动，无过渡动画） */
+  .tabs.tabs-hidden { transform: translateY(-110%); }
+
+  /* 表头冻结：header→tabs→thead 三级 sticky 链；top 由 JS 按 header+tabs 高度写入 --thead-top */
+  .main-wrap #mainTable th {
+    position: sticky;
+    top: var(--thead-top, 160px);
+    z-index: 20;
+    background: var(--surface-card);              /* 不透明背景：滚动时下层行不透出 */
+    box-shadow: inset 0 -1px 0 var(--border);     /* border-collapse 下 sticky 边框不随滚动，用内阴影补底边 */
+    border-radius: 0;                             /* 直角：圆角背景会在卡片边缘产生泄露 */
+  }
+  .main-wrap #mainTable th.dd-open { z-index: 30; }  /* 展开筛选下拉的表头抬升，防止面板被相邻 sticky th 遮挡 */
 }
 .tabs-left { display: flex; gap: 0; }
 .tabs-right { display: flex; align-items: center; gap: 12px; }
@@ -349,11 +396,16 @@ td.col-check input, th.col-check input { width: 16px; height: 16px; accent-color
   border-radius: var(--radius); font-size: 13px; background: var(--bg); transition: all .2s;
 }
 .progress-search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(204,120,92,.1); }
+/* 进度页筛选/排序下拉：统一为招聘岗位页胶囊规范（.th-inner 同款） */
 .progress-filter-select {
-  height: 36px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius);
-  font-size: 13px; background: var(--card); cursor: pointer; transition: all .2s;
-  appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236c6a64' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+  height: 30px; padding: 0 30px 0 12px; border: 1px solid var(--border); border-radius: 20px;
+  font-size: 12px; font-weight: 600; color: var(--text2); background: var(--card); cursor: pointer;
+  transition: all .2s;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%236c6a64' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
 }
+.progress-filter-select:hover { border-color: var(--accent); color: var(--accent); background-color: var(--accent-light); }
 .progress-filter-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(204,120,92,.1); }
 .add-manual-btn {
   height: 36px; padding: 0 16px; border: none; border-radius: var(--radius);
@@ -416,7 +468,7 @@ tr.row-reject td { background: rgba(107,114,128,.03); }
   background: var(--card); font-size: 11px; cursor: pointer; transition: all .15s; color: var(--text2); font-weight: 500;
 }
 .action-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
-.action-btn.delete:hover { border-color: #dc2626; color: #dc2626; background: #fef2f2; }
+.action-btn.delete:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-bg); }
 
 /* Note input */
 .note-input {
@@ -444,8 +496,11 @@ tr.row-reject td { background: rgba(107,114,128,.03); }
   border-radius: var(--radius); font-size: 13px; transition: all .2s;
 }
 .modal-row input:focus, .modal-row select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(204,120,92,.1); }
+.modal-row input:focus, .modal-row select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(204,120,92,.1); }
 .modal-row select {
-  appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236c6a64' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%236c6a64' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+  cursor: pointer;
 }
 .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
 .modal-btns button {
@@ -478,7 +533,7 @@ tr.row-reject td { background: rgba(107,114,128,.03); }
   display: flex; align-items: center; justify-content: center; transition: all .15s;
 }
 .offer-card-actions button:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
-.offer-card-actions button.delete:hover { border-color: #dc2626; color: #dc2626; background: #fef2f2; }
+.offer-card-actions button.delete:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-bg); }
 .offer-card-city { font-size: 12px; color: var(--text2); margin-bottom: 14px; }
 .offer-card-city::before { content: "📍 "; }
 .offer-rows { display: flex; flex-direction: column; gap: 8px; }
@@ -751,7 +806,7 @@ tr.row-reject td { background: rgba(107,114,128,.03); }
   .progress-card-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text2); margin-bottom: 10px; }
   .progress-card-stage { display: none; }
   .progress-card { position: relative; padding-left: 12px; }
-  .progress-stage-badge { font-size: 14px; padding: 3px 10px; border-radius: 6px; color: #1f2937; border: none; cursor: pointer; font-weight: 400; -webkit-appearance: none; appearance: none; background-image: none; min-width: 52px; text-align: center; text-align-last: center; flex-shrink: 0; }
+  .progress-stage-badge { font-size: 13px; min-width: 52px; flex-shrink: 0; }
   .progress-stage-badge option { color: #333; background: #fff; }
   .progress-card-note { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--bg); margin-bottom: 10px; }
   .progress-card-actions { display: flex; gap: 8px; }
@@ -879,7 +934,7 @@ tr.row-reject td { background: rgba(107,114,128,.03); }
 
   /* 投递进度工具栏 */
   .progress-toolbar { flex-direction: row; flex-wrap: wrap; gap: 6px; margin-bottom: 0; margin-top: 4px; }
-  .progress-filter-select { flex: 1; min-width: 0; height: 36px; font-size: 12px; padding: 0 28px 0 8px; }
+  .progress-filter-select { flex: 1; min-width: 0; font-size: 12px; }
   .progress-actions-row { display: flex; gap: 6px; width: 100%; }
   .progress-actions-row .add-manual-btn,
   .progress-actions-row .export-btn { flex: 1; min-width: 0; height: 36px; font-size: 12px; padding: 0 6px; white-space: nowrap; }
@@ -958,8 +1013,62 @@ tr.row-reject td { background: rgba(107,114,128,.03); }
 .filter-drawer-confirm:hover { opacity: .9; }
 .filter-drawer-reset:hover { border-color: var(--accent); color: var(--accent); }
 
-/* 进度阶段标签 */
-.progress-stage-badge { border-radius: 8px; font-weight: 400; letter-spacing: .3px; color: #1f2937; text-align: center; text-align-last: center; -webkit-appearance: none; appearance: none; background-image: none; border: none; }
+/* 进度阶段标签（表格内下拉）：胶囊规范 + 边框，hover 反馈 */
+.progress-stage-badge {
+  border-radius: 20px; font-weight: 500; letter-spacing: .3px;
+  color: #1f2937; text-align: center; text-align-last: center;
+  -webkit-appearance: none; appearance: none; background-image: none;
+  border: 1px solid transparent; cursor: pointer; transition: all .2s;
+  padding: 0 10px; height: 28px;
+}
+.progress-stage-badge:hover { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(204,120,92,.12); }
+
+/* ═══════ 通用自定义下拉组件（替代原生 select，视觉与招聘页 col-filter-dd 一致） ═══════ */
+.cus-select { position: relative; display: inline-block; }
+.cus-select-trigger {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border: 1px solid var(--border); border-radius: 20px;
+  background: var(--card); font-size: 12px; font-weight: 600; color: var(--text2);
+  cursor: pointer; transition: all .2s; user-select: none; white-space: nowrap;
+}
+.cus-select-trigger:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.cus-select.open .cus-select-trigger { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.cus-select.has-value .cus-select-trigger { border-color: var(--accent); color: #fff; background: var(--accent); }
+.cus-select.has-value .cus-select-trigger:hover { background: var(--accent-hover); }
+.cus-select-trigger .cs-arrow { font-size: 9px; opacity: .6; transition: transform .2s; }
+.cus-select.open .cs-arrow { transform: rotate(180deg); }
+.cus-select-panel {
+  position: absolute; top: calc(100% + 8px); left: 0; min-width: 160px; max-width: 280px;
+  max-height: 320px; overflow-y: auto; background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.1); z-index: var(--z-dropdown);
+  display: none; flex-direction: column; padding: 4px; animation: csIn .15s ease;
+}
+@keyframes csIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.cus-select.open .cus-select-panel { display: flex; }
+.cus-select-panel::before {
+  content: ""; position: absolute; top: -6px; left: 24px; transform: rotate(45deg);
+  width: 10px; height: 10px; background: var(--card); border-left: 1px solid var(--border); border-top: 1px solid var(--border);
+}
+.cus-option {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  border-radius: 8px; font-size: 13px; color: var(--text);
+  cursor: pointer; transition: background .15s, color .15s; white-space: nowrap;
+}
+.cus-option:hover { background: var(--accent-light); }
+.cus-option.selected { background: var(--accent-light); color: var(--accent); font-weight: 500; }
+.cus-option .cs-count { margin-left: auto; font-size: 11px; color: var(--text2); background: var(--tag-bg); padding: 1px 8px; border-radius: 10px; }
+.cus-option .cs-check { margin-left: auto; color: var(--accent); font-size: 12px; font-weight: 600; }
+/* 表格行内紧凑变体 */
+.cus-select.inline .cus-select-trigger { padding: 2px 10px; font-size: 11px; border-radius: 20px; }
+.cus-select.inline .cus-select-panel {
+  position: fixed; left: auto; right: auto; top: 0; z-index: var(--z-dropdown);
+}
+.cus-select.inline.open .cus-select-panel::before { left: auto; right: 24px; }
+/* 进度列：允许下拉面板溢出 td 裁剪（td 默认 overflow:hidden） */
+td.col-stage { overflow: visible; position: relative; }
+/* 表格容器：允许下拉面板浮出（table-card 默认 overflow:visible 已满足，补充表格本身） */
+#progressTable { overflow: visible; }
+#progressTbody tr { overflow: visible; }
 
 /* Offer 卡片统一风格 */
 .offer-card { transition: box-shadow .2s, transform .2s; }
@@ -1202,15 +1311,23 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
     <div class="progress-search">
       <input type="text" id="progressSearchInput" placeholder="搜索公司、岗位、城市...">
     </div>
-    <select class="progress-filter-select" id="progressStageFilter">
-      <option value="">筛选</option>
-    </select>
-    <select class="progress-filter-select" id="progressSortSelect">
-      <option value="applyDate-desc">排序</option>
-      <option value="applyDate-asc">投递时间 ↑</option>
-      <option value="company-asc">公司 A-Z</option>
-      <option value="progress-asc">进度阶段</option>
-    </select>
+    <div class="cus-select" id="cusStageFilter">
+      <button type="button" class="cus-select-trigger"><span class="cs-label">筛选</span><span class="cs-arrow">▼</span></button>
+      <div class="cus-select-panel" id="cusStagePanel"></div>
+      <select class="progress-filter-select" id="progressStageFilter" style="display:none" aria-hidden="true">
+        <option value="">筛选</option>
+      </select>
+    </div>
+    <div class="cus-select" id="cusSortSelect">
+      <button type="button" class="cus-select-trigger"><span class="cs-label">排序</span><span class="cs-arrow">▼</span></button>
+      <div class="cus-select-panel" id="cusSortPanel"></div>
+      <select class="progress-filter-select" id="progressSortSelect" style="display:none" aria-hidden="true">
+        <option value="applyDate-desc">排序</option>
+        <option value="applyDate-asc">投递时间 ↑</option>
+        <option value="company-asc">公司 A-Z</option>
+        <option value="progress-asc">进度阶段</option>
+      </select>
+    </div>
     <div class="progress-actions-row">
       <button class="add-manual-btn" onclick="showAddModal()">+ 手动添加</button>
       <button class="export-btn" onclick="exportProgress()">导出备份</button>
@@ -1240,7 +1357,11 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
     </table>
     <div class="empty" id="progressEmpty" style="display:none">
       <div class="empty-icon">&#128221;</div>
-      <p>还没有投递记录，从招聘岗位页面选择记录或手动添加</p>
+      <p>还没有投递记录</p>
+      <div class="empty-actions">
+        <button class="retry-btn" onclick="switchPage('main')">去挑选岗位</button>
+        <button class="add-manual-btn" onclick="showAddModal()">手动添加</button>
+      </div>
     </div>
     <div class="progress-cards" id="progressCards"></div>
   </div>
@@ -1360,7 +1481,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
       </div>
     </div>
     <div class="login-divider"><span>或</span></div>
-    <button class="login-github-btn" onclick="loginWithGitHub()">
+    <button class="login-github-btn" id="ghLoginBtn" onclick="loginWithGitHub()">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
       使用 GitHub 登录
     </button>
@@ -1384,7 +1505,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
         <input type="password" id="regConfirmPassword" placeholder="确认密码" style="width:100%;padding:10px 40px 10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text)">
         <button type="button" onclick="togglePwdVis('regConfirmPassword',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;color:var(--text2);padding:4px;font-size:16px">👁</button>
       </div>
-      <button class="send-code-btn" onclick="doRegister()" style="width:100%">注册</button>
+      <button class="send-code-btn" id="registerBtn" onclick="doRegister()" style="width:100%">注册</button>
       <div style="text-align:center;font-size:12px">
         <span style="color:var(--text2)">已有账号？</span>
         <a href="javascript:void(0)" onclick="closeRegisterModal();showLoginModal()" style="color:var(--accent);text-decoration:none">去登录</a>
@@ -1805,11 +1926,57 @@ const FILTER_LIST_MAP = {
 };
 
 // ── Toast ──
+let _toastTimer = null, _toastQueue = [];
+// 提示按序播放：正在显示时入队（最多 3 条），避免连续操作时提示互相覆盖或提前消失
 function showToast(msg, duration) {
+  const t = document.getElementById('toast');
+  if (t.classList.contains('show')) {
+    if (_toastQueue.length < 3) _toastQueue.push({ msg, duration });
+    return;
+  }
+  _showToastNow(msg, duration);
+}
+function _showToastNow(msg, duration) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), duration || 2500);
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => {
+    t.classList.remove('show');
+    _toastTimer = null;
+    const next = _toastQueue.shift();
+    if (next) setTimeout(() => _showToastNow(next.msg, next.duration), 180);
+  }, duration || 2500);
+}
+
+// ── 删除撤销条（P2-4）：内存保留最近一次删除，10 秒内可一键恢复 ──
+let _lastDelete = null, _undoTimer = null;
+function showUndoBar(msg, restore) {
+  let bar = document.getElementById('undoBar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'undoBar';
+    bar.className = 'undo-bar';
+    bar.innerHTML = '<span class="undo-msg"></span><button class="undo-btn" type="button">撤销</button>';
+    document.body.appendChild(bar);
+  }
+  bar.querySelector('.undo-msg').textContent = msg;
+  bar.querySelector('.undo-btn').onclick = () => {
+    const restoreFn = _lastDelete;   // 先捕获，hideUndoBar 会清空引用
+    hideUndoBar();
+    if (restoreFn) { restoreFn(); showToast('已撤销删除'); }
+  };
+  _lastDelete = restore;
+  clearTimeout(_undoTimer);
+  requestAnimationFrame(() => bar.classList.add('show'));
+  _undoTimer = setTimeout(hideUndoBar, 10000);
+}
+function hideUndoBar() {
+  const bar = document.getElementById('undoBar');
+  if (bar) bar.classList.remove('show');
+  _lastDelete = null;
+  clearTimeout(_undoTimer);
+  _undoTimer = null;
 }
 
 // ── 自定义 Confirm（替代原生 confirm） ──
@@ -1944,12 +2111,21 @@ function getTypeStyle(type) {
 
 // ── Load data ──
 // 优先加载压缩版 jobs.min.json（省 ~40% 流量），失败回退 jobs.json
+// 加载失败/超时的重试入口（保留 loading 容器内的重试按钮）
+function retryLoadData() {
+  const el = document.getElementById('loading');
+  if (el) {
+    el.style.display = '';
+    el.innerHTML = '<div class="spinner"></div><p class="loading-msg">加载数据中...</p>';
+  }
+  loadData();
+}
 function loadData() {
   // Timeout: show error if data doesn't load in 10s
   const _loadTimeout = setTimeout(() => {
     const el = document.getElementById('loading');
     if (el && el.style.display !== 'none') {
-      el.innerHTML = '<p style="color:#e74c3c">数据加载超时，请检查网络后刷新页面</p>';
+      el.innerHTML = '<p class="load-error">数据加载超时</p><button class="retry-btn" onclick="retryLoadData()">重试</button>';
     }
   }, 10000);
 
@@ -2003,7 +2179,7 @@ function loadData() {
     })
     .catch(e => {
       clearTimeout(_loadTimeout);
-      document.getElementById('loading').innerHTML = '<p style="color:#e74c3c">数据加载失败，请检查网络后刷新页面</p>';
+      document.getElementById('loading').innerHTML = '<p class="load-error">数据加载失败</p><button class="retry-btn" onclick="retryLoadData()">重试</button>';
       console.error('[loadData] 数据加载失败:', e);
     });
 }
@@ -2067,11 +2243,22 @@ function colFilterSearch(listId, query) {
 function setupColDropdown(headerId, ddId) {
   const header = document.getElementById(headerId);
   const dd = document.getElementById(ddId);
+  // 同步展开态到所属表头（th.dd-open 抬升 z-index），防止面板被相邻 sticky th 遮挡
+  const syncThOpen = open => {
+    header.classList.toggle('open', open);
+    const th = header.closest('th');
+    if (th) th.classList.toggle('dd-open', open);
+  };
   header.addEventListener('click', e => {
     if (e.target.closest('.col-filter-dd')) return;
     e.stopPropagation();
+    const willOpen = !dd.classList.contains('show');
     document.querySelectorAll('.col-filter-dd').forEach(d => { if (d !== dd) d.classList.remove('show'); });
-    dd.classList.toggle('show');
+    document.querySelectorAll('.th-filter.open').forEach(f => {
+      if (f !== header) { f.classList.remove('open'); const t = f.closest('th'); if (t) t.classList.remove('dd-open'); }
+    });
+    dd.classList.toggle('show', willOpen);
+    syncThOpen(willOpen);
   });
 }
 setupColDropdown('companyFilterHeader', 'companyDD');
@@ -2079,8 +2266,115 @@ setupColDropdown('typeFilterHeader', 'typeDD');
 setupColDropdown('posFilterHeader', 'posDD');
 setupColDropdown('cityFilterHeader', 'cityDD');
 
-document.addEventListener('click', () => { document.querySelectorAll('.col-filter-dd').forEach(d => d.classList.remove('show')); });
+document.addEventListener('click', () => {
+  document.querySelectorAll('.col-filter-dd').forEach(d => d.classList.remove('show'));
+  document.querySelectorAll('.th-filter.open').forEach(f => f.classList.remove('open'));
+  document.querySelectorAll('th.dd-open').forEach(t => t.classList.remove('dd-open'));
+});
 document.querySelectorAll('.col-filter-dd').forEach(dd => dd.addEventListener('click', e => e.stopPropagation()));
+
+// ── 键盘支持：ESC 关闭弹层，Enter 提交表单（P2-1） ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    // 优先级 1：自定义下拉 / 表头筛选菜单
+    const dd = document.querySelector('.cus-select.open');
+    if (dd) { dd.classList.remove('open'); return; }
+    const colDD = document.querySelector('.col-filter-dd.show');
+    if (colDD) { colDD.classList.remove('show'); return; }
+    // 优先级 2：确认对话框（ESC = 取消）
+    const confirmOverlay = document.querySelector('.confirm-overlay.show');
+    if (confirmOverlay) { confirmOverlay.querySelector('.confirm-cancel')?.click(); return; }
+    // 优先级 3：移动端筛选抽屉
+    const drawer = document.getElementById('filterDrawer');
+    if (drawer && drawer.classList.contains('show')) { closeFilterDrawer(); return; }
+    // 优先级 4：弹窗（按栈逆序，后打开的先关）
+    const stack = [
+      ['tutorialOverlay', closeTutorial],
+      ['companyOverlay', closeCompanyCard],
+      ['timelineOverlay', closeTimeline],
+      ['offerModalOverlay', closeOfferModal],
+      ['modalOverlay', closeModal],
+      ['profileModalOverlay', closeProfileModal],
+      ['registerModalOverlay', closeRegisterModal],
+      ['loginModalOverlay', closeLoginModal],
+    ];
+    const top = stack.find(([id]) => document.getElementById(id)?.classList.contains('show'));
+    if (top) top[1]();
+    return;
+  }
+  // Enter 提交：仅在对应弹窗打开且焦点在输入框时生效（textarea 除外）
+  if (e.key === 'Enter' && !e.shiftKey) {
+    const el = document.activeElement;
+    if (!el || el.tagName !== 'INPUT') return;
+    const isOpen = id => document.getElementById(id)?.classList.contains('show');
+    if (isOpen('loginModalOverlay')) { e.preventDefault(); loginWithEmail(); }
+    else if (isOpen('registerModalOverlay')) { e.preventDefault(); doRegister(); }
+    else if (isOpen('modalOverlay') && document.getElementById('modalTitle')?.textContent.includes('投递')) {
+      e.preventDefault(); confirmModal();
+    }
+    else if (isOpen('offerModalOverlay')) { e.preventDefault(); confirmOffer(); }
+  }
+});
+
+// ── 通用自定义下拉组件（替代原生 select，视觉一致） ──
+function initCusSelect(containerId, selectId, panelId, onChange) {
+  const wrap = document.getElementById(containerId);
+  const select = document.getElementById(selectId);
+  const panel = document.getElementById(panelId);
+  if (!wrap || !select || !panel) return;
+  const label = wrap.querySelector('.cs-label');
+  // 点击触发按钮：开合
+  wrap.querySelector('.cus-select-trigger').addEventListener('click', e => {
+    e.stopPropagation();
+    const isOpen = wrap.classList.contains('open');
+    document.querySelectorAll('.cus-select.open').forEach(w => w.classList.remove('open'));
+    if (!isOpen) { wrap.classList.add('open'); buildPanel(); }
+  });
+  // 选项点击：选中 + 同步隐藏 select + 触发 change
+  function buildPanel() {
+    const options = [...select.options];
+    panel.innerHTML = '';
+    options.forEach((opt, idx) => {
+      const item = document.createElement('div');
+      item.className = 'cus-option' + (opt.selected ? ' selected' : '');
+      item.dataset.idx = idx;
+      const isSel = opt.selected;
+      item.innerHTML = `<span>${esc(opt.text)}</span>${isSel ? '<span class="cs-check">✓</span>' : ''}`;
+      item.addEventListener('click', e => {
+        e.stopPropagation();
+        select.selectedIndex = idx;
+        select.dispatchEvent(new Event('change'));
+        wrap.classList.remove('open');
+        if (onChange) onChange();
+      });
+      panel.appendChild(item);
+    });
+  }
+  // 同步 trigger 显示值
+  function syncLabel() {
+    const opt = select.options[select.selectedIndex];
+    if (opt) label.textContent = opt.text;
+    const hasVal = select.value !== '' && select.value !== 'applyDate-desc' && select.value !== '排序';
+    // 排序默认值不视为已筛选
+    if (select.id === 'progressSortSelect') {
+      wrap.classList.toggle('has-value', select.value !== 'applyDate-desc');
+    } else {
+      wrap.classList.toggle('has-value', select.value !== '');
+    }
+    void hasVal;
+  }
+  // 外部点击关闭
+  document.addEventListener('click', e => {
+    if (!wrap.contains(e.target)) wrap.classList.remove('open');
+  });
+  // 暴露同步接口（供 populateStageFilter 等调用）
+  wrap._syncLabel = syncLabel;
+  wrap._buildPanel = buildPanel;
+  syncLabel();
+}
+// 进度页筛选/排序下拉初始化
+initCusSelect('cusStageFilter', 'progressStageFilter', 'cusStagePanel', () => { renderProgressContent(); });
+initCusSelect('cusSortSelect', 'progressSortSelect', 'cusSortPanel', () => { renderProgressContent(); });
 
 // ── Update header filter indicator ──
 function updateHeaderFilterState(type) {
@@ -2110,6 +2404,8 @@ function renderActiveFilters() {
         html += `<span class="active-tag">${g.label}: ${esc(arr[0])}、${esc(arr[1])} 等 共${arr.length}个 <span class="remove" onclick="removeFilterCategory('${g.key}')">&times;</span></span>`;
       }
     }
+    // 有任一筛选时提供一键清空（含搜索词，P3-2）
+    if (html) html += `<button type="button" class="clear-all-btn" onclick="clearAllFilters()">清空全部</button>`;
     container.innerHTML = html;
   }
   renderMobileFilterBar();
@@ -2400,9 +2696,13 @@ function renderProgressCards(records) {
     return `<div class="progress-card">
       <div class="progress-card-top">
         <span class="progress-card-company">${esc(r.company)}</span>
-        <select class="progress-stage-badge" style="background:${color}" onchange="updateStage('${r.id}', this.value);renderProgressCards()">
-          ${buildStageOptions(r.progress)}
-        </select>
+        <div class="cus-select inline cus-stage-inline" data-id="${r.id}">
+          <button type="button" class="cus-select-trigger" style="background:${color};border-color:transparent;color:inherit"><span class="cs-label">${esc(r.progress)}</span><span class="cs-arrow">▼</span></button>
+          <div class="cus-select-panel"></div>
+          <select class="progress-stage-badge" style="display:none" aria-hidden="true" onchange="updateStage('${r.id}', this.value);renderProgressCards()">
+            ${buildStageOptions(r.progress)}
+          </select>
+        </div>
         <input type="checkbox" class="progress-card-check" data-id="${r.id}" onchange="onProgressCardCheck()">
       </div>
       <div class="progress-card-position">${esc(r.position)}</div>
@@ -2645,7 +2945,6 @@ let editingId = null;
 let progressSearchTimer = null;
 
 function saveProgress() {
-  if (!currentUser) return;
   localStorage.setItem(_pkey(), JSON.stringify(progressRecords));
 }
 
@@ -2676,6 +2975,8 @@ function switchPage(page) {
     else if (page === 'progress') btns[1]?.classList.add('active');
     else if (page === 'offer') btns[2]?.classList.add('active');
   });
+  // 切页时收起表头筛选下拉，防止 show 状态残留（P：冻结/切页状态同步）
+  if (window._collapseTheadDropdowns) window._collapseTheadDropdowns();
   if (page === 'main') renderJobCardPagination();
   if (page === 'progress') renderProgressPage();
   if (page === 'offer') renderOffers();
@@ -2759,11 +3060,17 @@ function confirmOffer() {
 
 async function deleteOffer(id) {
   if (!await showConfirm('确定删除此 Offer？')) return;
+  const snapshot = offers.find(x => x.id === id);
   offers = offers.filter(x => x.id !== id);
   saveOffers();
   renderOffers();
   deleteFromCloud('offers', [id]);
-  showToast('已删除');
+  showUndoBar(`已删除 Offer「${snapshot ? snapshot.company : ''}」`, () => {
+    if (snapshot) offers.unshift(JSON.parse(JSON.stringify(snapshot)));
+    saveOffers();
+    renderOffers();
+    syncOffersToCloud();
+  });
 }
 
 function findBest() {
@@ -2879,8 +3186,9 @@ function importOffers(event) {
     try {
       const imported = JSON.parse(e.target.result);
       if (!Array.isArray(imported)) { showToast('文件格式错误'); return; }
+      const before = offers.length;
       const existingIds = new Set(offers.map(o => o.id));
-      let added = 0;
+      let added = 0, skipped = 0;
       imported.forEach(item => {
         if (item.company) {
           if (!item.id || existingIds.has(item.id)) {
@@ -2888,12 +3196,17 @@ function importOffers(event) {
           }
           offers.push(item);
           added++;
+        } else {
+          skipped++;   // 缺少公司名的无效记录，跳过并计数
         }
       });
       saveOffers();
       renderOffers();
       syncToCloud('offers', offers, _offerToUpload);
-      showToast(`导入成功，新增 ${added} 条`);
+      // 合并语义 + 跳过数量显式告知
+      showToast(skipped > 0
+        ? `已合并导入 ${added} 条，跳过 ${skipped} 条无效记录（现有 ${before + added} 条）`
+        : `已合并导入 ${added} 条（现有 ${before + added} 条）`, 3200);
     } catch { showToast('文件解析失败'); }
   };
   reader.readAsText(file);
@@ -2904,12 +3217,18 @@ async function batchDeleteOffers() {
   if (selectedOfferIds.size === 0) return;
   if (!await showConfirm(`确定删除选中的 ${selectedOfferIds.size} 个 Offer？`)) return;
   const idsToDelete = [...selectedOfferIds];
+  const removed = offers.filter(o => selectedOfferIds.has(o.id)).map(o => JSON.parse(JSON.stringify(o)));
   offers = offers.filter(o => !selectedOfferIds.has(o.id));
   selectedOfferIds.clear();
   saveOffers();
   renderOffers();
   deleteFromCloud('offers', idsToDelete);
-  showToast('批量删除成功');
+  showUndoBar(`已删除 ${idsToDelete.length} 个 Offer`, () => {
+    offers.push(...removed);
+    saveOffers();
+    renderOffers();
+    syncOffersToCloud();
+  });
 }
 
 // ── Checkbox & record ──
@@ -2951,6 +3270,7 @@ function recordSelected() {
 }
 function _doRecordSelected() {
   if (selectedJobKeys.size === 0) return;
+  const total = selectedJobKeys.size;
   let added = 0;
   selectedJobKeys.forEach(key => {
     const job = allJobs.find(j => getJobKey(j) === key);
@@ -2976,7 +3296,11 @@ function _doRecordSelected() {
   document.querySelectorAll('#tbody .col-check input').forEach(c => { c.checked = false; });
   document.querySelectorAll('.job-card-check input').forEach(c => { c.checked = false; });
   updateRecordBtn();
-  showToast(added > 0 ? `已记录 ${added} 条投递` : '选中的记录已存在');
+  // 显式告知新增与跳过数量，便于批量操作后核对结果
+  const skipped = total - added;
+  if (added > 0 && skipped > 0) showToast(`新增 ${added} 条，跳过 ${skipped} 条（已存在）`, 3200);
+  else if (added > 0) showToast(`已记录 ${added} 条投递`);
+  else showToast(`跳过的 ${skipped} 条均已存在`);
 }
 
 // ── Progress page rendering ──
@@ -2984,6 +3308,65 @@ function renderProgressContent() {
   const records = getFilteredProgress();
   renderProgressTable(records);
   renderProgressCards(records);
+  bindStageInlineSelects();
+}
+// 行内进度修改下拉：自定义菜单交互
+function bindStageInlineSelects() {
+  document.querySelectorAll('.cus-stage-inline').forEach(wrap => {
+    if (wrap._bound) return;
+    wrap._bound = true;
+    const select = wrap.querySelector('select');
+    const panel = wrap.querySelector('.cus-select-panel');
+    const label = wrap.querySelector('.cs-label');
+    const trigger = wrap.querySelector('.cus-select-trigger');
+    if (!select || !panel) return;
+    function buildPanel() {
+      panel.innerHTML = '';
+      [...select.options].forEach((opt, idx) => {
+        const item = document.createElement('div');
+        item.className = 'cus-option' + (opt.selected ? ' selected' : '');
+        item.innerHTML = `<span>${esc(opt.text)}</span>${opt.selected ? '<span class="cs-check">✓</span>' : ''}`;
+        item.addEventListener('click', e => {
+          e.stopPropagation();
+          select.selectedIndex = idx;
+          select.dispatchEvent(new Event('change')); // 触发 updateStage
+          wrap.classList.remove('open');
+        });
+        panel.appendChild(item);
+      });
+    }
+    function syncLabel() {
+      const opt = select.options[select.selectedIndex];
+      if (opt) { label.textContent = opt.text; }
+      // 同步 trigger 底色为当前阶段色
+      const val = select.value;
+      trigger.style.background = STAGE_COLORS[val] || 'rgba(59,130,246,.1)';
+    }
+    // fixed 定位：计算触发按钮在视口的位置，面板贴其下方
+    function positionPanel() {
+      const rect = trigger.getBoundingClientRect();
+      const panelW = Math.min(200, window.innerWidth - 24);
+      let left = rect.left;
+      if (left + panelW > window.innerWidth - 12) left = window.innerWidth - 12 - panelW;
+      if (left < 12) left = 12;
+      panel.style.left = left + 'px';
+      panel.style.top = (rect.bottom + 6) + 'px';
+      panel.style.minWidth = panelW + 'px';
+      panel.style.right = 'auto';
+    }
+    trigger.addEventListener('click', e => {
+      e.stopPropagation();
+      const isOpen = wrap.classList.contains('open');
+      document.querySelectorAll('.cus-select.open').forEach(w => w.classList.remove('open'));
+      if (!isOpen) { wrap.classList.add('open'); buildPanel(); positionPanel(); }
+    });
+    // 滚动/缩放时关闭（fixed 定位会失准）
+    // 滚动/窗口变化时保持展开并同步 fixed 面板位置（positionPanel 按视口重算，防错位）
+    window.addEventListener('scroll', () => { if (wrap.classList.contains('open')) positionPanel(); }, { passive: true });
+    window.addEventListener('resize', () => { if (wrap.classList.contains('open')) positionPanel(); });
+    document.addEventListener('click', e => { if (!wrap.contains(e.target)) wrap.classList.remove('open'); });
+    syncLabel();
+  });
 }
 function renderProgressPage() {
   renderProgressStats();
@@ -3052,7 +3435,13 @@ function renderProgressTable(records) {
       <td class="col-company has-tip"><span class="tip">${esc(r.company)}</span>${esc(r.company)}</td>
       <td class="col-position has-tip"><span class="tip">${esc(r.position)}</span>${esc(r.position)}</td>
       <td class="col-city has-tip"><span class="tip">${esc(r.city)}</span>${esc(r.city)}</td>
-      <td><select class="progress-stage-badge" style="background:${STAGE_COLORS[r.progress] || 'rgba(59,130,246,.1)'};height:30px;font-size:11px;padding:0 8px" onchange="updateStage('${r.id}', this.value)">${stageOptions}</select></td>
+      <td class="col-stage">
+        <div class="cus-select inline cus-stage-inline" data-id="${r.id}">
+          <button type="button" class="cus-select-trigger" style="background:${STAGE_COLORS[r.progress] || 'rgba(59,130,246,.1)'};border-color:transparent;color:inherit"><span class="cs-label">${esc(r.progress)}</span><span class="cs-arrow">▼</span></button>
+          <div class="cus-select-panel"></div>
+          <select class="progress-stage-badge" style="display:none" aria-hidden="true" onchange="updateStage('${r.id}', this.value)">${stageOptions}</select>
+        </div>
+      </td>
       <td><input class="note-input" value="${esc(r.note || '')}" placeholder="添加备注..." onchange="updateNote('${r.id}', this.value)"></td>
       <td>
         <div class="progress-actions">
@@ -3075,6 +3464,9 @@ function populateStageFilter() {
     if (counts[s] > 0) select.innerHTML += `<option value="${s}">${s} (${counts[s]})</option>`;
   });
   select.value = current;
+  // 同步自定义下拉的 label 与面板
+  const stageWrap = document.getElementById('cusStageFilter');
+  if (stageWrap && stageWrap._syncLabel) { stageWrap._syncLabel(); stageWrap._buildPanel(); }
 }
 function updateProgressFilterLabel() {
   const stageVal = document.getElementById('progressStageFilter').value;
@@ -3094,6 +3486,11 @@ function updateProgressFilterLabel() {
   } else {
     sortSelect.options[0].text = sortLabels[sortVal] || '排序';
   }
+  // 同步自定义下拉显示
+  ['cusStageFilter', 'cusSortSelect'].forEach(id => {
+    const w = document.getElementById(id);
+    if (w && w._syncLabel) w._syncLabel();
+  });
 }
 
 function onProgressCardCheck() {
@@ -3109,9 +3506,18 @@ function updateStage(id, newStage) {
   if (!r.history) r.history = [];
   r.history.push({ stage: newStage, time: new Date().toISOString() });
   saveProgress();
-  // 更新下拉框背景色
-  const sel = document.querySelector(`select[onchange*="${id}"]`);
-  if (sel) sel.style.background = STAGE_COLORS[newStage] || 'rgba(59,130,246,.1)';
+  // 同步所有同 id 的下拉：隐藏 select 选中项 + 触发按钮 label/背景色（表格 + 卡片）
+  const bg = STAGE_COLORS[newStage] || 'rgba(59,130,246,.1)';
+  document.querySelectorAll(`select[onchange*="${id}"]`).forEach(sel => {
+    sel.value = newStage;
+    sel.style.background = bg;
+  });
+  document.querySelectorAll(`.cus-stage-inline[data-id="${id}"]`).forEach(wrap => {
+    const label = wrap.querySelector('.cs-label');
+    const btn = wrap.querySelector('.cus-select-trigger');
+    if (label) label.textContent = newStage;
+    if (btn) btn.style.background = bg;
+  });
   // 标记为 Offer 时自动添加到 Offer 对比
   if (newStage === 'Offer' && oldStage !== 'Offer') {
     const exists = offers.some(o => o.company === r.company && o.position === r.position);
@@ -3128,7 +3534,11 @@ function updateStage(id, newStage) {
       });
       saveOffers();
       showToast(`已自动添加到 Offer 对比：${r.company}`);
+    } else {
+      showToast(`进度已更新：${newStage}`);
     }
+  } else {
+    showToast(`进度已更新：${newStage}`);
   }
   // Update row background class
   const row = document.querySelector(`#progressTbody tr[data-id="${id}"]`);
@@ -3142,19 +3552,27 @@ function updateStage(id, newStage) {
 function updateNote(id, note) {
   const r = progressRecords.find(r => r.id === id);
   if (!r) return;
+  if (r.note === note) return;   // 未修改时不落盘、不提示
   r.note = note;
   saveProgress();
+  showToast('备注已保存', 1200);
 }
 
 async function deleteRecord(id) {
   const r = progressRecords.find(r => r.id === id);
   if (!r) return;
   if (!await showConfirm(`确认删除 "${r.company} - ${r.position}" 的投递记录？`)) return;
+  const snapshot = JSON.parse(JSON.stringify(r));
   progressRecords = progressRecords.filter(r => r.id !== id);
   saveProgress();
   renderProgressPage();
   deleteFromCloud('progress_records', [id]);
-  showToast('已删除');
+  showUndoBar(`已删除「${r.company} - ${r.position}」`, () => {
+    progressRecords.unshift(snapshot);
+    saveProgress();
+    renderProgressPage();
+    syncProgressToCloud();
+  });
 }
 
 function toggleProgressCheckAll(cb) {
@@ -3176,6 +3594,7 @@ async function batchDeleteProgress() {
   if (checked.length === 0) return;
   if (!await showConfirm(`确认删除选中的 ${checked.length} 条投递记录？`)) return;
   const ids = checked.map(c => c.dataset.id);
+  const removed = progressRecords.filter(r => ids.includes(r.id)).map(r => JSON.parse(JSON.stringify(r)));
   progressRecords = progressRecords.filter(r => !ids.includes(r.id));
   saveProgress();
   const pCheckAll = document.getElementById('pCheckAll');
@@ -3183,7 +3602,12 @@ async function batchDeleteProgress() {
   renderProgressPage();
   updateBatchDeleteBtn();
   deleteFromCloud('progress_records', ids);
-  showToast(`已删除 ${ids.length} 条记录`);
+  showUndoBar(`已删除 ${ids.length} 条投递记录`, () => {
+    progressRecords.push(...removed);
+    saveProgress();
+    renderProgressPage();
+    syncProgressToCloud();
+  });
 }
 
 // ── Login reminder（sessionStorage，每次访问重新提醒） ──
@@ -3345,7 +3769,7 @@ function renderTimeline(r) {
     const d = new Date(h.time);
     const isLast = i === r.history.length - 1;
     return `<div class="timeline-item">
-      <div class="timeline-dot" style="background:${isLast ? 'var(--accent)' : '#ccc'};box-shadow:${isLast ? '0 0 0 3px rgba(204,120,92,.2)' : 'none'}"></div>
+      <div class="timeline-dot" style="background:${isLast ? 'var(--accent)' : 'var(--border)'};box-shadow:${isLast ? '0 0 0 3px rgba(204,120,92,.2)' : 'none'}"></div>
       <div style="flex:1">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div>
@@ -3490,7 +3914,8 @@ function importProgress(event) {
   reader.onload = e => {
     try {
       const data = JSON.parse(e.target.result);
-      if (!Array.isArray(data)) { showToast('格式错误'); return; }
+      if (!Array.isArray(data)) { showToast('文件格式错误：应为 JSON 数组'); return; }
+      const before = progressRecords.length;
       let added = 0;
       data.forEach(r => {
         if (!progressRecords.some(p => p.company === r.company && p.position === r.position && p.applyDate === r.applyDate)) {
@@ -3502,8 +3927,15 @@ function importProgress(event) {
       });
       saveProgress();
       renderProgressPage();
-      showToast(`已导入 ${added} 条记录`);
-    } catch { showToast('文件解析失败'); }
+      // 合并语义 + 跳过数量必须显式告知（避免用户误以为是"覆盖恢复"）
+      const skipped = data.length - added;
+      showToast(skipped > 0
+        ? `已合并导入 ${added} 条，跳过 ${skipped} 条重复（现有 ${before + added} 条）`
+        : `已合并导入 ${added} 条（现有 ${before + added} 条）`, 3200);
+    } catch (err) {
+      console.error('[import] 投递记录解析失败:', err);
+      showToast('文件解析失败，请确认是本应用导出的 JSON');
+    }
   };
   reader.readAsText(file);
   event.target.value = '';
@@ -3546,9 +3978,10 @@ function loadProgress() {
 async function syncAndRender() {
   loadProgress();
   loadOffers();
-  await syncFromCloud();
+  const ok = await syncFromCloud();
   renderProgressPage();
   renderOffers();
+  return ok;
 }
 async function initAuth() {
   if (!sb) return;
@@ -3566,11 +3999,12 @@ async function initAuth() {
         updateUIForLoggedIn();
         loadProgress();
         loadOffers();
-        await mergeLocalToCloud();
-        await syncFromCloud();
+        const okUp = await mergeLocalToCloud();
+        const okDown = await syncFromCloud();
         renderProgressPage();
         renderOffers();
-        showToast('登录成功，数据已同步');
+        // 只提示同步结果；"登录成功"由发起登录的流程提示，避免重复
+        showToast(okUp && okDown ? '数据已同步' : '云端同步未完成');
         // 记录登录事件
         if (window._analyticsAuth) window._analyticsAuth(currentUser);
       } else if (event === 'SIGNED_OUT') {
@@ -3673,14 +4107,34 @@ async function updatePassword() {
   showLoginModal();
 }
 
+// 认证按钮忙碌态：禁用 + 降透明度；纯文本按钮可切换文案（防重复提交）
+function _authBusy(btnId, busy, busyText, idleText) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = !!busy;
+  btn.style.opacity = busy ? '.6' : '';
+  btn.style.cursor = busy ? 'not-allowed' : '';
+  if (busyText && idleText) btn.textContent = busy ? busyText : idleText;
+}
+
 async function loginWithGitHub() {
   if (!sb) { showToast('登录服务暂不可用'); return; }
   _skipLeaveConfirm = true;
-  const { error } = await sb.auth.signInWithOAuth({
-    provider: 'github',
-    options: { redirectTo: window.location.origin + window.location.pathname }
-  });
-  if (error) { _skipLeaveConfirm = false; showToast('登录失败: ' + error.message); }
+  _authBusy('ghLoginBtn', true);
+  try {
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: 'github',
+      options: { redirectTo: window.location.origin + window.location.pathname }
+    });
+    if (error) { _skipLeaveConfirm = false; showToast('登录失败: ' + translateAuthError(error.message)); }
+  } catch (e) {
+    _skipLeaveConfirm = false;
+    console.error('[auth] GitHub 登录异常:', e);
+    showToast('网络异常，请稍后重试');
+  } finally {
+    // 失败或未跳转时恢复按钮（成功跳转时页面已离开，恢复无效但不影响）
+    _authBusy('ghLoginBtn', false);
+  }
 }
 
 async function loginWithEmail() {
@@ -3689,17 +4143,24 @@ async function loginWithEmail() {
   const password = document.getElementById('passwordInput').value;
   if (!email || !email.includes('@')) { showToast('请输入正确的邮箱'); return; }
   if (!password || password.length < 6) { showToast('密码至少6位'); return; }
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) { showToast('登录失败: ' + translateAuthError(error.message)); return; }
-  if (data.session) {
-    currentUser = data.user;
-    mergeLocalToUser();
-    updateUIForLoggedIn();
-    await mergeLocalToCloud();
-    await syncAndRender();
+  _authBusy('loginBtn2', true, '登录中…', '登录');
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) { showToast('登录失败: ' + translateAuthError(error.message)); return; }
+    if (data.session) {
+      currentUser = data.user;
+      mergeLocalToUser();
+      updateUIForLoggedIn();
+      // 云端合并/同步与结果提示由 onAuthStateChange(SIGNED_IN) 统一处理，避免重复请求
+    }
+    showToast('登录成功');
+    closeLoginModal();
+  } catch (e) {
+    console.error('[auth] 登录异常:', e);
+    showToast('网络异常，请稍后重试');
+  } finally {
+    _authBusy('loginBtn2', false, '登录中…', '登录');
   }
-  showToast('登录成功，数据已同步');
-  closeLoginModal();
 }
 
 async function doRegister() {
@@ -3712,20 +4173,30 @@ async function doRegister() {
   if (!email || !email.includes('@')) { showToast('请输入正确的邮箱'); return; }
   if (!password || password.length < 6) { showToast('密码至少6位'); return; }
   if (password !== confirmPassword) { showToast('两次密码不一致'); return; }
-  const { data, error } = await sb.auth.signUp({
-    email, password,
-    options: { data: { username, full_name: username } }
-  });
-  if (error) { showToast('注册失败: ' + translateAuthError(error.message)); return; }
-  if (data.session) {
-    currentUser = data.user;
-    mergeLocalToUser();
-    updateUIForLoggedIn();
-    await mergeLocalToCloud();
-    await syncAndRender();
+  _authBusy('registerBtn', true, '注册中…', '注册');
+  try {
+    const { data, error } = await sb.auth.signUp({
+      email, password,
+      options: { data: { username, full_name: username } }
+    });
+    if (error) { showToast('注册失败: ' + translateAuthError(error.message)); return; }
+    if (data.session) {
+      currentUser = data.user;
+      mergeLocalToUser();
+      updateUIForLoggedIn();
+      // 云端合并/同步与结果提示由 onAuthStateChange(SIGNED_IN) 统一处理
+      showToast('注册成功，已自动登录');
+    } else {
+      // 邮箱验证开启时无 session，需提示用户去邮箱确认
+      showToast('注册成功，请到邮箱完成验证后登录');
+    }
+    closeRegisterModal();
+  } catch (e) {
+    console.error('[auth] 注册异常:', e);
+    showToast('网络异常，请稍后重试');
+  } finally {
+    _authBusy('registerBtn', false, '注册中…', '注册');
   }
-  showToast('注册成功，已自动登录');
-  closeRegisterModal();
 }
 
 async function logoutUser() {
@@ -3788,23 +4259,55 @@ if (!sessionStorage.getItem('cr_tutorial_done')) { setTimeout(showTutorial, 500)
   function updateTabsTop() {
     const h = header.offsetHeight;
     tabsList().forEach(t => { t.style.top = h + 'px'; });
+    // thead 上边距 0：展开态 = h+tabsH，收起态 = h（thead 紧贴 header/tabs）
+    const mainTabs = document.querySelector('.main-wrap .tabs');
+    const tabsH = (mainTabs && !mainTabs.classList.contains('tabs-hidden')) ? mainTabs.offsetHeight : 0;
+    document.documentElement.style.setProperty('--thead-top', (h + tabsH) + 'px');
   }
   updateTabsTop();
-  new ResizeObserver(updateTabsTop).observe(header);
+  const ro = new ResizeObserver(updateTabsTop);
+  ro.observe(header);
+  tabsList().forEach(t => ro.observe(t));
   window.addEventListener('resize', updateTabsTop);
+  // 收起表头筛选下拉：用于点击外部/切页等"用户主动"场景；滚动不收起（保持展开，需求 1）
+  function collapseTheadDropdowns() {
+    document.querySelectorAll('.col-filter-dd.show').forEach(d => d.classList.remove('show'));
+    document.querySelectorAll('.th-filter.open').forEach(f => f.classList.remove('open'));
+    document.querySelectorAll('#mainTable th.dd-open').forEach(t => t.classList.remove('dd-open'));
+  }
+  window._collapseTheadDropdowns = collapseTheadDropdowns;
+  let lastY = window.scrollY;
   let ticking = false;
   window.addEventListener('scroll', () => {
     if (ticking) return;
     ticking = true;
     requestAnimationFrame(() => {
-      const h = header.offsetHeight;
+      const h = header.offsetHeight;                          // 布局值：供 style.top / --thead-top / 滚动阈值
+      const visH = header.getBoundingClientRect().height;     // 视觉值：与 rect.top 同源（html zoom 0.8 下两者相差 20%，不可混用）
+      const y = window.scrollY;
+      const delta = y - lastY;
+      lastY = y;
+      // Tabs 吸顶收起/展开：双阈值滞后带，消除缓慢滚动时的乒乓抽动
+      //   收起线 y > h+30（且向下滚动、已 stuck）；展开线 y < h+10；两线之间保持现状
+      // 旧实现抽动根因：收起（增量条件 delta>6）与展开（位置条件 y<h+10）在顶部区间交替满足
       tabsList().forEach(t => {
-        const rect = t.getBoundingClientRect();
-        t.classList.toggle('stuck', Math.abs(rect.top - h) < 2);
+        const hidden = t.classList.contains('tabs-hidden');
+        if (delta > 0 && y > h + 30 && t.classList.contains('stuck') && !hidden) {
+          t.classList.add('tabs-hidden');
+          updateTabsTop();
+        } else if (y < h + 10 && hidden) {
+          t.classList.remove('tabs-hidden');
+          updateTabsTop();
+        }
+        // stuck 判定仅在未隐藏时执行（隐藏态 transform 会使 rect.top 判定失真）
+        if (!t.classList.contains('tabs-hidden')) {
+          const rect = t.getBoundingClientRect();
+          t.classList.toggle('stuck', Math.abs(rect.top - visH) < 2);
+        }
       });
       ticking = false;
     });
-  });
+  }, { passive: true });
 })();
 </script>
 <!-- 拆分的模块脚本（P2-2 架构优化）：必须在主脚本之后加载 -->
