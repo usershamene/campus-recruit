@@ -249,32 +249,6 @@ async function main() {
   console.log(`\nSaved: ${JOBS_PATH} (+ jobs.min.json 压缩版)`);
   console.log(`Next update will fetch from: ${todayStr}`);
 
-  // 识别所有缺少简介的公司（全量扫描，而非仅本次新增 —— 保证生成失败的公司可被重试）
-  const profilesPath = path.join(__dirname, 'data', 'company-profiles.json');
-  let profiles = {};
-  try { profiles = JSON.parse(fs.readFileSync(profilesPath, 'utf-8')); } catch {}
-  const allCompanies = [...new Set(processed.map(j => j.company))];
-  const missingAll = allCompanies.filter(c => !profiles[c]);
-  const pendingPath = path.join(__dirname, 'data', 'pending-profiles.json');
-  if (missingAll.length > 0) {
-    fs.writeFileSync(pendingPath, JSON.stringify(missingAll, null, 2), 'utf-8');
-    console.log(`\n⚠ ${missingAll.length} companies still need profiles → data/pending-profiles.json`);
-    console.log(`ACTION_REQUIRED: GENERATE_PROFILES`);
-  } else {
-    fs.writeFileSync(pendingPath, JSON.stringify([], null, 2), 'utf-8');
-    console.log('\n✓ All companies have profiles');
-  }
-
-  // 记录生成失败的公司（供 generate-profiles.js / retry-failed.js 重试）
-  const failuresPath = path.join(__dirname, 'data', 'profile-failures.json');
-  let failures = [];
-  try { failures = JSON.parse(fs.readFileSync(failuresPath, 'utf-8')); } catch {}
-  // 清理已成功生成简介的失败记录
-  failures = failures.filter(f => !profiles[f.name]);
-  if (failures.length > 0) {
-    fs.writeFileSync(failuresPath, JSON.stringify(failures, null, 2), 'utf-8');
-    console.log(`ℹ ${failures.length} companies in failure list → data/profile-failures.json (retry with retry-failed.js)`);
-  }
 }
 
 main().catch(console.error);

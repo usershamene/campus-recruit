@@ -31,24 +31,6 @@ jobs:
         run: node fetch-data.js
         id: fetch
 
-      - name: Generate company profiles
-        if: success()
-        env:
-          MIMO_API_KEY: ${{ secrets.MIMO_API_KEY }}
-        run: |
-          # 检查是否有待处理的简介
-          if [ -f "data/pending-profiles.json" ]; then
-            PENDING=$(cat data/pending-profiles.json)
-            if [ "$PENDING" != "[]" ] && [ -n "$PENDING" ]; then
-              echo "Generating profiles for new companies..."
-              node generate-profiles.js
-            else
-              echo "No new profiles to generate"
-            fi
-          else
-            echo "No pending profiles file found"
-          fi
-
       - name: Check for changes
         id: changes
         run: |

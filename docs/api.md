@@ -24,15 +24,6 @@
 }]
 ```
 
-### data/company-profiles.json
-企业简介索引：`{"公司名": {"summary": "150-250字简介", "tags": ["标签1",...]}}`
-
-### data/pending-profiles.json
-待生成简介的公司名数组。由 `fetch-data.js` 每次运行**全量扫描**产出（非仅新增），保证失败可重试。
-
-### data/profile-failures.json
-生成失败记录：`[{"name": "公司名", "error": "原因", "time": "ISO时间"}]`。用 `node scripts/retry-failed.js` 重试。
-
 ### data/update-meta.json
 `{"lastUpdate": "ISO时间", "success": true}`
 
@@ -67,10 +58,3 @@
 | `offers` | Offer 对比 | 必须 `auth.uid() = user_id` |
 | `analytics` | 访问统计 | 任何人可 INSERT（刷量风险，建议加限流） |
 
-## 五、Agnes AI 接口（简介生成）
-
-- URL: `https://apihub.agnes-ai.com/v1/chat/completions`
-- Model: `agnes-2.0-flash`
-- 认证: `Authorization: Bearer MIMO_API_KEY`
-- 超时: 120s，重试 3-5 次
-- 响应解析：`extractJson` 三策略（非贪婪 → 末尾截取 → 代码块）

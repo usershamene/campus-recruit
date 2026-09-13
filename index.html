@@ -632,9 +632,6 @@ tr.row-reject td { background: rgba(107,114,128,.03); }
 .cc-tag { font-size: 12px; padding: 3px 10px; border-radius: 20px; background: rgba(204,120,92,.1); color: var(--accent); font-weight: 500; }
 .cc-section { margin-bottom: 16px; }
 .cc-section-title { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 8px; }
-.cc-summary { font-size: 14px; line-height: 1.8; color: var(--text); }
-.cc-summary-loading { font-size: 13px; color: var(--text2); padding: 12px 0; }
-.cc-summary-loading::after { content: ''; display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; margin-left: 8px; vertical-align: middle; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .cc-links { display: flex; gap: 10px; flex-wrap: wrap; }
 .cc-link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); color: var(--text); text-decoration: none; transition: all .2s; }
@@ -3924,10 +3921,6 @@ function showCompanyDetail(companyName) {
       ${industries.map(i => `<span class="cc-tag">${esc(i)}</span>`).join('')}
     </div>
     <div class="cc-section">
-      <div class="cc-section-title">企业简介</div>
-      <div id="ccSummary"><div class="cc-summary-loading">加载中</div></div>
-    </div>
-    <div class="cc-section">
       <div class="cc-section-title">相关链接</div>
       <div class="cc-links">
         ${links.map(l => `<a class="cc-link" href="${l.url}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('')}
@@ -3939,25 +3932,6 @@ function showCompanyDetail(companyName) {
   `;
   document.getElementById('companyOverlay').classList.add('show');
 
-  // 懒加载企业简介：首次打开详情时拉取 company-profiles.json（2.3MB）
-  const el = document.getElementById('ccSummary');
-  const tagsEl = document.getElementById('ccTags');
-  const renderProfile = () => {
-    const profile = getCompanyProfile(companyName);
-    if (profile) {
-      el.innerHTML = `<div class="cc-summary">${esc(profile.summary)}</div>`;
-      if (profile.tags && tagsEl) {
-        tagsEl.innerHTML += profile.tags.map(t => `<span class="cc-tag">${esc(t)}</span>`).join('');
-      }
-    } else {
-      el.innerHTML = '<div class="cc-summary" style="color:var(--text2)">暂无简介信息</div>';
-    }
-  };
-  ensureCompanyProfiles()
-    .then(renderProfile)
-    .catch(() => {
-      el.innerHTML = '<div class="cc-summary" style="color:var(--text2)">简介加载失败（网络异常）</div>';
-    });
 }
 
 function closeCompanyCard() {
@@ -4378,7 +4352,6 @@ if (!sessionStorage.getItem('cr_tutorial_done')) { setTimeout(showTutorial, 500)
 })();
 </script>
 <!-- 拆分的模块脚本（P2-2 架构优化）：必须在主脚本之后加载 -->
-<script src="js/profiles.js"></script>
 <script src="js/cloud-sync.js"></script>
 </body>
 </html>

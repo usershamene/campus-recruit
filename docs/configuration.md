@@ -1,12 +1,11 @@
 # 配置说明
 
-> 最后更新：2026-08-15
+> 最后更新：2026-09-13（移除企业简介 AI 生成链路）
 
 ## 一、环境变量（.env，不提交 git）
 
 | 变量 | 必需 | 说明 |
 |------|------|------|
-| `MIMO_API_KEY` | 简介生成必需 | Agnes AI API 密钥（`apihub.agnes-ai.com`） |
 | `SUPABASE_URL` | 云同步必需（前端硬编码） | Supabase 项目地址 |
 | `SUPABASE_ANON_KEY` | 云同步必需（前端硬编码） | 公开 anon key |
 | `SUPABASE_SERVICE_ROLE` | admin.html 必需 | **最高权限密钥**，仅存 .env，仅本机使用 |
@@ -17,13 +16,9 @@
 > ⚠️ 安全提醒（P0 修复后）：
 > 1. 服务器只监听 127.0.0.1，`SUPABASE_SERVICE_ROLE` 不会暴露给局域网
 > 2. 如曾部署过旧版本（Host 头可伪造），**建议轮换 SUPABASE_SERVICE_ROLE**
-> 3. `scripts/generate-profiles-api.py`（历史一次性脚本）内曾含硬编码 API Key，已被 .gitignore 排除，**不要提交任何含密钥的文件**
+> 3. 不要提交任何含密钥的文件（`.env`、含硬编码 Key 的脚本均已排除）
 
 ## 二、GitHub Actions Secrets
-
-| Secret | 说明 |
-|--------|------|
-| `MIMO_API_KEY` | 简介生成（Actions 内 `generate-profiles.js` 用） |
 
 `GITHUB_TOKEN` 自动注入，无需配置。
 
@@ -51,12 +46,6 @@ node server.js
 
 # 5. 数据更新（需网络）
 node fetch-data.js
-
-# 6. 简介生成（需 MIMO_API_KEY）
-set MIMO_API_KEY=你的key && node generate-profiles.js
-
-# 7. 重试失败的简介
-set MIMO_API_KEY=你的key && node scripts/retry-failed.js
 ```
 
 ## 五、定时任务（Windows 本机，小红书自动发布）
