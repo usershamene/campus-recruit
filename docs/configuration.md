@@ -48,23 +48,10 @@ node server.js
 node fetch-data.js
 ```
 
-## 五、定时任务（Windows 本机，小红书自动发布）
+## 五、配套项目
 
-```bash
-# 安装任务（管理员权限）
-scripts/install-xhs-task.bat
-
-# 查看
-schtasks /query /tn "Campus Recruit\XHS Auto Publish"
-
-# 手动触发
-schtasks /run /tn "Campus Recruit\XHS Auto Publish"
-```
-
-小红书发布依赖：
-- Chrome + opencli 扩展（已登录小红书账号）
-- 外部文案脚本：`C:\Users\Administrator\Desktop\小红书\today_recruit\文案\生成今日文案.bat`
-- 发布日志：`data/xhs-content/publish-log.json`（当日已发布则跳过）
+小红书引流发布链路（文案生成/封面/发布）在独立项目 `../xhs-publish/`，
+其运行依赖（Chrome + opencli 扩展、账号登录态等）见该项目 README。
 
 ## 六、数据更新频率
 

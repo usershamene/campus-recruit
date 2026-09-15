@@ -42,11 +42,8 @@ campus-recruit/
 │   └── data-processing.js  #   去重/国企判定/类型推断/岗位分隔/清洗
 ├── js/                     # ★ 从 index.html 拆出的前端模块
 │   └── cloud-sync.js       #   Supabase 云同步（投递/Offer）
-├── scripts/                # 运营辅助脚本
-│   ├── xhs-cover.js        # 小红书封面生成
-│   ├── screenshot-today.js # 站点截图
-│   ├── fetch-xhs-words.js  # 小红书违禁词探测
-│   └── xhs-banned-words.md # 违禁词词库
+├── scripts/                # 数据运维脚本
+│   └── fix-soe-labels.js   # 历史「国企招聘」误标修复（小红书链路见 ../xhs-publish/）
 ├── data/                   # 数据（git 跟踪：jobs/jobs.min/update-meta）
 │   ├── jobs.json           # 岗位主数据（含压缩版 jobs.min.json）
 │   └── update-meta.json    # 上次更新时间
@@ -99,4 +96,4 @@ campus-recruit/
 |------|------|------|
 | Supabase | 认证 + 云同步 + 访问统计 | anon key 前端公开；service_role 仅本地 admin.html |
 | GitHub Pages | 部署 | push main 自动发布 |
-| Playwright（仅 scripts） | 截图/小红书 | 非运行时依赖 |
+| Playwright（仅本地验证） | 真机验证（坐标/交互） | 非运行时依赖 |

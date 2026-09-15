@@ -18,7 +18,6 @@ scripts/*.bat
 logs/
 
 # 一次性脚本/含硬编码密钥的中间产物（严禁提交）
-scripts/groups.jsonl
 
 # 管理后台（含 SUPABASE_SERVICE_ROLE，仅本地使用，绝不提交）
 admin.html

@@ -7,9 +7,7 @@
     "test": "node --test tests/*.test.js",
     "check": "node --check fetch-data.js && node --check server.js && node --check check-data.js && node --check lib/data-processing.js",
     "start": "node server.js",
-    "fetch-data": "node fetch-data.js",
-    "xhs-publish": "node scripts/xhs-auto-publish.js",
-    "xhs-install-task": "scripts/install-xhs-task.bat"
+    "fetch-data": "node fetch-data.js"
   },
   "keywords": [
     "campus-recruit",
