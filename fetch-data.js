@@ -222,8 +222,23 @@ async function main() {
   const existingCount = existing.length;
 
   // Merge & dedup
-  const merged = deduplicate(existing, newJobs);
+  // 加固：先对 existing 自身去重（防止历史数据累积重复），再合并新抓取数据
+  const existingDeduped = deduplicate([], existing);
+  if (existingDeduped.length !== existing.length) {
+    console.log(`⚠ 历史数据含 ${existing.length - existingDeduped.length} 条重复键记录，已自动清理`);
+  }
+  const merged = deduplicate(existingDeduped, newJobs);
   const addedCount = merged.length - existingCount;
+  // 写入前校验：合并结果不应含重复键（失败显性化，不静默写入）
+  {
+    const seenKeys = new Set();
+    let dupKeys = 0;
+    for (const j of merged) {
+      const k = `${j.company}|${j.positions}`.toLowerCase().replace(/\s+/g, '');
+      if (seenKeys.has(k)) dupKeys++; else seenKeys.add(k);
+    }
+    if (dupKeys > 0) console.log(`⚠ 警告：合并结果仍含 ${dupKeys} 条重复键记录（异常，请检查）`);
+  }
 
   // Process: normalize, remove expired, clean
   const { processed, loginFiltered, expired } = processData(merged);

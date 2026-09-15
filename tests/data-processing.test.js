@@ -60,11 +60,31 @@ describe('isSOE 国企判定', () => {
     assert.equal(isSOE('省属国企测试', '', ''), true);
   });
 
-  test('规则2：行政区划开头', () => {
+  test('规则2 已移除：地名开头不再直接判定（民企不误判）', () => {
+    // 回归：用户反馈案例 + 同类误判（旧逻辑因"地名开头"全部误判为国企）
+    assert.equal(isSOE('广州元游信息技术有限公司', '', ''), false);
+    assert.equal(isSOE('上海沪工', '', ''), false);
+    assert.equal(isSOE('北京赛瑞斯', '', ''), false);
+    assert.equal(isSOE('山东九羊集团有限公司', '', ''), false); // 民企（旧逻辑误判）
+    assert.equal(isSOE('江苏科达利精密工业有限公司', '', ''), false);
+  });
+
+  test('规则7：地名 + 国企特征词组合（真国企不漏）', () => {
     assert.equal(isSOE('北京市政集团', '', ''), true);
-    assert.equal(isSOE('山东九羊集团有限公司', '', ''), true);
-    // 注意：含排除词（如'城建'=房地产商名单）的即使地名开头也不算国企（行为与旧版一致）
+    assert.equal(isSOE('成都传媒产业集团有限公司', '', ''), true);
+    assert.equal(isSOE('厦门轨道建设发展集团有限公司', '', ''), true);
+    assert.equal(isSOE('湖南星沙农村商业银行股份有限公司', '', ''), true);
+    assert.equal(isSOE('重庆欢乐谷', '', ''), true);
+    assert.equal(isSOE('广西百色城市产业发展', '', ''), true);
+    // 含排除词（城建=房地产商名单）的即使地名开头也不算国企（行为与旧版一致）
     assert.equal(isSOE('武汉城建集团', '', ''), false);
+  });
+
+  test('白名单：人工核定的真国企兜底', () => {
+    assert.equal(isSOE('江苏扬农化工股份有限公司', '', ''), true);
+    assert.equal(isSOE('汕头超声印制板公司', '', ''), true);
+    assert.equal(isSOE('北京金融大数据', '', ''), true);
+    assert.equal(isSOE('深圳格兰云天酒店管理有限公司', '', ''), true);
   });
 
   test('规则3：gov 域名链接', () => {
@@ -215,14 +235,31 @@ describe('processData 数据清洗流水线', () => {
     assert.equal(expired, 1);
   });
 
-  test('companyType 国企 → 国企招聘', () => {
+  test('companyType 国企 → 央国企招聘', () => {
     const { processed } = processData([mk({ companyType: '国企' })]);
-    assert.equal(processed[0].recruitmentType, '国企招聘');
+    assert.equal(processed[0].recruitmentType, '央国企招聘');
+  });
+
+  test('数据源标注民企 → 不因地名开头被 isSOE 误判为国企（本次修复）', () => {
+    // 广州元游：数据源标注"民营"，旧逻辑因"广州"开头被 isSOE 误判为央国企招聘（当时类型名为"国企招聘"）
+    const { processed } = processData([
+      mk({ company: '广州元游信息技术有限公司', companyType: '民营', recruitmentType: '秋招' }),
+      mk({ company: '上海沪工', companyType: '民企', recruitmentType: '秋招' }),
+    ]);
+    assert.equal(processed[0].recruitmentType, '秋招');
+    assert.equal(processed[1].recruitmentType, '秋招');
+  });
+
+  test('无标注时仍走 isSOE 兜底（真国企不漏）', () => {
+    const { processed } = processData([
+      mk({ company: '湖南星沙农村商业银行股份有限公司', companyType: '', recruitmentType: '秋招' }),
+    ]);
+    assert.equal(processed[0].recruitmentType, '央国企招聘');
   });
 
   test('isSOE 兜底判定国企', () => {
     const { processed } = processData([mk({ company: '国家电网', applyUrl: 'http://x' })]);
-    assert.equal(processed[0].recruitmentType, '国企招聘');
+    assert.equal(processed[0].recruitmentType, '央国企招聘');
   });
 
   test('TYPE_MAP 规范化（3月发布不触发时间过滤）', () => {

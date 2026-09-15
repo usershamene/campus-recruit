@@ -17,9 +17,9 @@ const TEMPLATE_PATH = path.join(__dirname, 'xhs-cover-template.html');
 const OUTPUT_DIR = path.join(__dirname, '..', '..', 'xhs-publish', 'covers');
 
 // 不写入文案/封面的岗位（与 xhs-publish/generate.js 保持一致）：
-// ① recruitmentType（招聘类型）= 国企招聘
+// ① recruitmentType（招聘类型）= 央国企招聘
 // ② companyType（公司性质）含 央企/国企/央国企（存在 '国企,上市'/'央企,上市' 等复合值，用关键词包含匹配）
-const EXCLUDED_RECRUITMENT_TYPES = ['国企招聘'];
+const EXCLUDED_RECRUITMENT_TYPES = ['央国企招聘'];
 const EXCLUDED_COMPANY_KEYWORDS = ['国企', '央企'];
 
 const WIDTH = 1080;
@@ -90,7 +90,7 @@ async function main() {
     && !EXCLUDED_COMPANY_KEYWORDS.some(k => String(j.companyType || '').includes(k)));
   const excluded = dayAll.length - todayJobs.length;
   if (excluded > 0) {
-    console.log(`[过滤] 已排除 ${excluded} 条（国企招聘类型 / 央企·国企·央国企公司）岗位（当日共 ${dayAll.length} 条），不写入封面`);
+    console.log(`[过滤] 已排除 ${excluded} 条（央国企招聘类型 / 央企·国企·央国企公司）岗位（当日共 ${dayAll.length} 条），不写入封面`);
   }
   if (!todayJobs.length) {
     console.log(`${today} 没有新增岗位，跳过封面生成（当日 ${dayAll.length} 条全部为被过滤类型）`);

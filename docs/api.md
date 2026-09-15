@@ -19,7 +19,7 @@
   "announcementUrl": "https://...",
   "companyType": "外企",
   "industry": "科技",
-  "recruitmentType": "秋招 | 春招 | 提前批 | 实习 | 补录 | 国企招聘 | 校招 | 其他",
+  "recruitmentType": "秋招 | 春招 | 提前批 | 实习 | 补录 | 央国企招聘 | 校招 | 其他",
   "id": 1
 }]
 ```
