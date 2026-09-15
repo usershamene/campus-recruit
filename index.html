@@ -175,6 +175,9 @@ th .sort-icon::after { content: "\25B2"; }
 .col-filter-item:hover { background: var(--accent-light); }
 .col-filter-item input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; }
 .col-filter-item .count { margin-left: auto; font-size: 11px; color: var(--text2); background: var(--tag-bg); padding: 2px 8px; border-radius: 10px; }
+/* 「全部」开关：与下方列表项分隔，激活时高亮 */
+.col-filter-item.col-filter-all { font-weight: 600; border-bottom: 1px solid var(--hairline); padding-bottom: 10px; margin-bottom: 4px; }
+.col-filter-item.col-filter-all.active { color: var(--accent); }
 
 /* Table cells - consistent height */
 td {
@@ -647,19 +650,24 @@ tr.row-reject td { background: rgba(107,114,128,.03); }
   width: 10px; height: 10px; border-radius: 50%; background: var(--accent); margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(204,120,92,.15);
 }
 
-/* Custom tooltip */
-.has-tip { position: relative; cursor: default; }
-.has-tip .tip {
-  display: none; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
-  background: #141413; color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 12px;
-  white-space: normal; max-width: 320px; min-width: 80px; word-break: break-all; z-index: var(--z-tab);
-  pointer-events: none; line-height: 1.5; box-shadow: 0 4px 16px rgba(0,0,0,.12);
+/* 自定义悬浮提示：全局单例 + fixed 定位（td 有 overflow:hidden，absolute 提示会被裁剪） */
+.has-tip { cursor: default; }
+.global-tip {
+  position: fixed; z-index: var(--z-dropdown); max-width: 420px; padding: 8px 12px;
+  background: rgba(20, 20, 19, .82); color: #fff; font-size: 12px; line-height: 1.6;
+  border-radius: 8px; box-shadow: 0 6px 24px rgba(0, 0, 0, .16);
+  border: 1px solid rgba(255, 255, 255, .08);
+  backdrop-filter: blur(8px) saturate(1.15); -webkit-backdrop-filter: blur(8px) saturate(1.15);
+  white-space: normal; word-break: break-word; pointer-events: none;
+  opacity: 0; visibility: hidden; transition: opacity .12s, visibility .12s;
 }
-.has-tip .tip::after {
-  content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-  border: 5px solid transparent; border-top-color: #141413;
+.global-tip.show { opacity: 1; visibility: visible; }
+.global-tip::after {
+  content: ""; position: absolute; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent;
 }
-.has-tip:hover .tip { display: block; }
+.global-tip.tip-above::after { top: 100%; border-top-color: rgba(20, 20, 19, .82); }
+.global-tip.tip-below::after { bottom: 100%; border-bottom-color: rgba(20, 20, 19, .82); }
 
 /* ═══ 移动端响应式 ═══ */
 @media (max-width: 768px) {
@@ -1237,7 +1245,6 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
         <span class="filter-x" onclick="event.stopPropagation();clearAllFilters()">&times;</span>
       </button>
     </div>
-    <div class="active-filters" id="activeFilters"></div>
     <div class="mobile-filter-bar" id="mobileFilterBar"></div>
       </div>
       <!-- 进度页工具栏（迁自 progress-wrap，quote-bar 正下方） -->
@@ -1315,20 +1322,11 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
           <th class="col-check"><input type="checkbox" id="checkAll" onchange="toggleCheckAll(this)" aria-label="全选"></th>
           <th class="col-th-no">#</th>
           <th class="sortable col-th-date" data-sort="publishDate">发布日期 <span class="sort-icon"></span></th>
-          <th>
-            <span class="th-filter" id="companyFilterHeader" data-type="company">
-              <span class="th-inner">公司 <span class="filter-icon">&#9660;</span></span>
-              <div class="col-filter-dd" id="companyDD">
-                <div class="col-filter-search"><input type="text" placeholder="搜索公司..." id="companySearchInput"></div>
-                <div class="col-filter-list" id="companyFilterList"></div>
-              </div>
-            </span>
-          </th>
+          <th class="col-th-company">公司</th>
           <th>
             <span class="th-filter" id="typeFilterHeader" data-type="type">
               <span class="th-inner">类型 <span class="filter-icon">&#9660;</span></span>
               <div class="col-filter-dd" id="typeDD">
-                <div class="col-filter-search"><input type="text" placeholder="搜索类型..." id="typeSearchInput"></div>
                 <div class="col-filter-list" id="typeFilterList"></div>
               </div>
             </span>
@@ -1337,7 +1335,6 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
             <span class="th-filter" id="posFilterHeader" data-type="pos">
               <span class="th-inner">岗位 <span class="filter-icon">&#9660;</span></span>
               <div class="col-filter-dd" id="posDD">
-                <div class="col-filter-search"><input type="text" placeholder="搜索岗位..." id="posSearchInput"></div>
                 <div class="col-filter-list" id="posFilterList"></div>
               </div>
             </span>
@@ -1925,8 +1922,14 @@ let sortField = 'publishDate';
 let sortDir = 'desc';
 let selectedCities = new Set();
 let selectedPositions = new Set();
-let selectedCompanies = new Set();
-let selectedTypes = new Set();
+let selectedTypes = new Set();          // 语义：要显示的类型集合（默认全集；空集=全部取消）
+const _filterCountMaps = { type: {}, pos: {}, city: {} };
+// 重建三个筛选列表（集合变化后同步勾选态与「全部」开关）
+function refreshFilterLists() {
+  buildColFilterList('typeFilterList', _filterCountMaps.type || {}, selectedTypes, 'type');
+  buildColFilterList('posFilterList', _filterCountMaps.pos || {}, selectedPositions, 'pos');
+  buildColFilterList('cityFilterList', _filterCountMaps.city || {}, selectedCities, 'city');
+}
 let searchTimer = null;
 let selectedJobKeys = new Set();
 
@@ -1945,15 +1948,44 @@ const $ = {
 
 // ── Filter constants ──
 const FILTER_SET_MAP_JOBS = {
-  get company() { return selectedCompanies; },
   get type() { return selectedTypes; },
   get pos() { return selectedPositions; },
   get city() { return selectedCities; },
 };
 const FILTER_LIST_MAP = {
-  company: 'companyFilterList', type: 'typeFilterList',
-  pos: 'posFilterList', city: 'cityFilterList',
+  type: 'typeFilterList', pos: 'posFilterList', city: 'cityFilterList',
 };
+
+// ── 「全部」选项：类型/岗位的集合语义 = "要显示的项"（默认全集 = 全部激活）──
+// 空集 = 全部取消（0 结果）；用户主动排除任一后自动取消「全部」激活
+function filterAllState(key) {
+  const options = getFilterOptions(key);
+  const total = options.length;                                   // 类别数（用于判定「全部」激活）
+  const sum = options.reduce((a, o) => a + (o.count || 0), 0);    // 岗位数之和（用于展示）
+  const size = FILTER_SET_MAP_JOBS[key].size;
+  return { total, sum, active: total > 0 && size === total };
+}
+// 单项勾选/取消后，同步「全部」开关的激活态与勾选态（不重建列表，避免丢滚动位置）
+function updateAllItemState(key) {
+  if (key !== 'type' && key !== 'pos') return;
+  const el = document.querySelector(`#${FILTER_LIST_MAP[key]} .col-filter-all`);
+  if (!el) return;
+  const { active } = filterAllState(key);
+  el.classList.toggle('active', active);
+  const cb = el.querySelector('input');
+  if (cb) cb.checked = active;
+}
+function toggleFilterAll(key) {
+  const options = getFilterOptions(key);
+  const set = FILTER_SET_MAP_JOBS[key];
+  const allActive = options.length > 0 && set.size === options.length;
+  set.clear();
+  if (!allActive) options.forEach(o => set.add(o.name));   // 未激活 → 恢复全选
+  applyFilter();
+  updateHeaderFilterState(key);
+  renderActiveFilters();
+  refreshFilterLists();
+}
 
 // ── Toast ──
 let _toastTimer = null, _toastQueue = [];
@@ -2008,6 +2040,72 @@ function hideUndoBar() {
   clearTimeout(_undoTimer);
   _undoTimer = null;
 }
+
+// ── 全局悬浮提示（tooltip）：fixed 定位，规避 td overflow:hidden 裁剪 ──
+// 用法：容器加 class="has-tip" + data-tip="完整文本"；仅在内容确实被截断时显示
+(function initGlobalTip() {
+  const tip = document.createElement('div');
+  tip.className = 'global-tip';
+  document.body.appendChild(tip);
+  let currentEl = null;
+
+  const GAP = 10;
+  // zoom 换算：getBoundingClientRect 给视觉坐标，而 style.left/top 会被 zoom 再次缩放
+  // → 统一在 CSS 值坐标系（视觉值 ÷ zoom）中计算与赋值
+  function zoomFactor() {
+    const raw = getComputedStyle(document.documentElement).zoom;
+    const z = parseFloat(raw);
+    return (raw && raw !== 'normal' && !isNaN(z) && z > 0) ? z : 1;
+  }
+  function position(el) {
+    const z = zoomFactor();
+    const r = el.getBoundingClientRect();
+    tip.classList.remove('tip-above', 'tip-below');
+    tip.style.left = '0px'; tip.style.top = '0px';
+    const tr = tip.getBoundingClientRect();
+    const L = r.left / z, T = r.top / z, W = r.width / z, B = r.bottom / z;   // → CSS 值
+    const tw = tr.width / z, th = tr.height / z;
+    const vw = document.documentElement.clientWidth;  // CSS 值视口宽（同坐标系）
+    const above = T >= th + GAP;                      // 上方空间足够则显示在上方
+    tip.classList.add(above ? 'tip-above' : 'tip-below');
+    const left = Math.min(Math.max(L + W / 2 - tw / 2, 8), vw - tw - 8);
+    tip.style.left = left + 'px';                     // CSS 值 → 渲染时 ×z 得到目标视觉位置
+    tip.style.top = (above ? T - th - GAP : B + GAP) + 'px';
+  }
+
+  function show(el) {
+    const text = el.getAttribute('data-tip');
+    if (!text) return;
+    if (el.scrollWidth <= el.clientWidth) return;    // 内容未被截断则不提示
+    currentEl = el;
+    tip.textContent = text;
+    tip.classList.add('show');
+    position(el);
+  }
+
+  function hide() {
+    if (!currentEl) return;
+    currentEl = null;
+    tip.classList.remove('show');
+  }
+
+  document.addEventListener('mouseover', e => {
+    const el = e.target.closest && e.target.closest('.has-tip[data-tip]');
+    if (!el || el === currentEl) return;
+    show(el);
+  });
+  document.addEventListener('mouseout', e => {
+    if (!currentEl) return;
+    const el = e.target.closest && e.target.closest('.has-tip[data-tip]');
+    if (el !== currentEl) return;
+    const to = e.relatedTarget;
+    if (to && currentEl.contains(to)) return;        // 单元格内部移动，不隐藏
+    hide();
+  });
+  document.addEventListener('click', hide);
+  window.addEventListener('scroll', hide, { passive: true });
+  window.addEventListener('resize', hide);
+})();
 
 // ── 自定义 Confirm（替代原生 confirm） ──
 function showConfirm(msg, title) {
@@ -2196,7 +2294,12 @@ function loadData() {
       document.getElementById('statCompany').textContent = uniqueCompanies.toLocaleString();
       document.getElementById('statCity').textContent = uniqueCities.toLocaleString();
       // Build filter lists
-      buildColFilterList('companyFilterList', buildCompanyCount(), selectedCompanies, 'company');
+      // 初始化筛选集合为全集（「全部」默认激活）：类型/岗位语义 = 要显示的项
+      _filterCountMaps.type = typeCount;
+      _filterCountMaps.pos = posCount;
+      _filterCountMaps.city = cityCount;
+      selectedTypes = new Set(Object.keys(typeCount));
+      selectedPositions = new Set(getFilterOptions('pos').map(o => o.name));
       buildColFilterList('typeFilterList', typeCount, selectedTypes, 'type');
       buildColFilterList('posFilterList', posCount, selectedPositions, 'pos');
       buildColFilterList('cityFilterList', cityCount, selectedCities, 'city');
@@ -2232,17 +2335,21 @@ loadData();
   window._analyticsAuth = (user) => { if (user) track('login'); };
 })();
 
-function buildCompanyCount() {
-  const m = {};
-  allJobs.forEach(j => { if (j.company) m[j.company] = (m[j.company] || 0) + 1; });
-  return m;
-}
 
 // ── Column filter list builder ──
 function buildColFilterList(containerId, countMap, selectedSet, type) {
   const container = document.getElementById(containerId);
   const sorted = Object.entries(countMap).sort((a, b) => b[1] - a[1]);
   container.innerHTML = '';
+  // 类型/岗位：首位置顶「全部」开关（激活 = 全选；点击在「全选 / 全不选」间切换）
+  if (type === 'type' || type === 'pos') {
+    const { sum, active } = filterAllState(type);
+    const allItem = document.createElement('label');
+    allItem.className = 'col-filter-item col-filter-all' + (active ? ' active' : '');
+    allItem.innerHTML = `<input type="checkbox" ${active ? 'checked' : ''}><span>全部</span><span class="count">${sum}</span>`;
+    allItem.querySelector('input').addEventListener('change', () => toggleFilterAll(type));
+    container.appendChild(allItem);
+  }
   for (const [name, count] of sorted) {
     const item = document.createElement('label');
     item.className = 'col-filter-item';
@@ -2253,15 +2360,13 @@ function buildColFilterList(containerId, countMap, selectedSet, type) {
       applyFilter();
       updateHeaderFilterState(type);
       renderActiveFilters();
+      updateAllItemState(type);   // 主动排除/选择任一项 → 自动取消「全部」激活
     });
     container.appendChild(item);
   }
 }
 
 // ── Column filter search ──
-document.getElementById('companySearchInput').addEventListener('input', e => colFilterSearch('companyFilterList', e.target.value));
-document.getElementById('typeSearchInput').addEventListener('input', e => colFilterSearch('typeFilterList', e.target.value));
-document.getElementById('posSearchInput').addEventListener('input', e => colFilterSearch('posFilterList', e.target.value));
 document.getElementById('citySearchInput').addEventListener('input', e => colFilterSearch('cityFilterList', e.target.value));
 function colFilterSearch(listId, query) {
   const items = document.getElementById(listId).querySelectorAll('.col-filter-item');
@@ -2291,7 +2396,6 @@ function setupColDropdown(headerId, ddId) {
     syncThOpen(willOpen);
   });
 }
-setupColDropdown('companyFilterHeader', 'companyDD');
 setupColDropdown('typeFilterHeader', 'typeDD');
 setupColDropdown('posFilterHeader', 'posDD');
 setupColDropdown('cityFilterHeader', 'cityDD');
@@ -2408,8 +2512,14 @@ initCusSelect('cusSortSelect', 'progressSortSelect', 'cusSortPanel', () => { ren
 
 // ── Update header filter indicator ──
 function updateHeaderFilterState(type) {
-  const map = { company: 'companyFilterHeader', type: 'typeFilterHeader', pos: 'posFilterHeader', city: 'cityFilterHeader' };
-  document.getElementById(map[type]).classList.toggle('has-filter', FILTER_SET_MAP_JOBS[type].size > 0);
+  const map = { type: 'typeFilterHeader', pos: 'posFilterHeader', city: 'cityFilterHeader' };
+  const el = document.getElementById(map[type]);
+  if (!el) return;
+  if (type === 'type' || type === 'pos') {
+    el.classList.toggle('has-filter', !filterAllState(type).active);   // 非全选才高亮
+  } else {
+    el.classList.toggle('has-filter', FILTER_SET_MAP_JOBS[type].size > 0);
+  }
 }
 
 // ── Active filters display ──
@@ -2417,7 +2527,6 @@ function renderActiveFilters() {
   const container = document.getElementById('activeFilters');
   if (container) {
     const groups = [
-      { key: 'company', label: '公司', set: selectedCompanies },
       { key: 'type', label: '类型', set: selectedTypes },
       { key: 'pos', label: '岗位', set: selectedPositions },
       { key: 'city', label: '城市', set: selectedCities },
@@ -2425,6 +2534,8 @@ function renderActiveFilters() {
     let html = '';
     for (const g of groups) {
       if (g.set.size === 0) continue;
+      // 类型/岗位：全集时视为无筛选，不显示标签
+      if ((g.key === 'type' || g.key === 'pos') && filterAllState(g.key).active) continue;
       const arr = [...g.set];
       if (arr.length === 1) {
         html += `<span class="active-tag">${g.label}: ${esc(arr[0])} <span class="remove" onclick="removeFilter('${g.key}','${esc(arr[0])}')">&times;</span></span>`;
@@ -2441,11 +2552,11 @@ function renderActiveFilters() {
   renderMobileFilterBar();
 }
 
-const FILTER_LABELS = { company: '公司', type: '类型', pos: '岗位', city: '城市' };
+const FILTER_LABELS = { type: '类型', pos: '岗位', city: '城市' };
 function renderMobileFilterBar() {
   const bar = document.getElementById('mobileFilterBar');
   if (!bar) return;
-  const sets = { company: selectedCompanies, type: selectedTypes, pos: selectedPositions, city: selectedCities };
+  const sets = { type: selectedTypes, pos: selectedPositions, city: selectedCities };
   let html = '';
   for (const [key, set] of Object.entries(sets)) {
     if (set.size === 0) continue;
@@ -2491,10 +2602,13 @@ function removeFilter(type, value) {
 
 // ── Clear all ──
 document.getElementById('clearAllBtn').addEventListener('click', () => {
-  selectedCities.clear(); selectedPositions.clear(); selectedCompanies.clear(); selectedTypes.clear();
+  selectedCities.clear();
+  // 类型/岗位：清空 = 恢复全集（「全部」重新激活）
+  selectedTypes = new Set(Object.keys(_filterCountMaps.type || {}));
+  selectedPositions = new Set(getFilterOptions('pos').map(o => o.name));
   $.searchInput.value = '';
-  document.querySelectorAll('.col-filter-item input').forEach(cb => cb.checked = false);
-  ['company', 'type', 'pos', 'city'].forEach(t => updateHeaderFilterState(t));
+  ['type', 'pos', 'city'].forEach(t => updateHeaderFilterState(t));
+  refreshFilterLists();
   renderActiveFilters();
   applyFilter();
   updateMobileFilterBtn();
@@ -2514,10 +2628,19 @@ function applyFilter() {
       const hay = `${job.company} ${job.positions} ${job.location} ${job.industry || ''} ${job.recruitmentType || ''}`.toLowerCase();
       if (!hay.includes(query)) return false;
     }
-    if (selectedCompanies.size > 0 && !selectedCompanies.has(job.company)) return false;
-    if (selectedTypes.size > 0 && !selectedTypes.has(job.recruitmentType)) return false;
+    // 类型/岗位：集合语义 = 要显示的项（空集 = 全部取消 → 0 结果）
+    // 「全集」（未做任何排除）时不做过滤：否则 _posTags 为空的岗位会被误排除（默认视图不完整）
+    const typeKeys = Object.keys(_filterCountMaps.type || {});
+    const typeAllActive = typeKeys.length > 0 && selectedTypes.size === typeKeys.length;
+    if (!typeAllActive && !selectedTypes.has(job.recruitmentType)) return false;
+    const posKeys = Object.keys(_filterCountMaps.pos || {});
+    const posAllActive = posKeys.length > 0 && selectedPositions.size === posKeys.length;
+    if (!posAllActive) {
+      if (selectedPositions.size === 0) return false;
+      if (!job._posTags || job._posTags.length === 0) return false;
+      if (!job._posTags.some(t => selectedPositions.has(t))) return false;
+    }
     if (selectedCities.size > 0 && !job._cities.some(c => selectedCities.has(c))) return false;
-    if (selectedPositions.size > 0 && !job._posTags.some(t => selectedPositions.has(t))) return false;
     return true;
   });
   applySort();
@@ -2577,10 +2700,10 @@ function renderTable() {
       <td class="col-check"><input type="checkbox" data-idx="${i}" data-key="${esc(jobKey)}" ${isChecked ? 'checked' : ''} onchange="onCheckChange(this)"></td>
       <td class="col-no">${no}</td>
       <td class="col-date">${esc(job.publishDate)}</td>
-      <td class="col-company has-tip" data-idx="${i}" onclick="showCompanyDetailByIndex(${start}+${i})"><span class="tip">${esc(job.company)}</span>${esc(job.company)}${isNew ? '<span class="job-card-new" style="margin-left:6px">新</span>' : ''}</td>
+      <td class="col-company has-tip" data-idx="${i}" data-tip="${esc(job.company)}" onclick="showCompanyDetailByIndex(${start}+${i})">${esc(job.company)}${isNew ? '<span class="job-card-new" style="margin-left:6px">新</span>' : ''}</td>
       <td class="col-type"><span class="type-tag ${typeClass}">${esc(job.recruitmentType)}</span></td>
-      <td class="col-position has-tip"><span class="tip">${esc(job.positions)}</span>${esc(job.positions)}</td>
-      <td class="col-city has-tip"><span class="tip">${esc(job.location)}</span>${esc(job.location)}</td>
+      <td class="col-position has-tip" data-tip="${esc(job.positions)}">${esc(job.positions)}</td>
+      <td class="col-city has-tip" data-tip="${esc(job.location)}">${esc(job.location)}</td>
       <td class="col-deadline ${deadlineClass}">${esc(job.deadline || '-')}</td>
       <td class="col-link">${links.join('')}</td>
     </tr>`;
@@ -2751,7 +2874,7 @@ function renderProgressCards(records) {
 }
 
 // ── 筛选抽屉（二级结构） ──
-const FILTER_SET_MAP = { company: () => selectedCompanies, type: () => selectedTypes, pos: () => selectedPositions, city: () => selectedCities };
+const FILTER_SET_MAP = { type: () => selectedTypes, pos: () => selectedPositions, city: () => selectedCities };
 let drawerSelectedFilters = {};
 
 let drawerScrollY = 0;
@@ -2780,7 +2903,7 @@ function closeFilterDrawer() {
 
 function buildFilterDrawerContent() {
   const container = document.getElementById('filterDrawerContent');
-  const categories = ['company', 'type', 'pos', 'city'];
+  const categories = ['type', 'pos', 'city'];
   container.innerHTML = `<div class="filter-category-list">${
     categories.map(key => {
       const label = FILTER_LABELS[key];
@@ -2814,13 +2937,24 @@ function renderCategoryOptions(key, searchTerm) {
     const q = searchTerm.toLowerCase();
     filtered = options.filter(opt => opt.name.toLowerCase().includes(q));
   }
-  container.innerHTML = filtered.slice(0, 100).map(opt => {
+  let html = '';
+  // 类型/岗位：首位置顶「全部」开关（无搜索词时显示）
+  if ((key === 'type' || key === 'pos') && !searchTerm) {
+    const allOptions = getFilterOptions(key);
+    const allActive = allOptions.length > 0 && selected.size === allOptions.length;
+    const allSum = allOptions.reduce((a, o) => a + (o.count || 0), 0);
+    html += `<div class="filter-category-option ${allActive ? 'selected' : ''}" onclick="toggleDrawerAll('${key}')">
+      <span>全部</span><span class="opt-count">${allSum}</span>
+    </div>`;
+  }
+  html += filtered.slice(0, 100).map(opt => {
     const isSelected = selected.has(opt.name);
     return `<div class="filter-category-option ${isSelected ? 'selected' : ''}" onclick="toggleDrawerOption('${key}','${esc(opt.name)}',this)">
       <span>${esc(opt.name)}</span>
       <span class="opt-count">${opt.count}</span>
     </div>`;
   }).join('');
+  container.innerHTML = html;
 }
 
 function filterCategoryOptions(key, term) {
@@ -2835,6 +2969,16 @@ function toggleFilterCategory(key) {
   document.querySelectorAll('.filter-category.open').forEach(c => c.classList.remove('open'));
   // 展开当前点击的（原本收起的才展开）
   if (!isOpen) el.classList.add('open');
+}
+
+function toggleDrawerAll(key) {
+  const options = getFilterOptions(key);
+  const cur = drawerSelectedFilters[key] || new Set();
+  const allActive = options.length > 0 && cur.size === options.length;
+  const next = new Set();
+  if (!allActive) options.forEach(o => next.add(o.name));   // 未激活 → 恢复全选
+  drawerSelectedFilters[key] = next;
+  buildFilterDrawerContent();   // 重建抽屉（同步计数与勾选态）
 }
 
 function toggleDrawerOption(type, value, el) {
@@ -2862,7 +3006,7 @@ function toggleDrawerOption(type, value, el) {
 }
 
 function applyFilterDrawer() {
-  const setterMap = { company: v => { selectedCompanies = v; }, type: v => { selectedTypes = v; }, pos: v => { selectedPositions = v; }, city: v => { selectedCities = v; } };
+  const setterMap = { type: v => { selectedTypes = v; }, pos: v => { selectedPositions = v; }, city: v => { selectedCities = v; } };
   Object.keys(FILTER_SET_MAP).forEach(key => {
     const src = drawerSelectedFilters[key] || new Set();
     setterMap[key](new Set(src));
@@ -2875,11 +3019,13 @@ function applyFilterDrawer() {
 }
 
 function resetFilters() {
-  selectedCities.clear(); selectedPositions.clear(); selectedCompanies.clear(); selectedTypes.clear();
+  selectedCities.clear();
+  selectedTypes = new Set(Object.keys(_filterCountMaps.type || {}));
+  selectedPositions = new Set(getFilterOptions('pos').map(o => o.name));
   drawerSelectedFilters = {};
   $.searchInput.value = '';
-  document.querySelectorAll('.col-filter-item input').forEach(cb => cb.checked = false);
-  ['company', 'type', 'pos', 'city'].forEach(t => updateHeaderFilterState(t));
+  ['type', 'pos', 'city'].forEach(t => updateHeaderFilterState(t));
+  refreshFilterLists();
   currentPage = 1;
   applyFilter();
   renderActiveFilters();
@@ -2890,15 +3036,18 @@ function resetFilters() {
 function updateMobileFilterBtn() {
   const btn = document.getElementById('mobileFilterBtn');
   if (!btn) return;
-  const hasFilter = selectedCompanies.size > 0 || selectedTypes.size > 0 || selectedPositions.size > 0 || selectedCities.size > 0;
+  const hasFilter = !filterAllState('type').active || !filterAllState('pos').active || selectedCities.size > 0;
   btn.classList.toggle('has-filter', hasFilter);
 }
 
 function clearAllFilters() {
-  selectedCities.clear(); selectedPositions.clear(); selectedCompanies.clear(); selectedTypes.clear();
+  selectedCities.clear();
+  // 类型/岗位：清空筛选 = 恢复全集（「全部」重新激活）
+  selectedTypes = new Set(Object.keys(_filterCountMaps.type || {}));
+  selectedPositions = new Set(getFilterOptions('pos').map(o => o.name));
   $.searchInput.value = '';
-  document.querySelectorAll('.col-filter-item input').forEach(cb => cb.checked = false);
-  ['company', 'type', 'pos', 'city'].forEach(t => updateHeaderFilterState(t));
+  ['type', 'pos', 'city'].forEach(t => updateHeaderFilterState(t));
+  refreshFilterLists();
   currentPage = 1;
   applyFilter();
   renderActiveFilters();
@@ -3496,9 +3645,9 @@ function renderProgressTable(records) {
     return `<tr data-id="${r.id}" class="${rc}">
       <td class="col-check"><input type="checkbox" data-id="${r.id}" onchange="updateBatchDeleteBtn()"></td>
       <td class="col-date">${esc(r.applyDate)}</td>
-      <td class="col-company has-tip"><span class="tip">${esc(r.company)}</span>${esc(r.company)}</td>
-      <td class="col-position has-tip"><span class="tip">${esc(r.position)}</span>${esc(r.position)}</td>
-      <td class="col-city has-tip"><span class="tip">${esc(r.city)}</span>${esc(r.city)}</td>
+      <td class="col-company has-tip" data-tip="${esc(r.company)}">${esc(r.company)}</td>
+      <td class="col-position has-tip" data-tip="${esc(r.position)}">${esc(r.position)}</td>
+      <td class="col-city has-tip" data-tip="${esc(r.city)}">${esc(r.city)}</td>
       <td class="col-stage">
         <div class="cus-select inline cus-stage-inline" data-id="${r.id}">
           <button type="button" class="cus-select-trigger" style="background:${STAGE_COLORS[r.progress] || 'rgba(59,130,246,.1)'};border-color:transparent;color:inherit"><span class="cs-label">${esc(r.progress)}</span><span class="cs-arrow">▼</span></button>
