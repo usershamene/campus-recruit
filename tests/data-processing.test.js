@@ -257,6 +257,23 @@ describe('processData 数据清洗流水线', () => {
     assert.equal(processed[0].recruitmentType, '央国企招聘');
   });
 
+  test('反爬链接过滤：givemeoc 岗位移除 / 仅 announcement 命中则清该链接保留岗位 / 正规域名不误伤', () => {
+    const mk = o => ({ company: '测试公司', positions: '工程师', location: '北京', applyUrl: '', announcementUrl: '', deadline: '', publishDate: '2026-08-01', recruitmentType: '', companyType: '', industry: '', source: 'test', ...o });
+    const { processed } = processData([
+      // applyUrl 与 announcementUrl 均为反爬站 → 移除
+      mk({ company: '反爬岗位', applyUrl: 'https://www.givemeoc.com/780.html', announcementUrl: 'https://givemeoc.com/781.html' }),
+      // applyUrl 反爬、公告为官方 → 保留岗位，仅清 applyUrl
+      mk({ company: '有公告的公司', applyUrl: 'https://sub.givemeoc.com/x', announcementUrl: 'https://mp.weixin.qq.com/s/abc' }),
+      // 域名参数里含 givemeoc 但 hostname 是正规平台 → 不误伤
+      mk({ company: '应届生链接', applyUrl: 'https://young.yingjiesheng.com/xyzlogin?jumpurl=https%3A%2F%2Fwww.givemeoc.com%2F780.html' }),
+    ]);
+    const byName = Object.fromEntries(processed.map(j => [j.company, j]));
+    assert.ok(!byName['反爬岗位'], '反爬岗位应被移除');
+    assert.equal(byName['有公告的公司'].applyUrl, '');
+    assert.equal(byName['有公告的公司'].announcementUrl, 'https://mp.weixin.qq.com/s/abc');
+    assert.ok(byName['应届生链接'], '正规域名不应被误伤');
+  });
+
   test('isSOE 兜底判定国企', () => {
     const { processed } = processData([mk({ company: '国家电网', applyUrl: 'http://x' })]);
     assert.equal(processed[0].recruitmentType, '央国企招聘');
@@ -290,7 +307,7 @@ describe('processData 数据清洗流水线', () => {
 
   test('空数组安全', () => {
     const r = processData([]);
-    assert.deepEqual(r, { processed: [], loginFiltered: 0, expired: 0 });
+    assert.deepEqual(r, { processed: [], loginFiltered: 0, expired: 0, antiCrawlRemoved: 0 });
   });
 
   test('TYPE_MAP 关键映射存在', () => {

@@ -248,6 +248,7 @@ async function main() {
   console.log(`原有数据: ${existingCount} 条`);
   console.log(`本次新增: ${addedCount} 条`);
   console.log(`登录墙过滤: ${loginFiltered} 条`);
+  if (antiCrawlRemoved > 0) console.log(`反爬链接移除: ${antiCrawlRemoved} 条`);
   console.log(`过期移除: ${expiredCount} 条`);
   console.log(`最终总量: ${processed.length} 条`);
 
