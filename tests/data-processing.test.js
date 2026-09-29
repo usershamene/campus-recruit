@@ -226,10 +226,10 @@ describe('processData 数据清洗流水线', () => {
 
   test('过期岗位剔除（deadline < 今天）', () => {
     const { processed, expired } = processData([
-      mk({ deadline: '2020-01-01' }),
-      mk({ deadline: '2026-12-31' }),
-      mk({ deadline: '尽快投递' }),
-      mk({ deadline: '' }),
+      mk({ positions: '工程师1', deadline: '2020-01-01' }),
+      mk({ positions: '工程师2', deadline: '2026-12-31' }),
+      mk({ positions: '工程师3', deadline: '尽快投递' }),
+      mk({ positions: '工程师4', deadline: '' }),
     ]);
     assert.equal(processed.length, 3);
     assert.equal(expired, 1);
@@ -274,6 +274,16 @@ describe('processData 数据清洗流水线', () => {
     assert.ok(byName['应届生链接'], '正规域名不应被误伤');
   });
 
+  test('岗位名清洗导致的归一化重复会被合并（不再产生纯冗余）', () => {
+    const mk = o => ({ company: '测试公司', positions: '工程师', location: '北京', applyUrl: '', announcementUrl: '', deadline: '', publishDate: '2026-08-01', recruitmentType: '', companyType: '', industry: '', source: 'test', ...o });
+    const { processed } = processData([
+      mk({ company: '同公司', positions: '工程师、' }),      // 尾部顿号 → 清洗后 '工程师'
+      mk({ company: '同公司', positions: '工程师' }),        // 已规范 → 键相同
+    ]);
+    const same = processed.filter(j => j.company === '同公司');
+    assert.equal(same.length, 1, '清洗后归一化相同的记录应合并为一条');
+  });
+
   test('isSOE 兜底判定国企', () => {
     const { processed } = processData([mk({ company: '国家电网', applyUrl: 'http://x' })]);
     assert.equal(processed[0].recruitmentType, '央国企招聘');
@@ -291,8 +301,8 @@ describe('processData 数据清洗流水线', () => {
 
   test('ID 连续重排 + 按发布时间倒序', () => {
     const { processed } = processData([
-      mk({ publishDate: '2026-08-01' }),
-      mk({ publishDate: '2026-08-10' }),
+      mk({ positions: '工程师1', publishDate: '2026-08-01' }),
+      mk({ positions: '工程师2', publishDate: '2026-08-10' }),
     ]);
     assert.equal(processed[0].publishDate, '2026-08-10');
     assert.deepEqual(processed.map(j => j.id), [1, 2]);

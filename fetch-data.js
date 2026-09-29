@@ -241,7 +241,7 @@ async function main() {
   }
 
   // Process: normalize, remove expired, clean
-  const { processed, loginFiltered, expired } = processData(merged);
+  const { processed, loginFiltered, expired, antiCrawlRemoved } = processData(merged);
   const expiredCount = expired;
 
   console.log('\n=== 增量更新结果 ===');
@@ -267,4 +267,5 @@ async function main() {
 
 }
 
-main().catch(console.error);
+// 失败显性化：异常必须以非 0 退出码结束，否则 Actions 会显示 success 而静默丢失数据
+main().catch(e => { console.error(e); process.exitCode = 1; });
